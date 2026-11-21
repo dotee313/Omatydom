@@ -2,11 +2,11 @@
 <resources>
     <string name="app_name">Omatydom</string>
     <string name="title">Omatydom — عالم مصغّر حيّ</string>
-    <string name="pause">Pause</string>
-    <string name="speed">Speed</string>
-    <string name="control">Take control</string>
-    <string name="assassinate">Assassinate</string>
-    <string name="events_header">Chronicle (newest first)</string>
+    <string name="pause">إيقاف الزمن أو متابعته</string>
+    <string name="speed">تغيير سرعة الزمن</string>
+    <string name="control">تولي قرارات الحاكم أو تركها له</string>
+    <string name="assassinate">إزالة الحاكم الحالي</string>
+    <string name="events_header">السجل — الأحدث أولًا</string>
     <string name="people_header">السكان — اضغط على أي وجه لتعيينه حاكمًا</string>
     <string name="decrees_header">المراسيم — اضغط أيقونة لتنفيذها</string>
     <string name="nav_world">الجزيرة</string>
@@ -15,4 +15,9 @@
     <string name="nav_powers">القدرات</string>
     <string name="powers_header">القدرات — اضغط أيقونة لتأثيرها على الجزيرة</string>
     <string name="nav_events">الأحداث</string>
+    <string name="logo_description">شعار أوماطيدوم</string>
+    <string name="utility_info">معلومات عن اللعبة</string>
+    <string name="utility_mods">تغيير نمط اللعبة</string>
+    <string name="utility_settings">إعدادات الزمن</string>
+    <string name="trade_routes_initial">طرق التجارة: —</string>
 </resources>

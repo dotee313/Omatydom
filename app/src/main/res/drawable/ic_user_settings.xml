@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simplified from the user's original icon-settings.svg: three concentric
+     hexagons (brown / white / brown). The outer hexagon's SVG rotation is
+     baked into its coordinates; the tiny near-identity transforms on the
+     two inner hexagons were omitted. Black hairline strokes were dropped. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="2048"
+    android:viewportHeight="2048">
+
+    <path
+        android:pathData="M431.84,1525.30 L293.78,761.82 L885.94,260.53 L1616.16,522.70 L1754.22,1286.18 L1162.06,1787.47 L431.84,1525.30 L431.84,1525.30 Z"
+        android:fillColor="@color/user_brown" />
+
+    <path
+        android:pathData="M832.6,1355.51 L641.21,1024 L832.6,692.49 L1215.4,692.49 L1406.79,1024 L1215.4,1355.51 L832.6,1355.51 Z"
+        android:fillColor="@color/user_white" />
+
+    <path
+        android:pathData="M886.55,1262.07 L749.1,1024 L886.55,785.93 L1161.45,785.93 L1298.9,1024 L1161.45,1262.07 L886.55,1262.07 Z"
+        android:fillColor="@color/user_brown" />
+</vector>

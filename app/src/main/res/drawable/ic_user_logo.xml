@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simplified from the user's original logo.svg (2048x2048 viewport).
+     The white background rectangle and the thin guide lines were dropped;
+     the SVG transforms are baked into the coordinates for API 21 safety. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="2048"
+    android:viewportHeight="2048">
+
+    <!-- Burgundy field. -->
+    <path
+        android:pathData="M0,0 L2048,0 L2048,2048 L0,2048 Z"
+        android:fillColor="@color/user_burgundy" />
+
+    <!-- Rotated octagonal frame with its star-shaped cut-out. -->
+    <path
+        android:pathData="M1022.23,1774.59 L492.00,1553.50 L273.41,1022.23 L494.50,492.00 L1025.77,273.41 L1556.00,494.50 L1774.59,1025.77 L1553.50,1556.00 L1022.23,1774.59 Z M1022.28,1753.15 L1177.79,1397.79 L1538.37,1540.81 L1397.05,1179.56 L1753.15,1025.72 L1397.79,870.21 L1540.81,509.63 L1179.56,650.95 L1025.72,294.85 L870.21,650.21 L509.63,507.19 L650.95,868.44 L294.85,1022.28 L650.21,1177.79 L507.19,1538.37 L868.44,1397.05 L1022.28,1753.15 Z"
+        android:fillColor="@color/user_orange" />
+
+    <!-- Eight-point compass star. -->
+    <path
+        android:pathData="M886.26,1716.49 L865,1407.86 L631.74,1611.06 L730.2,1317.8 L436.94,1416.26 L640.14,1183 L331.51,1161.74 L608.51,1024 L331.51,886.26 L640.14,865 L436.94,631.74 L730.2,730.2 L631.74,436.94 L865,640.14 L886.26,331.51 L1024,608.51 L1161.74,331.51 L1183,640.14 L1416.26,436.94 L1317.8,730.2 L1611.06,631.74 L1407.86,865 L1716.49,886.26 L1439.49,1024 L1716.49,1161.74 L1407.86,1183 L1611.06,1416.26 L1317.8,1317.8 L1416.26,1611.06 L1183,1407.86 L1161.74,1716.49 L1024,1439.49 L886.26,1716.49 L886.26,1716.49 Z"
+        android:fillColor="@color/user_orange" />
+
+    <!-- Small burgundy star at the centre. -->
+    <path
+        android:pathData="M858.89,1422.49 L854.91,1193.05 L625.48,1189.03 L784.90,1023.98 L625.52,858.89 L854.95,854.91 L858.97,625.48 L1024.02,784.90 L1189.11,625.52 L1193.09,854.95 L1422.52,858.97 L1263.10,1024.02 L1422.48,1189.11 L1193.05,1193.09 L1189.03,1422.53 L1023.98,1263.10 L858.89,1422.49 L858.89,1422.49 Z"
+        android:fillColor="@color/user_burgundy" />
+</vector>

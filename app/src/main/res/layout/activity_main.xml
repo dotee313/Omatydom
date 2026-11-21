@@ -2,25 +2,42 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FF0E1720"
+    android:background="@color/user_dark"
     android:orientation="vertical"
     android:padding="6dp">
 
-    <TextView
-        android:id="@+id/titleText"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_panel"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:paddingBottom="3dp"
+        android:background="@color/user_burgundy"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="4dp"
         android:paddingLeft="7dp"
         android:paddingRight="7dp"
-        android:paddingTop="3dp"
-        android:text="@string/title"
-        android:textColor="#FFFFFFFF"
-        android:textSize="15sp"
-        android:textStyle="bold" />
+        android:paddingTop="4dp">
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:contentDescription="@string/logo_description"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_user_logo" />
+
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingLeft="6dp"
+            android:paddingRight="6dp"
+            android:text="@string/title"
+            android:textColor="@color/user_white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/statusText"
@@ -34,7 +51,7 @@
         android:paddingLeft="6dp"
         android:paddingRight="6dp"
         android:paddingTop="3dp"
-        android:textColor="#FFCFD8DC"
+        android:textColor="#FFFFF3E0"
         android:textSize="10sp" />
 
     <TextView
@@ -46,12 +63,53 @@
         android:maxLines="1"
         android:paddingLeft="4dp"
         android:paddingRight="4dp"
-        android:textColor="#FFFFD54F"
+        android:textColor="@color/user_orange"
         android:textSize="10sp" />
 
     <LinearLayout
+        android:id="@+id/utilityBar"
         android:layout_width="match_parent"
-        android:layout_height="34dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="3dp"
+        android:background="@drawable/bg_bar"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/utilityInfoButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="3dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button"
+            android:contentDescription="@string/utility_info"
+            android:padding="3dp"
+            android:scaleType="fitCenter" />
+
+        <ImageButton
+            android:id="@+id/utilityModsButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="3dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button"
+            android:contentDescription="@string/utility_mods"
+            android:padding="3dp"
+            android:scaleType="fitCenter" />
+
+        <ImageButton
+            android:id="@+id/utilitySettingsButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button"
+            android:contentDescription="@string/utility_settings"
+            android:padding="3dp"
+            android:scaleType="fitCenter" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
         android:layout_marginTop="3dp"
         android:background="@drawable/bg_bar"
         android:orientation="horizontal">
@@ -103,7 +161,7 @@
     <LinearLayout
         android:id="@+id/resourceStrip"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="38dp"
         android:layout_marginTop="3dp"
         android:background="@drawable/bg_bar"
         android:orientation="horizontal"
@@ -118,7 +176,7 @@
         android:maxLines="2"
         android:paddingLeft="4dp"
         android:paddingRight="4dp"
-        android:textColor="#FF90CAF9"
+        android:textColor="@color/user_orange"
         android:textSize="9sp" />
 
     <ProgressBar
@@ -129,7 +187,7 @@
         android:layout_marginTop="1dp"
         android:max="100"
         android:progress="0"
-        android:progressTint="#FF81C784" />
+        android:progressTint="@color/user_orange" />
 
     <FrameLayout
         android:id="@+id/pageContainer"
@@ -148,7 +206,7 @@
             <LinearLayout
                 android:id="@+id/overlayBar"
                 android:layout_width="match_parent"
-                android:layout_height="34dp"
+                android:layout_height="40dp"
                 android:background="@drawable/bg_bar"
                 android:orientation="horizontal">
 
@@ -385,7 +443,7 @@
                         android:layout_height="match_parent"
                         android:layout_marginLeft="2dp"
                         android:layout_marginRight="4dp"
-                        android:background="#FF4A5F6E" />
+                        android:background="@color/user_brown" />
 
                     <ImageButton
                         android:id="@+id/zoomInButton"
@@ -441,7 +499,7 @@
                 android:paddingRight="6dp"
                 android:paddingTop="2dp"
                 android:text="الفرشاة: فحص — اضغط أي شيء لتقرأ شرحه."
-                android:textColor="#FFB0BEC5"
+                android:textColor="#FFFFF3E0"
                 android:textSize="9sp" />
 
             <com.dotee313.omatydom.android.IslandView
@@ -465,7 +523,8 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp"
                 android:text="@string/people_header"
-                android:textColor="#FFFFFFFF"
+                android:background="@drawable/bg_bar"
+                android:textColor="@color/user_white"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -495,7 +554,8 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp"
                 android:text="الطبيعة — القوانين، الأحياء الحيوية والموارد — اضغط أيقونة لتعرفها"
-                android:textColor="#FFFFFFFF"
+                android:background="@drawable/bg_bar"
+                android:textColor="@color/user_white"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -525,7 +585,8 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp"
                 android:text="المخلوقات — اضغط + لتطلق مخلوقًا جديدًا في الجزيرة"
-                android:textColor="#FFFFFFFF"
+                android:background="@drawable/bg_bar"
+                android:textColor="@color/user_white"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -555,13 +616,14 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp"
                 android:text="الممالك — العشائر، الثقافة، الحروب، التقنيات والمراسيم"
-                android:textColor="#FFFFFFFF"
+                android:background="@drawable/bg_bar"
+                android:textColor="@color/user_white"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="38dp"
+                android:layout_height="40dp"
                 android:background="@drawable/bg_bar"
                 android:orientation="horizontal">
 
@@ -612,10 +674,23 @@
             <LinearLayout
                 android:id="@+id/warTypeRow"
                 android:layout_width="match_parent"
-                android:layout_height="32dp"
+                android:layout_height="40dp"
                 android:layout_marginTop="2dp"
                 android:background="@drawable/bg_bar"
                 android:orientation="horizontal" />
+
+            <TextView
+                android:id="@+id/tradeRouteText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:background="@drawable/bg_panel"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:padding="4dp"
+                android:text="@string/trade_routes_initial"
+                android:textColor="@color/user_orange"
+                android:textSize="10sp" />
 
             <ScrollView
                 android:layout_width="match_parent"
@@ -644,7 +719,7 @@
                         android:layout_height="wrap_content"
                         android:padding="5dp"
                         android:text="@string/decrees_header"
-                        android:textColor="#FFFFD54F"
+                        android:textColor="@color/user_orange"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -661,7 +736,7 @@
                         android:layout_height="wrap_content"
                         android:padding="5dp"
                         android:text="التقنيات — ٧٠ اكتشافًا، اضغط أي صف لقراءة أثره"
-                        android:textColor="#FFFFD54F"
+                        android:textColor="@color/user_orange"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -687,7 +762,8 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp"
                 android:text="@string/powers_header"
-                android:textColor="#FFFFFFFF"
+                android:background="@drawable/bg_bar"
+                android:textColor="@color/user_white"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -743,7 +819,7 @@
                 android:layout_height="wrap_content"
                 android:maxLines="6"
                 android:padding="5dp"
-                android:textColor="#FFB0BEC5"
+                android:textColor="#FFFFF3E0"
                 android:textSize="10sp" />
 
             <HorizontalScrollView
@@ -764,7 +840,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:divider="#FF37474F"
+                android:divider="@color/user_brown"
                 android:dividerHeight="1dp" />
         </LinearLayout>
     </FrameLayout>

@@ -6,6 +6,7 @@ import com.dotee313.omatydom.core.civ.Culture;
 import com.dotee313.omatydom.core.civ.DiplomacyRelation;
 import com.dotee313.omatydom.core.civ.Kingdom;
 import com.dotee313.omatydom.core.civ.Species;
+import com.dotee313.omatydom.core.civ.TradeRoute;
 import com.dotee313.omatydom.core.civ.War;
 import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
@@ -71,6 +72,8 @@ public final class World {
     private int techsUnlocked;
     private int clansFounded;
     private int kingdomsFounded;
+    /** إجمالي القوافل التي وصلت — completed caravans that reached their destination. */
+    private int caravansCompleted;
 
     private MapTemplate mapTemplate = MapTemplate.ISLANDS;
     private ModPack modPack = ModPack.CORE;
@@ -81,6 +84,7 @@ public final class World {
     private final List<Clan> clans = new ArrayList<>();
     private final List<Culture> cultures = new ArrayList<>();
     private final List<War> wars = new ArrayList<>();
+    private final List<TradeRoute> tradeRoutes = new ArrayList<>();
     private final Map<Long, DiplomacyRelation> relations = new HashMap<>();
     private final Map<TechEffect, Double> techBonuses = new EnumMap<>(TechEffect.class);
 
@@ -522,6 +526,15 @@ public final class World {
         kingdomsFounded++;
     }
 
+    /** إجمالي القوافل المكتملة — total caravans delivered so far. */
+    public int getCaravansCompleted() {
+        return caravansCompleted;
+    }
+
+    public void incrementCaravansCompleted() {
+        caravansCompleted++;
+    }
+
     public MapTemplate getMapTemplate() {
         return mapTemplate;
     }
@@ -667,6 +680,23 @@ public final class World {
 
     public List<War> getWars() {
         return wars;
+    }
+
+    /** القوافل النشطة — unmodifiable snapshot of the current caravans. */
+    public List<TradeRoute> getTradeRoutes() {
+        return Collections.unmodifiableList(new ArrayList<>(tradeRoutes));
+    }
+
+    void addTradeRoute(TradeRoute route) {
+        if (route != null) {
+            tradeRoutes.add(route);
+        }
+    }
+
+    void removeTradeRoute(TradeRoute route) {
+        if (route != null) {
+            tradeRoutes.remove(route);
+        }
     }
 
     public Map<Long, DiplomacyRelation> getRelations() {

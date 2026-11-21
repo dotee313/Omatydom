@@ -27,7 +27,6 @@ import com.dotee313.omatydom.core.world.TileType;
 import com.dotee313.omatydom.core.world.Weather;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Standalone, code-drawn sandbox renderer for Omatydom.
@@ -72,6 +71,33 @@ public final class IslandView extends View {
     private static final int MAX_EFFECTS = 24;
     private static final int TAP_SLOP_PX = 12;
     private static final float ZOOM_STEP = 1.25f;
+
+    // User palette, used sparingly as accents so the world keeps its own palette.
+    private static final int ACCENT_BURGUNDY = 0xFF5B0A19;
+    private static final int ACCENT_ORANGE = 0xFFFCA311;
+    private static final int ACCENT_BROWN = 0xFF504A3E;
+    private static final int ACCENT_DARK_GRAY = 0xFF3E3B39;
+    private static final int ACCENT_MID_GRAY = 0xFF6D6A6A;
+
+    /** Above this cell size (scaled by density) tiny unit details stay readable. */
+    private static final float DETAIL_ZOOM_CELL = 29f;
+
+    // Hoisted constant arrays: no per-tile/per-effect allocation in hot loops.
+    private static final int[] PETAL_COLORS = {
+            0xFFEF5350, 0xFFFFD54F, 0xFFCE93D8, 0xFFFFFFFF
+    };
+    private static final int[] CROP_COLORS = {
+            0xFF66BB6A, 0xFF8BC34A, 0xFFFFCA28, 0xFFFFD54F
+    };
+    private static final int[] FAITH_COLORS = {
+            ACCENT_ORANGE, ACCENT_BURGUNDY, 0xFF66BB6A, 0xFFFFF2A8, ACCENT_MID_GRAY
+    };
+    private static final StatusEffect[] STATUS_EFFECTS = StatusEffect.values();
+
+    private static final int EDGE_TOP = 0;
+    private static final int EDGE_BOTTOM = 1;
+    private static final int EDGE_LEFT = 2;
+    private static final int EDGE_RIGHT = 3;
 
     private final Paint paint = new Paint();
     private final Handler animatorHandler = new Handler(Looper.getMainLooper());
@@ -711,6 +737,10 @@ public final class IslandView extends View {
         paint.setColor(base);
         c.drawRect(left - 0.35f, top - 0.35f, left + 8f * u + 0.5f, top + 8f * u + 0.5f, paint);
 
+        if (type != TileType.WATER) {
+            drawTerrainSeams(c, map, tx, ty, left, top, u, type);
+        }
+
         switch (type) {
             case WATER:
                 drawWater(c, map, tx, ty, left, top, u, h, now, weather);
@@ -751,6 +781,120 @@ public final class IslandView extends View {
         return map.typeAt(x, y) == TileType.WATER;
     }
 
+    private static boolean isElevated(TileType type) {
+        return type == TileType.MOUNTAIN || type == TileType.CAVE;
+    }
+
+    private static int landEdgeColor(TileType type) {
+        switch (type) {
+            case WATER:
+                return 0xFF8FD3F4;
+            case SAND:
+                return 0xFFE8CE92;
+            case FOREST:
+            case ORCHARD:
+                return 0xFF2E6B34;
+            case MOUNTAIN:
+            case CAVE:
+                return ACCENT_MID_GRAY;
+            default:
+                return 0xFF4E8C3A;
+        }
+    }
+
+    /**
+     * Neighbour-aware rim: a wet sand lip toward water and a thin colour bleed
+     * toward dissimilar land. Pure rects on the existing shared Paint: no new
+     * objects per tile.
+     */
+    private void drawTerrainSeams(Canvas c, IslandMap map, int tx, int ty,
+                                  float left, float top, float u, TileType type) {
+        TileType up = map.typeAt(tx, ty - 1);
+        TileType down = map.typeAt(tx, ty + 1);
+        TileType leftTile = map.typeAt(tx - 1, ty);
+        TileType right = map.typeAt(tx + 1, ty);
+
+        if (up == TileType.WATER) {
+            drawShoreEdge(c, left, top, u, EDGE_TOP, type == TileType.SAND);
+        } else if (up != type) {
+            drawLandEdge(c, left, top, u, EDGE_TOP, up, type);
+        }
+        if (down == TileType.WATER) {
+            drawShoreEdge(c, left, top, u, EDGE_BOTTOM, type == TileType.SAND);
+        } else if (down != type) {
+            drawLandEdge(c, left, top, u, EDGE_BOTTOM, down, type);
+        }
+        if (leftTile == TileType.WATER) {
+            drawShoreEdge(c, left, top, u, EDGE_LEFT, type == TileType.SAND);
+        } else if (leftTile != type) {
+            drawLandEdge(c, left, top, u, EDGE_LEFT, leftTile, type);
+        }
+        if (right == TileType.WATER) {
+            drawShoreEdge(c, left, top, u, EDGE_RIGHT, type == TileType.SAND);
+        } else if (right != type) {
+            drawLandEdge(c, left, top, u, EDGE_RIGHT, right, type);
+        }
+    }
+
+    private void drawShoreEdge(Canvas c, float left, float top, float u,
+                               int side, boolean sandy) {
+        paint.setColor(withAlpha(0xFFFFF0C4, sandy ? 0x55 : 0x77));
+        edgeStrip(c, left, top, u, side, 0f, sandy ? 0.3f : 0.34f);
+        int wet = mix(0xFFD8B87A, ACCENT_BROWN, 0.28f);
+        paint.setColor(withAlpha(wet, sandy ? 0x44 : 0x66));
+        edgeStrip(c, left, top, u, side, sandy ? 0.3f : 0.34f, sandy ? 0.72f : 0.95f);
+    }
+
+    private void drawLandEdge(Canvas c, float left, float top, float u,
+                              int side, TileType neighbor, TileType self) {
+        int tint = landEdgeColor(neighbor);
+        paint.setColor(withAlpha(tint, 0x33));
+        edgeStrip(c, left, top, u, side, 0f, 0.58f);
+        if (isElevated(neighbor) || isElevated(self)) {
+            paint.setColor(withAlpha(ACCENT_DARK_GRAY, 0x4A));
+            edgeStrip(c, left, top, u, side, 0.22f, 0.42f);
+        } else {
+            paint.setColor(withAlpha(tint, 0x2E));
+            edgeStrip(c, left, top, u, side, 0.14f, 0.24f);
+        }
+    }
+
+    /** Draws a band {@code from}..{@code to} units inward from one tile edge. */
+    private void edgeStrip(Canvas c, float left, float top, float u, int side,
+                           float from, float to) {
+        switch (side) {
+            case EDGE_BOTTOM:
+                rect(c, left, top, u, 0f, 8f - to, 8f, 8f - from);
+                break;
+            case EDGE_LEFT:
+                rect(c, left, top, u, from, 0f, to, 8f);
+                break;
+            case EDGE_RIGHT:
+                rect(c, left, top, u, 8f - to, 0f, 8f - from, 8f);
+                break;
+            case EDGE_TOP:
+            default:
+                rect(c, left, top, u, 0f, from, 8f, to);
+                break;
+        }
+    }
+
+    /** Two-tone contact shadow reused by trees, rocks, caves and buildings. */
+    private void drawContactShadow(Canvas c, float left, float top, float u,
+                                   float x0, float y0, float x1, float y1) {
+        paint.setColor(0x2418120C);
+        rect(c, left, top, u, x0 - 0.25f, y0 - 0.12f, x1 + 0.25f, y1 + 0.12f);
+        paint.setColor(withAlpha(ACCENT_DARK_GRAY, 0x2E));
+        rect(c, left, top, u, x0, y0, x1, y1);
+    }
+
+    /** Small plus-shaped pixel glint, shared by water, crystals and blessings. */
+    private void drawSparkle(Canvas c, float left, float top, float u,
+                             float px, float py, float size) {
+        rect(c, left, top, u, px - size, py, px + size, py + size * 0.45f);
+        rect(c, left, top, u, px - size * 0.45f, py - size, px + size * 0.45f, py + size);
+    }
+
     private void drawWater(Canvas c, IslandMap map, int tx, int ty,
                            float left, float top, float u, int h,
                            long now, Weather weather) {
@@ -784,6 +928,15 @@ public final class IslandView extends View {
         paint.setColor(withAlpha(0xFF9FD8F2, 0x66));
         rect(c, left, top, u, 3.8f + ((h >>> 10) & 2), wy2 + 0.25f,
                 6.6f + ((h >>> 10) & 2), wy2 + 0.6f);
+
+        // Rare twinkle: a tiny cross-shaped highlight that fades in and out.
+        if ((h & 15) < 3) {
+            float sx = 1.2f + ((h >>> 12) & 5);
+            float sy = 1.2f + ((h >>> 18) & 5);
+            float twinkle = 0.55f + 0.45f * (float) Math.sin(now / 310f + h);
+            paint.setColor(withAlpha(0xFFEAF9FF, (int) (0x8C * twinkle)));
+            drawSparkle(c, left, top, u, sx, sy, 0.42f);
+        }
 
         // Foam on each land-facing edge.
         int foam = 0x77 + (int) (Math.sin(now / 260f + h) * 0x18);
@@ -964,8 +1117,8 @@ public final class IslandView extends View {
     private void drawTree(Canvas c, float left, float top, float u,
                           float cx, float cy, float s, Biome biome, int seed,
                           Weather weather, int season, boolean fruit) {
-        paint.setColor(0x4A1E2018);
-        rect(c, left, top, u, cx - s * 0.85f, cy - 0.15f, cx + s * 0.85f, cy + 0.4f);
+        drawContactShadow(c, left, top, u,
+                cx - s * 0.85f, cy - 0.08f, cx + s * 0.85f, cy + 0.4f);
 
         boolean snowy = weather == Weather.SNOW || season == 3 || biome == Biome.PERMAFROST;
         boolean mushroom = biome == Biome.MUSHROOM;
@@ -1064,7 +1217,8 @@ public final class IslandView extends View {
 
     private void drawMountain(Canvas c, float left, float top, float u, int h,
                               Biome biome, int resource, Weather weather, int season) {
-        paint.setColor(0xFF4E4E4E);
+        drawContactShadow(c, left, top, u, 0.6f, 7.1f, 7.7f, 7.85f);
+        paint.setColor(ACCENT_DARK_GRAY);
         rect(c, left, top, u, 0.4f, 6.2f, 7.6f, 8);
         paint.setColor(0xFF6B6B6B);
         rect(c, left, top, u, 1.2f, 3.6f, 6.8f, 7);
@@ -1074,12 +1228,25 @@ public final class IslandView extends View {
         rect(c, left, top, u, 2.6f, 1.6f, 4.1f, 4.4f);
         paint.setColor(0xFFC9CCCC);
         rect(c, left, top, u, 2.9f, 1.5f, 3.7f, 2.9f);
+
+        // Short rock striations and a shaded right slope give the peak volume.
+        paint.setColor(withAlpha(ACCENT_MID_GRAY, 0x77));
+        rect(c, left, top, u, 4.5f, 4.2f, 6.5f, 4.55f);
+        rect(c, left, top, u, 4.1f, 5.15f, 6.2f, 5.5f);
+        rect(c, left, top, u, 4.7f, 6.05f, 6.5f, 6.4f);
+        paint.setColor(withAlpha(ACCENT_DARK_GRAY, 0x55));
+        rect(c, left, top, u, 6.0f, 3.9f, 6.8f, 6.9f);
+        rect(c, left, top, u, 5.4f, 2.1f, 5.8f, 5.2f);
+
         paint.setColor(withAlpha(0xFFFFFFFF, weather == Weather.SNOW ? 0xEE : 0xBB));
         rect(c, left, top, u, 2.9f, 1.2f, 3.9f, 2.2f);
         rect(c, left, top, u, 2.2f, 3.4f, 3.1f, 4.1f);
         if (season == 3 || biome == Biome.PERMAFROST) {
             paint.setColor(withAlpha(0xFFEAF8FF, 0x88));
             rect(c, left, top, u, 1.3f, 3.6f, 6.7f, 4.2f);
+            paint.setColor(withAlpha(0xFFF4FBFF, 0x66));
+            rect(c, left, top, u, 2.4f, 5.0f, 4.9f, 5.35f);
+            rect(c, left, top, u, 1.8f, 6.4f, 5.6f, 6.75f);
         }
         if (resource > 0) {
             paint.setColor(biome == Biome.CRYSTAL ? 0xFF8FF0FF : 0xFFFFD54F);
@@ -1095,7 +1262,8 @@ public final class IslandView extends View {
 
     private void drawCave(Canvas c, float left, float top, float u, int h,
                           int resource, Weather weather) {
-        paint.setColor(0xFF514438);
+        drawContactShadow(c, left, top, u, 0.7f, 7.3f, 7.6f, 7.9f);
+        paint.setColor(ACCENT_BROWN);
         rect(c, left, top, u, 0.5f, 4.6f, 7.5f, 8);
         paint.setColor(0xFF6E5B49);
         rect(c, left, top, u, 1f, 2.6f, 7f, 5.2f);
@@ -1104,10 +1272,19 @@ public final class IslandView extends View {
         paint.setColor(0xFF140F0B);
         rect(c, left, top, u, 2.1f, 4.4f, 5.9f, 8);
         rect(c, left, top, u, 3f, 3.4f, 5f, 5f);
+        // Mouth depth: darkens toward the floor, warm lip catches the light.
+        paint.setColor(withAlpha(ACCENT_DARK_GRAY, 0x66));
+        rect(c, left, top, u, 2.1f, 6.8f, 5.9f, 8);
+        paint.setColor(withAlpha(ACCENT_BROWN, 0x77));
+        rect(c, left, top, u, 2.3f, 4.5f, 5.7f, 4.9f);
+        paint.setColor(withAlpha(0xFFFFD9A0, 0x33));
+        rect(c, left, top, u, 3.1f, 3.5f, 4.9f, 3.8f);
         paint.setColor(0xFF3B2E23);
         rect(c, left, top, u, 1.2f, 6.6f, 2.2f, 7.5f);
         rect(c, left, top, u, 5.8f, 6.2f, 6.9f, 7.2f);
         if (resource > 8) {
+            paint.setColor(withAlpha(ACCENT_ORANGE, 0x55));
+            rect(c, left, top, u, 2.9f, 5.6f, 5.1f, 6.2f);
             paint.setColor(weather == Weather.ASH ? 0xFFFF8A50 : 0xFFB3E5FC);
             rect(c, left, top, u, 4.6f, 5.4f, 5f, 5.9f);
             rect(c, left, top, u, 3.2f, 6.4f, 3.5f, 6.8f);
@@ -1219,8 +1396,7 @@ public final class IslandView extends View {
 
     private void drawStructure(Canvas c, Structure s, float left, float top,
                                 float u, IslandMap map, int tx, int ty, long now) {
-        paint.setColor(0x4A1C1A16);
-        rect(c, left, top, u, 0.45f, 7.3f, 7.6f, 7.9f);
+        drawContactShadow(c, left, top, u, 0.55f, 7.25f, 7.55f, 7.85f);
         switch (s) {
             case HUT: {
                 paint.setColor(0xFF8D5A2B);
@@ -1235,8 +1411,10 @@ public final class IslandView extends View {
                 rect(c, left, top, u, 2.6f, 1.8f, 5.4f, 2.6f);
                 paint.setColor(0xFF35210F);
                 rect(c, left, top, u, 3.4f, 5.2f, 4.6f, 7.3f);
-                paint.setColor(0xFFFFD54F);
+                paint.setColor(ACCENT_ORANGE);
                 rect(c, left, top, u, 5.1f, 5f, 5.7f, 5.6f);
+                paint.setColor(withAlpha(ACCENT_BURGUNDY, 0xAA));
+                rect(c, left, top, u, 1f, 3.4f, 7f, 3.65f);
                 break;
             }
             case HALL: {
@@ -1414,28 +1592,36 @@ public final class IslandView extends View {
                 break;
             }
             case FARM: {
-                paint.setColor(0xFF6D4C2F);
+                paint.setColor(ACCENT_BROWN);
+                rect(c, left, top, u, 0.4f, 1.9f, 7.6f, 7.4f);
                 for (int i = 0; i < 3; i++) {
-                    float ry = 2.5f + i * 1.7f;
-                    rect(c, left, top, u, 0.6f, ry, 7.4f, ry + 1.15f);
-                }
-                paint.setColor(0xFF8D6E42);
-                for (int i = 0; i < 3; i++) {
-                    float ry = 2.5f + i * 1.7f;
-                    rect(c, left, top, u, 0.6f, ry, 7.4f, ry + 0.35f);
-                }
-                paint.setColor(0xFF66BB6A);
-                for (int i = 0; i < 3; i++) {
+                    float ry = 2.4f + i * 1.65f;
+                    paint.setColor(0xFF8D6E42);
+                    rect(c, left, top, u, 0.6f, ry, 7.4f, ry + 0.85f);
+                    paint.setColor(withAlpha(ACCENT_DARK_GRAY, 0x44));
+                    rect(c, left, top, u, 0.6f, ry + 0.75f, 7.4f, ry + 1.05f);
+                    paint.setColor(CROP_COLORS[i]);
                     for (int j = 0; j < 4; j++) {
-                        float px = 1f + j * 1.65f;
-                        float py = 2.8f + i * 1.7f;
-                        rect(c, left, top, u, px, py, px + 0.35f, py + 0.75f);
-                        rect(c, left, top, u, px + 0.5f, py + 0.2f, px + 0.85f, py + 0.8f);
+                        float px = 0.95f + j * 1.6f + (i & 1) * 0.18f;
+                        rect(c, left, top, u, px, ry + 0.15f, px + 0.32f, ry + 0.75f);
+                        rect(c, left, top, u, px + 0.45f, ry + 0.3f, px + 0.78f, ry + 0.82f);
+                        if ((i + j) % 3 == 0) {
+                            paint.setColor(ACCENT_ORANGE);
+                            rect(c, left, top, u, px + 0.15f, ry + 0.05f,
+                                    px + 0.5f, ry + 0.28f);
+                            paint.setColor(CROP_COLORS[i]);
+                        }
                     }
                 }
-                paint.setColor(0xFFA1887F);
-                rect(c, left, top, u, 0.3f, 6.5f, 0.6f, 7.8f);
-                rect(c, left, top, u, 7.4f, 6.5f, 7.7f, 7.8f);
+                // Irrigation channel and a tiny scarecrow silhouette.
+                paint.setColor(0xFF3E7C96);
+                rect(c, left, top, u, 0.4f, 7.4f, 7.6f, 7.75f);
+                paint.setColor(withAlpha(0xFFBFE9FF, 0x88));
+                rect(c, left, top, u, 0.6f, 7.45f, 7.4f, 7.55f);
+                paint.setColor(ACCENT_BROWN);
+                rect(c, left, top, u, 6.7f, 1f, 7f, 2.6f);
+                paint.setColor(ACCENT_ORANGE);
+                rect(c, left, top, u, 6.35f, 1.15f, 7.3f, 1.65f);
                 break;
             }
             case GRANARY: {
@@ -1529,19 +1715,48 @@ public final class IslandView extends View {
                 boolean horizontal = isRoad(map, tx - 1, ty) || isRoad(map, tx + 1, ty)
                         || !isRoad(map, tx, ty - 1) && !isRoad(map, tx, ty + 1);
                 boolean vertical = isRoad(map, tx, ty - 1) || isRoad(map, tx, ty + 1);
-                paint.setColor(0xFF7C7C7C);
+                paint.setColor(ACCENT_DARK_GRAY);
                 if (horizontal) {
-                    rect(c, left, top, u, 0, 2.6f, 8, 5.4f);
+                    rect(c, left, top, u, 0, 2.4f, 8, 5.6f);
                 }
                 if (vertical) {
-                    rect(c, left, top, u, 2.6f, 0, 5.4f, 8);
+                    rect(c, left, top, u, 2.4f, 0, 5.6f, 8);
                 }
-                int h = hash(tx, ty);
-                paint.setColor(0xFFA8A8A8);
-                for (int i = 0; i < 4; i++) {
-                    float px = 0.6f + ((h >>> (i * 3)) & 6);
-                    float py = 3f + ((h >>> (i * 3 + 2)) & 2);
-                    rect(c, left, top, u, px, py, px + 0.8f, py + 0.5f);
+                // Staggered cobbles: brighter top edge, darker joint below.
+                if (horizontal) {
+                    for (int row = 0; row < 3; row++) {
+                        float py = 2.6f + row * 0.95f;
+                        for (int col = 0; col < 5; col++) {
+                            float px = 0.35f + col * 1.5f + (row & 1) * 0.28f;
+                            paint.setColor(((row + col) & 1) == 0
+                                    ? ACCENT_MID_GRAY : withAlpha(0xFF9E9E9E, 0xCC));
+                            rect(c, left, top, u, px, py, px + 1.1f, py + 0.55f);
+                            paint.setColor(withAlpha(0xFFFFFFFF, 0x22));
+                            rect(c, left, top, u, px, py, px + 1.1f, py + 0.12f);
+                        }
+                    }
+                }
+                if (vertical) {
+                    for (int row = 0; row < 3; row++) {
+                        float px = 2.6f + row * 0.95f;
+                        for (int col = 0; col < 5; col++) {
+                            float py = 0.35f + col * 1.5f + (row & 1) * 0.28f;
+                            paint.setColor(((row + col) & 1) == 0
+                                    ? ACCENT_MID_GRAY : withAlpha(0xFF9E9E9E, 0xCC));
+                            rect(c, left, top, u, px, py, px + 0.55f, py + 1.1f);
+                            paint.setColor(withAlpha(0xFFFFFFFF, 0x22));
+                            rect(c, left, top, u, px, py, px + 0.12f, py + 1.1f);
+                        }
+                    }
+                }
+                paint.setColor(withAlpha(ACCENT_BROWN, 0x88));
+                if (horizontal) {
+                    rect(c, left, top, u, 0, 2.35f, 8, 2.5f);
+                    rect(c, left, top, u, 0, 5.5f, 8, 5.65f);
+                }
+                if (vertical) {
+                    rect(c, left, top, u, 2.35f, 0, 2.5f, 8);
+                    rect(c, left, top, u, 5.5f, 0, 5.65f, 8);
                 }
                 break;
             }
@@ -1556,9 +1771,8 @@ public final class IslandView extends View {
                     float fy = 2.5f + i * 1.35f;
                     rect(c, left, top, u, 1.5f, fy, 6.5f, fy + 0.5f);
                 }
-                int[] flowers = {0xFFEF5350, 0xFFFFD54F, 0xFFCE93D8, 0xFF4FC3F7};
                 for (int i = 0; i < 8; i++) {
-                    paint.setColor(flowers[i & 3]);
+                    paint.setColor(PETAL_COLORS[i & 3]);
                     float px = 1.6f + (i % 4) * 1.35f;
                     float py = 2f + (i / 4) * 1.35f;
                     rect(c, left, top, u, px, py, px + 0.55f, py + 0.55f);
@@ -1663,6 +1877,10 @@ public final class IslandView extends View {
             c.drawRect(cx, cy + s * 0.35f, cx + s * 5f, cy + s * 1.25f, paint);
             c.drawRect(cx + s * 0.8f, cy, cx + s * 3.4f, cy + s * 1.1f, paint);
             c.drawRect(cx + s * 2.5f, cy + s * 0.15f, cx + s * 4.3f, cy + s, paint);
+            paint.setColor(withAlpha(weather == Weather.STORM ? ACCENT_DARK_GRAY : 0xFF9AA7B5,
+                    alpha + 0x10));
+            c.drawRect(cx + s * 0.4f, cy + s * 0.95f, cx + s * 4.6f, cy + s * 1.25f, paint);
+            paint.setColor(withAlpha(weather == Weather.ASH ? 0xFF6C6A68 : 0xFFFFFFFF, alpha));
         }
     }
 
@@ -1683,9 +1901,12 @@ public final class IslandView extends View {
             float fx = wrap((seed & 0xffff) / 24f + tick * speed * 0.42f, w + 20f) - 10f;
             float fy = wrap((seed >>> 9) / 128f + tick * speed, h + 20f) - 10f;
             if (weather == Weather.RAIN || weather == Weather.STORM) {
+                int length = 6 + (seed & 3);
+                paint.setColor(withAlpha(0xFF8FD3F4, weather == Weather.STORM ? 0x44 : 0x33));
+                c.drawRect(fx - 0.6f, fy - 2f, fx + 0.4f, fy + length, paint);
                 paint.setColor(withAlpha(0xFFBFE4FF, weather == Weather.STORM ? 0x88 : 0x66));
-                c.drawRect(fx, fy, fx + 1f, fy + 6f, paint);
-                c.drawRect(fx - 1f, fy + 4f, fx, fy + 6f, paint);
+                c.drawRect(fx, fy, fx + 1f, fy + length, paint);
+                c.drawRect(fx - 1f, fy + length - 2f, fx, fy + length, paint);
             } else if (weather == Weather.SNOW) {
                 paint.setColor(withAlpha(0xFFFFFFFF, 0xBB));
                 c.drawRect(fx, fy, fx + 2f, fy + 2f, paint);
@@ -1740,10 +1961,19 @@ public final class IslandView extends View {
         if (child) {
             u = Math.max(1, u - 1);
         }
+        boolean moving = agent.hasTarget();
         int bob = 0;
-        if (agent.hasTarget()) {
+        if (moving) {
             bob = (int) Math.round(Math.sin(now / 115.0 + (citizen.getId() & 7)) * 0.9);
         }
+        int facing;
+        if (moving && agent.getTargetX() != agent.getX()) {
+            facing = agent.getTargetX() > agent.getX() ? 1 : -1;
+        } else {
+            facing = (citizen.getId() & 1) == 0 ? 1 : -1;
+        }
+        float armLift = moving ? facing * bob * 0.3f : 0f;
+        boolean detailed = cell >= DETAIL_ZOOM_CELL * density;
         int px = Math.round(cx - 5f * u);
         int py = Math.round(cy - 7f * u) + bob;
 
@@ -1760,8 +1990,10 @@ public final class IslandView extends View {
                 : citizen.getGender() == Gender.FEMALE ? 0xFF5D4037 : 0xFF33251C;
 
         // Ground shadow, slightly ahead of the feet.
-        paint.setColor(0x44202A30);
-        rect(c, px, py, u, 2f, 13.4f, 8f, 14.1f);
+        paint.setColor(0x2418120C);
+        rect(c, px, py, u, 1.8f, 13.2f, 8.3f, 14.3f);
+        paint.setColor(withAlpha(ACCENT_DARK_GRAY, 0x33));
+        rect(c, px, py, u, 3f, 13.5f, 7.4f, 14f);
 
         // Selection halo behind the figure.
         if (citizen.getId() == selectedCitizenId) {
@@ -1789,6 +2021,12 @@ public final class IslandView extends View {
         paint.setColor(0xFFFFD54F);
         rect(c, px, py, u, 4.7f, 9.5f, 5.3f, 10.2f);
 
+        // Allegiance sash and faith token: tiny colour reads at a glance.
+        paint.setColor(kingdomAccent(citizen));
+        rect(c, px, py, u, 2f, 7f, 2.5f, 10.6f);
+        paint.setColor(faithAccent(citizen));
+        rect(c, px, py, u, 5.1f, 7.2f, 5.75f, 7.85f);
+
         // Neck and head.
         paint.setColor(skinDark);
         rect(c, px, py, u, 4.6f, 5.9f, 5.4f, 6.8f);
@@ -1810,19 +2048,21 @@ public final class IslandView extends View {
         } else if (age > 40) {
             rect(c, px, py, u, 4.2f, 5.2f, 5.8f, 5.8f);
         }
+        // Pupils shift toward the travel direction for a simple facing cue.
+        float eyeShift = facing * 0.28f;
         paint.setColor(0xFF202124);
-        rect(c, px, py, u, 4f, 3.4f, 4.6f, 4f);
-        rect(c, px, py, u, 5.6f, 3.4f, 6.2f, 4f);
+        rect(c, px, py, u, 4f + eyeShift, 3.4f, 4.6f + eyeShift, 4f);
+        rect(c, px, py, u, 5.6f + eyeShift, 3.4f, 6.2f + eyeShift, 4f);
         paint.setColor(shade(skinDark, 0.82f));
         rect(c, px, py, u, 4.6f, 5f, 5.6f, 5.3f);
 
-        // Arms.
+        // Arms, with a one-pixel counter-swing while walking.
         paint.setColor(skin);
-        rect(c, px, py, u, 1f, 7f, 2f, 10.4f);
-        rect(c, px, py, u, 8f, 7f, 9f, 10.4f);
+        rect(c, px, py, u, 1f, 7f - armLift, 2f, 10.4f - armLift);
+        rect(c, px, py, u, 8f, 7f + armLift, 9f, 10.4f + armLift);
         paint.setColor(skinDark);
-        rect(c, px, py, u, 1f, 9.8f, 2f, 10.6f);
-        rect(c, px, py, u, 8f, 9.8f, 9f, 10.6f);
+        rect(c, px, py, u, 1f, 9.8f - armLift, 2f, 10.6f - armLift);
+        rect(c, px, py, u, 8f, 9.8f + armLift, 9f, 10.6f + armLift);
 
         if (citizen.isPregnant()) {
             paint.setColor(mix(cloth, 0xFFE57373, 0.32f));
@@ -1833,6 +2073,9 @@ public final class IslandView extends View {
 
         drawJobTool(c, px, py, u, job);
         drawStatusSpecks(c, citizen, px, py, u);
+        if (detailed) {
+            drawNeeds(c, citizen, px, py, u);
+        }
 
         if (citizen.getId() == selectedCitizenId) {
             int a = 0x99 + (int) ((Math.sin(now / 170.0) + 1f) * 0x33);
@@ -1849,10 +2092,53 @@ public final class IslandView extends View {
     }
 
     private void drawStatusSpecks(Canvas c, Citizen citizen, int px, int py, int u) {
-        List<StatusEffect> effects = citizen.getActiveStatuses();
-        for (int i = 0; i < effects.size() && i < 4; i++) {
-            paint.setColor(statusColor(effects.get(i)));
-            rect(c, px, py, u, 0.4f + i * 2f, -3.2f, 1.7f + i * 2f, -2f);
+        // hasStatus avoids the allocation made by getActiveStatuses() each frame.
+        int shown = 0;
+        for (StatusEffect effect : STATUS_EFFECTS) {
+            if (shown >= 4) {
+                break;
+            }
+            if (citizen.hasStatus(effect)) {
+                paint.setColor(statusColor(effect));
+                rect(c, px, py, u, 0.4f + shown * 2f, -2.8f,
+                        1.7f + shown * 2f, -1.8f);
+                shown++;
+            }
+        }
+    }
+
+    private int kingdomAccent(Citizen citizen) {
+        if (game != null) {
+            for (Kingdom kingdom : game.getKingdoms()) {
+                if (kingdom.getSpecies() == citizen.getSpecies()) {
+                    return opaque(kingdom.getColor());
+                }
+            }
+        }
+        return opaque(citizen.getSpecies().getColor());
+    }
+
+    private static int faithAccent(Citizen citizen) {
+        int ordinal = citizen.getReligion() == null
+                ? FAITH_COLORS.length - 1 : citizen.getReligion().ordinal();
+        return FAITH_COLORS[(int) clamp(ordinal, 0, FAITH_COLORS.length - 1)];
+    }
+
+    /** Zoom-gated health and material-need bars; no text labels on the map. */
+    private void drawNeeds(Canvas c, Citizen citizen, int px, int py, int u) {
+        float health = clamp((float) citizen.getHealth() / 100f, 0f, 1f);
+        // The core model has no hunger field; wealth/mood are the need proxy.
+        float need = clamp((float) (citizen.getWealth() * 0.6
+                + citizen.getHappiness() * 0.4) / 100f, 0f, 1f);
+        paint.setColor(withAlpha(ACCENT_DARK_GRAY, 0xCC));
+        rect(c, px, py, u, -0.4f, -5.6f, 10.4f, -3f);
+        paint.setColor(health < 0.35f ? 0xFFE53935 : 0xFF69F0AE);
+        rect(c, px, py, u, 0f, -5.1f, 8f * health, -4.5f);
+        paint.setColor(need < 0.35f ? ACCENT_ORANGE : 0xFFBFE9FF);
+        rect(c, px, py, u, 0f, -4.1f, 8f * need, -3.5f);
+        if (need < 0.2f) {
+            paint.setColor(ACCENT_BURGUNDY);
+            rect(c, px, py, u, 8.3f, -4.1f, 9.4f, -3.5f);
         }
     }
 
@@ -1972,13 +2258,22 @@ public final class IslandView extends View {
     private void drawAnimal(Canvas c, Animal animal, float cx, float cy,
                             float u, long now) {
         float au = Math.max(1f, u * 0.8f);
-        float ox = cx - 5f * au;
-        float oy = cy - 5f * au;
         AnimalType type = animal.getType();
+        float ox = cx - 5f * au;
+        float groundY = cy - 5f * au;
+        // Land animals breathe/bob in place; fish keep a steady waterline.
+        float bob = type == AnimalType.FISH ? 0f
+                : (float) Math.sin(now / 175.0 + animal.getX() * 2.7f
+                + animal.getY() * 1.3f) * 0.14f * au;
+        float oy = groundY + bob;
         int base = opaque(type.getColor());
 
-        paint.setColor(0x40202018);
-        c.drawRect(ox + 1f * au, oy + 8.4f * au, ox + 8.6f * au, oy + 9.1f * au, paint);
+        paint.setColor(0x2418120C);
+        c.drawRect(ox + 0.7f * au, groundY + 8.2f * au,
+                ox + 9f * au, groundY + 9.3f * au, paint);
+        paint.setColor(withAlpha(ACCENT_DARK_GRAY, 0x33));
+        c.drawRect(ox + 1.8f * au, groundY + 8.5f * au,
+                ox + 7.8f * au, groundY + 9f * au, paint);
 
         switch (type) {
             case DEER: {
@@ -2158,6 +2453,12 @@ public final class IslandView extends View {
                 rect(c, ox, oy, au, 2, 3, 7, 7);
                 break;
         }
+        // Thin top rim keeps quadruped silhouettes legible on dark grass.
+        if (type == AnimalType.DEER || type == AnimalType.BOAR
+                || type == AnimalType.WOLF) {
+            paint.setColor(withAlpha(0xFFFFFFFF, 0x22));
+            rect(c, ox, oy, au, 2.2f, 3.9f, 5.8f, 4.25f);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -2171,6 +2472,21 @@ public final class IslandView extends View {
         long start;
         int duration;
         int seed;
+    }
+
+    /** Cheap drifting smoke puffs; alpha fades with both age and rise. */
+    private void drawSmoke(Canvas c, float ox, float oy, float u,
+                           Fx fx, float t, long now) {
+        for (int i = 0; i < 5; i++) {
+            float p = wrap(i * 0.21f + t * 0.8f, 1f);
+            float px = 2.5f + noise01(fx.seed, i, 23) * 3.2f
+                    + (float) Math.sin(now / 210f + i) * 0.25f;
+            float py = 6.3f - p * 5.2f;
+            float size = 0.5f + p * 0.7f;
+            paint.setColor(withAlpha(p > 0.6f ? ACCENT_MID_GRAY : 0xFFB0BEC5,
+                    (int) (0x50 * (1f - p) * (1f - t))));
+            rect(c, ox, oy, u, px, py, px + size, py + size * 0.8f);
+        }
     }
 
     private void drawEffects(Canvas c, long now, float u) {
@@ -2198,8 +2514,11 @@ public final class IslandView extends View {
                 for (int i = 0; i < 12; i++) {
                     float px = 1f + noise01(fx.seed, i, 3) * 6f;
                     float py = -3f + wrap(i * 0.83f + t * 7f, 7f);
+                    paint.setColor(withAlpha(0xFF8FD3F4, 0x55));
+                    rect(c, ox, oy, u, px - 0.18f, py - 0.6f,
+                            px + 0.18f, py + 1.8f);
                     paint.setColor(withAlpha(0xFFBFE9FF, 0xBB));
-                    rect(c, ox, oy, u, px, py, px + 0.3f, py + 1.3f);
+                    rect(c, ox, oy, u, px, py, px + 0.3f, py + 1.6f);
                 }
                 float r = 1f + t * 3f;
                 paint.setColor(withAlpha(0xFF8FD3F4, (int) (0x99 * (1f - t))));
@@ -2228,6 +2547,7 @@ public final class IslandView extends View {
                 }
                 paint.setColor(0xFFFFD54F);
                 rect(c, ox, oy, u, 3.4f, 5.2f, 4.6f, 6.6f);
+                drawSmoke(c, ox, oy, u, fx, t, now);
                 break;
             }
             case LIGHTNING: {
@@ -2253,6 +2573,14 @@ public final class IslandView extends View {
                     float p = t / 0.55f;
                     float mx = -4f + p * 8f;
                     float my = -5f + p * 9f;
+                    // Segmented fading trail behind the falling core.
+                    for (int i = 0; i < 5; i++) {
+                        float back = 0.5f + i * 0.55f;
+                        int a = (int) (0x88 * (1f - i / 5f) * (1f - p * 0.35f));
+                        paint.setColor(withAlpha(i < 2 ? ACCENT_ORANGE : 0xFFFF7043, a));
+                        rect(c, ox, oy, u, mx - back - 0.65f, my - back * 0.5f - 0.12f,
+                                mx - back, my - back * 0.5f + 0.12f);
+                    }
                     paint.setColor(withAlpha(0xFFFFAB40, 0xAA));
                     rect(c, ox, oy, u, mx - 2.6f, my - 0.5f, mx - 0.4f, my + 0.2f);
                     paint.setColor(0xFFFFE082);
@@ -2278,6 +2606,7 @@ public final class IslandView extends View {
                         paint.setColor(withAlpha(0xFFFFD54F, (int) (0xBB * (1f - p))));
                         rect(c, ox, oy, u, px, py, px + 0.5f, py + 0.5f);
                     }
+                    drawSmoke(c, ox, oy, u, fx, t, now);
                 }
                 break;
             }
@@ -2310,6 +2639,10 @@ public final class IslandView extends View {
                     float py = 7f - wrap(i * 0.9f + t * 6f, 7f);
                     paint.setColor(i % 3 == 0 ? 0xFFFFF8E1 : 0xFFFFD54F);
                     rect(c, ox, oy, u, px, py, px + 0.5f, py + 0.7f);
+                    if ((i & 3) == 0) {
+                        paint.setColor(withAlpha(0xFFFFFFFF, (int) (0xBB * (1f - t))));
+                        drawSparkle(c, ox, oy, u, px, py, 0.34f);
+                    }
                 }
                 break;
             }
@@ -2324,6 +2657,10 @@ public final class IslandView extends View {
                     float py = 7f - wrap(i * 1.1f + t * 5f, 7f);
                     paint.setColor(0xFFB9F6CA);
                     rect(c, ox, oy, u, px, py, px + 0.45f, py + 0.6f);
+                    if ((i % 3) == 0) {
+                        paint.setColor(withAlpha(0xFFFFFFFF, (int) (0x99 * (1f - t))));
+                        drawSparkle(c, ox, oy, u, px, py, 0.3f);
+                    }
                 }
                 break;
             }
@@ -2334,12 +2671,11 @@ public final class IslandView extends View {
                     float py = 7f - wrap(i * 0.8f + t * 4f, 7f);
                     rect(c, ox, oy, u, px, py, px + 0.55f, py + 0.55f);
                 }
-                int[] petals = {0xFFEF5350, 0xFFFFD54F, 0xFFCE93D8, 0xFFFFFFFF};
                 for (int i = 0; i < 4; i++) {
                     float px = 2f + i * 1.4f;
                     float py = 4.5f + (i & 1) * 1.2f;
                     float open = Math.min(1f, t * 2.2f);
-                    paint.setColor(petals[i]);
+                    paint.setColor(PETAL_COLORS[i]);
                     rect(c, ox, oy, u, px - open, py - 0.4f, px + open, py + 0.4f);
                     rect(c, ox, oy, u, px - 0.4f, py - open, px + 0.4f, py + open);
                 }
@@ -2362,6 +2698,8 @@ public final class IslandView extends View {
                 }
                 paint.setColor(withAlpha(0xFFE1F5FE, (int) (0x88 * (1f - t))));
                 rect(c, ox, oy, u, 3.4f, 3.4f, 4.6f, 4.6f);
+                paint.setColor(withAlpha(0xFFFFFFFF, (int) (0xAA * (1f - t))));
+                drawSparkle(c, ox, oy, u, 4f, 4f, 0.55f);
                 break;
             }
         }

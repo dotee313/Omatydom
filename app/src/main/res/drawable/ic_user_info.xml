@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simplified from the user's original icon-info.svg: brown disc with a
+     white lowercase "i". The circle is drawn with cubic beziers instead of
+     an <ellipse>, and the SVG text translation is baked into the path. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="2048"
+    android:viewportHeight="2048">
+
+    <path
+        android:pathData="M1024,189.29 C1485.25,189.29 1858.71,562.75 1858.71,1024 C1858.71,1485.25 1485.25,1858.71 1024,1858.71 C562.75,1858.71 189.29,1485.25 189.29,1024 C189.29,562.75 562.75,189.29 1024,189.29 Z"
+        android:fillColor="@color/user_brown" />
+
+    <path
+        android:pathData="M911.84,1496.29 L911.84,859.50 L1135,859.50 L1135,1496.29 L911.84,1496.29 L911.84,1496.29 Z M1023.42,788.93 Q962.32,788.93 924.75,755.09 Q887.17,720.95 887.17,670.47 Q887.17,619.70 924.75,585.85 Q962.32,551.71 1023.42,551.71 Q1084.52,551.71 1122.09,584.13 Q1159.67,616.25 1159.67,666.74 Q1159.67,719.80 1122.67,754.51 Q1085.66,788.93 1023.42,788.93 L1023.42,788.93 Z"
+        android:fillColor="@color/user_white" />
+</vector>

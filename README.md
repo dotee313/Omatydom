@@ -13,15 +13,25 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 ## Download & play right now / التنزيل والتجربة
 
 **رابط التحميل المباشر للتطبيق (APK):**  
-https://github.com/dotee313/Omatydom/releases/download/v0.7.0/omatydom-0.7.0-debug.apk
+https://github.com/dotee313/Omatydom/releases/download/v0.8.0/omatydom-0.8.0-debug.apk
 
 افتح الرابط من جوالك،حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. التصميم الآن أنظف: سبع صفحات (الجزيرة، السكان، الطبيعة، المخلوقات، الممالك، القدرات، الأحداث) تتنقل بينها بقائمة سفلية من الأيقونات، وكل ضغطة على أيقونة أو شخص أو أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ. اختر أرضًا بالضغط ثم افتح «القدرات» لتوجيه تأثيرك إلى المكان المختار. السنة الكاملة في اللعبة تساوي ساعة واحدة من الوقت الحقيقي عند السرعة x1. يعمل على Android 5.0 أو أحدث.
 
-صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.7.0
+صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.8.0
 
 > The APK is debug-signed and intended for play-testing. Your phone may ask you to allow installation from unknown sources.
 
 ---
+
+## What's new in v0.8.0 — "Your Art, Richer World"
+
+This release integrates the original artwork and interface design you supplied, deepens the pixel rendering, and adds a living trade layer between kingdoms.
+
+- **Your artwork is now in the game** — the supplied logo, info/mods/settings icons, palette and menu background are shipped as original Android resources. The title bar, utility row, selected tabs and brushes use your burgundy/orange/charcoal palette; the info dialog shows your menu art.
+- **Richer pixel rendering** — neighbour-aware shoreline and biome seams, wet sand lips, two-tone contact shadows, water sparkles, striped farm crops, cobbled roads, layered mountains and caves, facing cues and zoom-gated health/material bars for citizens, plus smoke, glints and longer rain/meteor trails for effects.
+- **Trade caravans** — once two kingdoms exist, caravans open every 30–45 game days, travel for 10–20 days, deliver gold, food and knowledge, and appear in the Android Kingdoms page and the desktop `trade` command.
+- **Cleaner utility row** — compact info / mods / settings buttons next to the title, with 3-second Arabic hints and readable 40dp touch targets. All seven tabs, five overlays, 16 brushes and camera controls are preserved.
+- **Verification** — `qa/verify_v080.sh` runs `VerifyV060`, `VerifyV070` and the new `VerifyV080`; all pass. The 270-day pregnancy, one-year rest and one-real-hour game year are unchanged.
 
 ## What's new in v0.7.0 — "Sandbox World"
 
@@ -215,9 +225,15 @@ gradle :desktop:run --args="42"                          # reproducible island
 gradle :desktop:run --args="42 CONTINENT TEST_MOD"       # template + ruleset
 ```
 
+### Regression checks
+
+```bash
+qa/verify_v080.sh          # VerifyV060 + VerifyV070 + VerifyV080 (trade and calendar)
+```
+
 ### Desktop commands
 
-The CLI includes the full v0.6.0 command set:
+The CLI includes the full v0.6.0 command set plus the v0.8.0 `trade` command:
 
 | Command | Description |
 | --- | --- |
@@ -234,7 +250,7 @@ The CLI includes the full v0.6.0 command set:
 | `decree [NAME]` / `power [NAME]` | Issue a decree / cast a world power at a random land tile. |
 | `templates` / `mods` / `new [seed] [TEMPLATE] [MOD]` | Browse and start worlds with different generation and rules. |
 | `laws [KEY [on|off]]` | List or toggle any of the 23 world laws. |
-| `civs` / `tech [research]` / `war [TYPE] [A_ID] [B_ID]` | Inspect civilizations, advance research and declare wars. |
+| `civs` / `trade` / `tech [research]` / `war [TYPE] [A_ID] [B_ID]` | Inspect civilizations, caravans, research and wars. |
 | `disaster [TYPE]` / `spawn [TYPE]` | Trigger any disaster or spawn any creature. |
 | `quit` | Exit. |
 
@@ -245,7 +261,7 @@ The CLI includes the full v0.6.0 command set:
 - [x] Factions with relations, rivalries and wars.
 - [x] Deep Android interface with map overlays and code-generated icons.
 - [ ] Save/load (serialize `World` to JSON).
-- [ ] Zoom/pan on the Android island view.
+- [x] Zoom/pan on the Android island view (v0.7.0, enhanced in v0.8.0).
 - [ ] Fully data-driven events and jobs instead of hard-coded ones.
 - [ ] Character screens with portraits and needs.
 - [ ] Android UI with fragments and Material 3.
@@ -257,7 +273,9 @@ The CLI includes the full v0.6.0 command set:
 
 **أوماتيدوم** لعبة محاكاة حياة على جزيرة، حيث تراقب مجتمعًا حيًا وتشكّله. الزمن يمضي تلقائيًا، ولك أن تتدخل أو تترك الأحداث تجري من نفسها.
 
-الجزيرة ليست دائرية بل مربع مدوّر فيه خلجان ورؤوس عشوائية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، وكل واحد منهم الآن **شخصية بكسلية أوضح وأكثر واقعية** (١٠×١٤ بكسل): شعر، وجه مضلّل، عينان، أنف، فم، ذراعان، حزام، حذاء، وأداة تختلف حسب المهنة (فأس، معول، صنارة، قوس، عصا، سلة، عملة). الحاكم يرتدي تاجًا ذهبيًا، والمرأة الحامل يظهر بطنها. الأيقونات مرسومة داخل التطبيق بالكود، دون استخدام أي صور محفوظة من الملف الذي أرسلته. الرسم مستطيلات مسطّحة خفيفة على الهاتف. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال.
+الجزيرة ليست دائرية بل مربع مدوّر فيه خلجان ورؤوس عشوائية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، وكل واحد منهم الآن **شخصية بكسلية أوضح وأكثر واقعية** (١٠×١٤ بكسل): شعر، وجه مضلّل، عينان، أنف، فم، ذراعان، حزام، حذاء، وأداة تختلف حسب المهنة (فأس، معول، صنارة، قوس، عصا، سلة، عملة). الحاكم يرتدي تاجًا ذهبيًا، والمرأة الحامل يظهر بطنها. أكثر أيقونات اللعبة مرسومة داخل التطبيق بالكود، ومعها الآن شعارك وأيقونات المعلومات والأنماط والإعدادات وخلفية قائمتك الأصلية من الملف الذي أرسلته، مُبسّطة لتناسب واجهة الجوال. الرسم مستطيلات مسطّحة خفيفة على الهاتف مع حواف وتظليل ووميض أقوى. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال.
+
+في الإصدار ٠٫٨٫٠ دخلت تصميماتك الأصلية إلى اللعبة: الشعار والأيقونات وخلفية القائمة وألوانك (الخمري والبرتقالي والفحمي) صارت جزءًا من شريط العنوان وأزرار المعلومات والأنماط والإعدادات والتبويبات والفرش. تحسّنت الرسومات كثيرًا: حواف ساحلية وبيئية متجاورة، ظلال تحت الأشجار والحيوانات والمباني، وميض ماء، صفوف محاصيل في المزارع، طرق مرصوفة، اتجاه نظر للسكان، ودخان ووميض وذيول أطول للتأثيرات. وأُضيفت **قوافل تجارية** بين الممالك: تُفتح كل ٣٠–٤٥ يومًا، وتستغرق ١٠–٢٠ يومًا، وتجلب ذهبًا وطعامًا ومعرفة، ويظهر تقدّمها في صفحة الممالك وأمر `trade` في نسخة الحاسوب.
 
 في الإصدار ٠٫٦٫٠ صارت الجزيرة عالمًا أعمق: **١٦ شكلًا للخريطة**، **١٩ بيئة حيوية**، أربع شعوب (إنسان، إلف، أورك، قزم)، ممالك وعشائر وثقافات وعلاقات دبلوماسية وخمس أنواع حروب، **٧٠ تقنية** تُبحث وتغيّر الاقتصاد والولاء والدفاع، **٢٣ قانونًا عالميًا** يمكن تفعيله أو إيقافه، **١٧ كارثة** و**١٢ حالة مؤقتة** و**٣٣ موردًا** و**١٣٤ نوع مبنى**. تظهر كل هذه الأنظمة في سبع صفحات: الجزيرة، السكان، الطبيعة، المخلوقات، الممالك، القدرات، الأحداث. اضغط أي وجه في صفحة السكان لتعيينه حاكمًا. وأي ضغطة على أيقونة أو شخص أو قطعة أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ ثم يختفي تلقائيًا.
 

@@ -5,6 +5,7 @@ import com.dotee313.omatydom.core.civ.Culture;
 import com.dotee313.omatydom.core.civ.DiplomacyRelation;
 import com.dotee313.omatydom.core.civ.Kingdom;
 import com.dotee313.omatydom.core.civ.Species;
+import com.dotee313.omatydom.core.civ.TradeRoute;
 import com.dotee313.omatydom.core.civ.War;
 import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
@@ -433,6 +434,16 @@ public final class OmatydomGame {
 
     public List<War> getWars() {
         return world.getWars();
+    }
+
+    /** القوافل بين الممالك — unmodifiable snapshot for the front-end. */
+    public List<TradeRoute> getTradeRoutes() {
+        return world.getTradeRoutes();
+    }
+
+    /** إجمالي القوافل التي وصلت — delivered caravans so far. */
+    public int getCaravansCompleted() {
+        return world.getCaravansCompleted();
     }
 
     public List<Technology> getUnlockedTechnologies() {

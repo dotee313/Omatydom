@@ -1,6 +1,7 @@
 package com.dotee313.omatydom.android;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -32,6 +33,7 @@ import com.dotee313.omatydom.core.civ.Clan;
 import com.dotee313.omatydom.core.civ.Culture;
 import com.dotee313.omatydom.core.civ.Kingdom;
 import com.dotee313.omatydom.core.civ.StatusEffect;
+import com.dotee313.omatydom.core.civ.TradeRoute;
 import com.dotee313.omatydom.core.civ.War;
 import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
@@ -136,6 +138,7 @@ public class MainActivity extends Activity {
     private IslandView islandView;
     private EventAdapter eventAdapter;
     private TextView brushHintView;
+    private TextView tradeRouteText;
 
     private final ImageButton[] brushButtons = new ImageButton[IslandView.Brush.values().length];
     private final TextView[] resourceStripCounts = new TextView[6];
@@ -205,6 +208,7 @@ public class MainActivity extends Activity {
         seasonView = findViewById(R.id.seasonText);
         hintView = findViewById(R.id.hintText);
         brushHintView = findViewById(R.id.brushHintText);
+        tradeRouteText = findViewById(R.id.tradeRouteText);
         statText = findViewById(R.id.statText);
         dayProgress = findViewById(R.id.dayProgress);
         eventsView = findViewById(R.id.eventsList);
@@ -251,6 +255,7 @@ public class MainActivity extends Activity {
         });
 
         setupTopControls();
+        setupUtilityBar();
         setupResourceStrip();
         setupOverlayBar();
         setupBrushBar();
@@ -331,6 +336,51 @@ public class MainActivity extends Activity {
             }
             refreshUi();
         });
+    }
+
+    /** Three compact utilities above the game controls. All hints stay short and Arabic. */
+    private void setupUtilityBar() {
+        ImageButton info = findViewById(R.id.utilityInfoButton);
+        ImageButton mods = findViewById(R.id.utilityModsButton);
+        ImageButton settings = findViewById(R.id.utilitySettingsButton);
+
+        info.setImageDrawable(UserArt.info(this));
+        mods.setImageDrawable(UserArt.mods(this));
+        settings.setImageDrawable(UserArt.settings(this));
+
+        info.setOnClickListener(v -> {
+            String about = UserArt.aboutText();
+            showHint(about);
+            ImageView header = new ImageView(this);
+            header.setImageResource(R.drawable.user_menu_background);
+            header.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            header.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, dp(72)));
+            new AlertDialog.Builder(this)
+                    .setCustomTitle(header)
+                    .setMessage(about)
+                    .setPositiveButton("إغلاق", null)
+                    .show();
+        });
+
+        mods.setOnClickListener(v -> {
+            ModPack[] packs = ModPack.values();
+            ModPack next = packs[(game.getModPack().ordinal() + 1) % packs.length];
+            game.setModPack(next);
+            showHint("نمط اللعبة الآن: «" + next.getDisplayNameAr() + "» — " + next.getDescription());
+            refreshUi();
+        });
+
+        // Reuse the existing pause/speed listeners instead of duplicating their logic.
+        settings.setOnClickListener(v -> new AlertDialog.Builder(this)
+                .setTitle("إعدادات الزمن")
+                .setMessage("غيّر الزمن هنا أو من أعلى الشاشة — اللعبة مستمرة أثناء القراءة.")
+                .setPositiveButton(game.isPaused() ? "متابعة الزمن" : "إيقاف الزمن",
+                        (dialog, which) -> findViewById(R.id.pauseButton).performClick())
+                .setNegativeButton("تغيير السرعة",
+                        (dialog, which) -> findViewById(R.id.speedButton).performClick())
+                .setNeutralButton("إغلاق", null)
+                .show());
     }
 
     // ------------------------------------------------------------------
@@ -625,6 +675,13 @@ public class MainActivity extends Activity {
             navButtons[i].setBackgroundResource(
                     active ? R.drawable.nav_selected : R.drawable.bg_button);
             navButtons[i].setAlpha(active ? 1f : 0.62f);
+            // The active pill is burgundy, so whiten its silhouette for contrast.
+            if (active) {
+                navButtons[i].setColorFilter(0xFFFFFFFF,
+                        android.graphics.PorterDuff.Mode.SRC_IN);
+            } else {
+                navButtons[i].clearColorFilter();
+            }
         }
         // Force a rebuild on tab open; later refreshes go through signature checks.
         signatures.remove(TAB_KEYS[index]);
@@ -675,7 +732,7 @@ public class MainActivity extends Activity {
         for (int i = 0; i < disasters.length; i++) {
             final DisasterType type = disasters[i];
             ImageButton button = new ImageButton(this);
-            button.setLayoutParams(gridCellParams(i, 6, dp(36), dp(36)));
+            button.setLayoutParams(gridCellParams(i, 6, dp(40), dp(40)));
             button.setBackgroundResource(R.drawable.bg_button);
             button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
             button.setPadding(2, 2, 2, 2);
@@ -773,7 +830,7 @@ public class MainActivity extends Activity {
 
     private void setupNatureStatic() {
         natureList.removeAllViews();
-        templateText = addLabel(natureList, "", 12f, 0xFFFFD54F);
+        templateText = addLabel(natureList, "", 12f, 0xFFFCA311);
         StringBuilder templates = new StringBuilder("كل القوالب: ");
         for (MapTemplate template : MapTemplate.values()) {
             if (templates.length() > 12) {
@@ -784,7 +841,7 @@ public class MainActivity extends Activity {
         addLabel(natureList, templates.toString(), 10f, 0xFFB0BEC5);
 
         addSection(natureList, "نمط اللعبة — اختر مجموعة القواعد");
-        modPackText = addLabel(natureList, "", 11f, 0xFF90CAF9);
+        modPackText = addLabel(natureList, "", 11f, 0xFFFFF3E0);
         GridLayout modGrid = grid(natureList, 3);
         int[] modColors = {0xFF66BB6A, 0xFF42A5F5, 0xFFAB47BC};
         ModPack[] packs = ModPack.values();
@@ -848,7 +905,7 @@ public class MainActivity extends Activity {
         for (int i = 0; i < resources.length; i++) {
             final ResourceType resource = resources[i];
             TextView amount = new TextView(this);
-            amount.setTextColor(0xFF90CAF9);
+            amount.setTextColor(0xFFFFF3E0);
             amount.setTextSize(9f);
             LinearLayout cell = swatchCell(PixelIcons.resourceSwatch(this, resource.getColor()),
                     resource.getArabicDisplayName(), amount);
@@ -918,7 +975,7 @@ public class MainActivity extends Activity {
             row.addView(name);
 
             TextView count = new TextView(this);
-            count.setTextColor(0xFF90CAF9);
+            count.setTextColor(0xFFFFF3E0);
             count.setTextSize(12f);
             row.addView(count);
             creatureCounts[i] = count;
@@ -1040,6 +1097,8 @@ public class MainActivity extends Activity {
     }
 
     private void refreshKingdoms() {
+        // Trade progress can change without changing the kingdom signature below.
+        refreshTradeRoutes();
         List<Kingdom> kingdoms = game.getKingdoms();
         List<Clan> clans = game.getClans();
         List<Culture> cultures = game.getCultures();
@@ -1103,14 +1162,44 @@ public class MainActivity extends Activity {
         }
         addLabel(clanList, "إحصاء: عشائر " + world.getClansFounded()
                 + " • ممالك " + world.getKingdomsFounded()
-                + " • حروب " + world.getWarsStarted(), 10f, 0xFF90CAF9);
+                + " • حروب " + world.getWarsStarted(), 10f, 0xFFFFF3E0);
 
-        nextTechText = addLabel(kingdomList, "", 11f, 0xFFFFD54F);
+        nextTechText = addLabel(kingdomList, "", 11f, 0xFFFCA311);
         Technology next = game.getNextTechnology();
         nextTechText.setText(next == null
                 ? "التقنيات: اكتملت كل الاكتشافات."
                 : "التقنية التالية: " + next.getArabicName() + " — "
                         + next.getCategory().getArabicName() + " • تكلفة " + next.getCost());
+    }
+
+    /** One Arabic line on the kingdoms page: route count, active count and progress. */
+    private void refreshTradeRoutes() {
+        List<TradeRoute> routes = game.getTradeRoutes();
+        if (routes == null) {
+            return;
+        }
+        StringBuilder sig = new StringBuilder().append(routes.size()).append('|');
+        int active = 0;
+        String progress = "—";
+        for (TradeRoute route : routes) {
+            if (route == null) {
+                sig.append("null;");
+                continue;
+            }
+            if (route.isActive()) {
+                active++;
+            }
+            progress = String.format(Locale.getDefault(), "%.0f%%", route.getProgress() * 100);
+            sig.append(route.getId()).append(':')
+                    .append(route.isActive() ? '1' : '0').append(':')
+                    .append(progress).append(';');
+        }
+        sig.append('|').append(active);
+        if (!changed("routes", sig.toString())) {
+            return;
+        }
+        tradeRouteText.setText("طرق التجارة: " + routes.size()
+                + " • النشطة " + active + " • آخر تقدّم " + progress);
     }
 
     private void refreshTechList() {
@@ -1412,7 +1501,7 @@ public class MainActivity extends Activity {
     }
 
     private void addSection(LinearLayout parent, String text) {
-        TextView view = addLabel(parent, text, 12f, 0xFFFFD54F);
+        TextView view = addLabel(parent, text, 12f, 0xFFFCA311);
         view.setPadding(0, dp(6), 0, dp(2));
     }
 
@@ -1514,7 +1603,7 @@ public class MainActivity extends Activity {
             case FARM: return 0xFF9CCC65;
             case MINING: return 0xFF90A4AE;
             case MILITARY: return 0xFFEF5350;
-            case GOVERN: return 0xFFFFD54F;
+            case GOVERN: return 0xFFFCA311;
             case CULTURE: return 0xFFCE93D8;
             case TRADE: return 0xFF4FC3F7;
             case LORE:

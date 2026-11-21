@@ -7,6 +7,7 @@ import com.dotee313.omatydom.core.civ.DiplomacyRelation;
 import com.dotee313.omatydom.core.civ.Kingdom;
 import com.dotee313.omatydom.core.civ.Species;
 import com.dotee313.omatydom.core.civ.StatusEffect;
+import com.dotee313.omatydom.core.civ.TradeRoute;
 import com.dotee313.omatydom.core.civ.War;
 import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
@@ -41,13 +42,27 @@ import java.util.Random;
  * harvest resources, raise buildings, hunt animals and trade ideas.
  */
 public final class SimulationEngine {
+    private static final int MAX_TRADE_ROUTES = 6;
+    private static final int TRADE_INTERVAL_MIN_DAYS = 30;
+    private static final int TRADE_INTERVAL_MAX_DAYS = 45;
+    private static final int TRADE_DURATION_MIN_DAYS = 10;
+    private static final int TRADE_DURATION_MAX_DAYS = 20;
+    private static final String[] TRADE_GOODS = {
+            "Grain", "Spice", "Iron", "Crystal", "Timber", "Salt", "Silk", "Wine", "Leather", "Herbs"
+    };
+
     private final World world;
     private final Random random;
     private final List<SimulationListener> listeners = new ArrayList<>();
+    private int nextTradeRouteId = 1;
+    private int nextTradeRouteDay;
 
     public SimulationEngine(World world, Random random) {
         this.world = world;
         this.random = random;
+        for (TradeRoute route : world.getTradeRoutes()) {
+            nextTradeRouteId = Math.max(nextTradeRouteId, route.getId() + 1);
+        }
     }
 
     public World getWorld() {
@@ -110,6 +125,7 @@ public final class SimulationEngine {
                 + random.nextDouble() * 0.6 - 0.3);
         world.getMap().regenerate(random);
         maybeGenerateEvent(day);
+        stepTradeRoutes(day);
 
         for (SimulationListener listener : new ArrayList<>(listeners)) {
             listener.onDayAdvanced(day);
@@ -1185,6 +1201,110 @@ public final class SimulationEngine {
                 }
             }
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Trade caravans between kingdoms
+    // ------------------------------------------------------------------
+
+    /** Caravans open on a 30-45 day clock, travel 10-20 days, deliver, then get pruned. */
+    private void stepTradeRoutes(int day) {
+        for (TradeRoute route : world.getTradeRoutes()) {
+            if (!route.isActive()
+                    || findKingdom(route.getFromKingdomId()) == null
+                    || findKingdom(route.getToKingdomId()) == null) {
+                route.cancel();
+                world.removeTradeRoute(route);
+                continue;
+            }
+            if (route.advanceOneDay()) {
+                finishTradeRoute(day, route);
+                world.removeTradeRoute(route);
+            }
+        }
+
+        if (nextTradeRouteDay <= 0) {
+            nextTradeRouteDay = scheduleTradeDay(day);
+        }
+        if (day < nextTradeRouteDay) {
+            return;
+        }
+        nextTradeRouteDay = scheduleTradeDay(day);
+
+        int kingdomCount = world.getKingdoms().size();
+        if (kingdomCount < 2) {
+            return;
+        }
+        int slots = MAX_TRADE_ROUTES - world.getTradeRoutes().size();
+        int openings = Math.min(slots, Math.max(1, kingdomCount - 1));
+        for (int i = 0; i < openings; i++) {
+            openTradeRoute(day);
+        }
+    }
+
+    private int scheduleTradeDay(int day) {
+        return day + TRADE_INTERVAL_MIN_DAYS
+                + random.nextInt(TRADE_INTERVAL_MAX_DAYS - TRADE_INTERVAL_MIN_DAYS + 1);
+    }
+
+    /** Pick two distinct kingdoms and launch one caravan if the pair is not already trading. */
+    private void openTradeRoute(int day) {
+        List<Kingdom> kingdoms = world.getKingdoms();
+        if (kingdoms.size() < 2) {
+            return;
+        }
+        int size = kingdoms.size();
+        int first = random.nextInt(size);
+        int second = random.nextInt(size - 1);
+        if (second >= first) {
+            second++;
+        }
+        Kingdom from = kingdoms.get(first);
+        Kingdom to = kingdoms.get(second);
+        for (TradeRoute route : world.getTradeRoutes()) {
+            if (sameKingdoms(route, from.getId(), to.getId())) {
+                return;
+            }
+        }
+
+        String good = TRADE_GOODS[random.nextInt(TRADE_GOODS.length)];
+        int duration = TRADE_DURATION_MIN_DAYS
+                + random.nextInt(TRADE_DURATION_MAX_DAYS - TRADE_DURATION_MIN_DAYS + 1);
+        double reward = 10.0 + random.nextInt(21);
+        TradeRoute route = new TradeRoute(nextTradeRouteId++, from.getId(), to.getId(),
+                good, reward, duration);
+        world.addTradeRoute(route);
+        postEvent(new GameEvent(day, EventType.ECONOMY, "A trade route opens",
+                "Merchants of " + from.getName() + " and " + to.getName()
+                        + " agree to trade " + good.toLowerCase() + ".", 2));
+    }
+
+    private static boolean sameKingdoms(TradeRoute route, int a, int b) {
+        return (route.getFromKingdomId() == a && route.getToKingdomId() == b)
+                || (route.getFromKingdomId() == b && route.getToKingdomId() == a);
+    }
+
+    /** Pay gold, food and knowledge when a caravan reaches its destination. */
+    private void finishTradeRoute(int day, TradeRoute route) {
+        Kingdom from = findKingdom(route.getFromKingdomId());
+        Kingdom to = findKingdom(route.getToKingdomId());
+        double gold = route.getReward();
+        world.setGold(world.getGold() + gold);
+        world.setFood(world.getFood() + gold * 0.8);
+        for (Kingdom kingdom : new Kingdom[]{from, to}) {
+            if (kingdom != null) {
+                kingdom.setTreasury(kingdom.getTreasury() + (int) Math.round(gold / 2.0));
+            }
+        }
+        for (Culture culture : world.getCultures()) {
+            culture.setKnowledge(culture.getKnowledge() + gold * 0.05);
+        }
+        world.incrementCaravansCompleted();
+        String fromName = from == null ? "kingdom " + route.getFromKingdomId() : from.getName();
+        String toName = to == null ? "kingdom " + route.getToKingdomId() : to.getName();
+        postEvent(new GameEvent(day, EventType.ECONOMY, "A caravan arrives",
+                "The " + route.getGood().toLowerCase() + " caravan from " + fromName
+                        + " reached " + toName + ", earning " + (int) Math.round(gold) + " gold.", 3));
     }
 
     private void maybeFoundClan(Citizen citizen, int day) {

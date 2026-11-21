@@ -12,6 +12,7 @@ import com.dotee313.omatydom.core.SimulationListener;
 import com.dotee313.omatydom.core.Technology;
 import com.dotee313.omatydom.core.World;
 import com.dotee313.omatydom.core.civ.Achievement;
+import com.dotee313.omatydom.core.civ.TradeRoute;
 import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
 import com.dotee313.omatydom.core.model.Job;
@@ -59,7 +60,7 @@ public final class DesktopLauncher {
         }
 
         createGame(seed, template, modPack);
-        System.out.println("=== Omatydom v0.7.0 — Sandbox World | seed " + seed + " ===");
+        System.out.println("=== Omatydom v0.8.0 — Living World & User Art | seed " + seed + " ===");
         printHelp();
         printStatus();
 
@@ -299,6 +300,9 @@ public final class DesktopLauncher {
             case "civs":
                 printCivilizations();
                 break;
+            case "trade":
+                printTradeRoutes();
+                break;
             case "tech":
                 if (parts.length > 1 && "research".equalsIgnoreCase(parts[1])) {
                     if (game.researchNextTechnology()) {
@@ -403,7 +407,7 @@ public final class DesktopLauncher {
         System.out.println("World: map | resources [TYPE] | animals | biome <x> <y> | build <x> <y> <STRUCTURE>");
         System.out.println("       building <x> <y> <BUILDING_TYPE> | decree [NAME] | power [NAME]");
         System.out.println("Deep: templates | mods | new [seed] [TEMPLATE] [MOD] | laws [KEY [on|off]]");
-        System.out.println("      civs | tech [research] | war [TYPE] [A_ID] [B_ID] | disaster [TYPE] | spawn [TYPE]");
+        System.out.println("      civs | trade | tech [research] | war [TYPE] [A_ID] [B_ID] | disaster [TYPE] | spawn [TYPE]");
         System.out.println("      achievements | quit");
     }
 
@@ -501,6 +505,21 @@ public final class DesktopLauncher {
             System.out.printf(Locale.ROOT, "  #%d %s kingdom %d vs %d intensity %.2f since day %d%n",
                     war.getId(), war.getType().getDisplayName(), war.getAttackerId(),
                     war.getDefenderId(), war.getIntensity(), war.getStartDay());
+        }
+    }
+
+    private static void printTradeRoutes() {
+        List<TradeRoute> routes = game.getTradeRoutes();
+        System.out.println("Delivered caravans: " + game.getCaravansCompleted()
+                + " | active routes: " + routes.size());
+        for (TradeRoute route : routes) {
+            System.out.printf(Locale.ROOT,
+                    "  #%d kingdom %d -> %d carrying %s, %.0f%% done, reward %.1f gold%n",
+                    route.getId(), route.getFromKingdomId(), route.getToKingdomId(),
+                    route.getGood(), route.getProgress() * 100.0, route.getReward());
+        }
+        if (routes.isEmpty()) {
+            System.out.println("  No caravan on the road. Found a second kingdom to open trade.");
         }
     }
 

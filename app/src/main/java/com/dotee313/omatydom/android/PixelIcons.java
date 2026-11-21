@@ -688,18 +688,22 @@ final class PixelIcons {
         return fromPixels(context, width, height, pixels);
     }
 
+    /**
+     * Icon ink is tuned for the light icon tiles: charcoal outlines, mid-grey
+     * fills and burgundy/orange accents instead of the old blue-on-blue set.
+     */
     private static int colorOf(char symbol) {
         switch (symbol) {
-            case 'K': return 0xFF202124;
-            case 'W': return 0xFFFFFFFF;
-            case 'Y': return 0xFFFFD54F;
-            case 'G': return 0xFF9E9E9E;
-            case 'B': return 0xFF42A5F5;
-            case 'P': return 0xFFAB47BC;
-            case 'N': return 0xFF8D6E63;
-            case 'R': return 0xFFEF5350;
-            case 'L': return 0xFF66BB6A;
-            case 'C': return 0xFF26C6DA;
+            case 'K': return 0xFF3E3B39;
+            case 'W': return 0xFF8D8884;
+            case 'Y': return 0xFFFCA311;
+            case 'G': return 0xFF6D6A6A;
+            case 'B': return 0xFF2E7DB8;
+            case 'P': return 0xFF8E24AA;
+            case 'N': return 0xFF6D4C41;
+            case 'R': return 0xFFB01527;
+            case 'L': return 0xFF3E8E41;
+            case 'C': return 0xFF00838F;
             default: return Color.TRANSPARENT;
         }
     }

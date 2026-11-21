@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Palette taken from the user's original SVG artwork. -->
+    <color name="user_burgundy">#FF5B0A19</color>
+    <color name="user_orange">#FFFCA311</color>
+    <color name="user_brown">#FF504A3E</color>
+    <color name="user_dark">#FF3E3B39</color>
+    <color name="user_mid">#FF6D6A6A</color>
+    <color name="user_white">#FFFFFFFF</color>
+</resources>
