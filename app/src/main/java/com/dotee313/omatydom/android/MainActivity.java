@@ -17,6 +17,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.dotee313.omatydom.core.Age;
+import com.dotee313.omatydom.core.BuildingType;
 import com.dotee313.omatydom.core.Decree;
 import com.dotee313.omatydom.core.DisasterType;
 import com.dotee313.omatydom.core.GameConfig;
@@ -37,7 +38,12 @@ import com.dotee313.omatydom.core.civ.TradeRoute;
 import com.dotee313.omatydom.core.civ.War;
 import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
+import com.dotee313.omatydom.core.model.Gender;
+import com.dotee313.omatydom.core.model.Ideology;
 import com.dotee313.omatydom.core.model.Job;
+import com.dotee313.omatydom.core.model.Religion;
+import com.dotee313.omatydom.core.model.SocialClass;
+import com.dotee313.omatydom.core.world.Agent;
 import com.dotee313.omatydom.core.world.AnimalType;
 import com.dotee313.omatydom.core.world.Biome;
 import com.dotee313.omatydom.core.world.MapTemplate;
@@ -155,6 +161,15 @@ public class MainActivity extends Activity {
             "ذهب", "طعام", "خشب", "حجر", "خام", "بلور"
     };
 
+    /** Curated, actually-buildable catalogue shown in the in-game build menu. */
+    private static final BuildingType[] BUILD_MENU_TYPES = {
+            BuildingType.REED_SHACK, BuildingType.TIMBER_HOME, BuildingType.CLAY_COTTAGE,
+            BuildingType.FARM, BuildingType.GRANARY, BuildingType.FISHING_HUT,
+            BuildingType.MINE, BuildingType.QUARRY, BuildingType.SMITHY,
+            BuildingType.WEAVING_SHED, BuildingType.POTTERY, BuildingType.APIARY,
+            BuildingType.WINDMILL, BuildingType.BAKERY, BuildingType.SCHOOL
+    };
+
     private LinearLayout peopleList;
     private LinearLayout natureList;
     private LinearLayout creatureList;
@@ -234,7 +249,8 @@ public class MainActivity extends Activity {
             public void onAgentTapped(Citizen citizen) {
                 selectedCitizenId = citizen.getId();
                 islandView.selectAgent(citizen.getId());
-                showHint(citizenExplanation(citizen));
+                openCitizenInfo(citizen);
+                showHint("بطاقة «" + citizen.getName() + "» — اختر من النافذة.");
             }
 
             @Override
@@ -253,12 +269,24 @@ public class MainActivity extends Activity {
                 islandView.invalidate();
             }
         });
+        islandView.setOnBuildRequestedListener(new IslandView.OnBuildRequestedListener() {
+            @Override
+            public void onBuildRequested(int x, int y, BuildingType type) {
+                handleBuildRequested(x, y, type);
+            }
+
+            @Override
+            public void onTerrainRequested(int x, int y, TileType type) {
+                handleTerrainRequested(x, y, type);
+            }
+        });
 
         setupTopControls();
         setupUtilityBar();
         setupResourceStrip();
         setupOverlayBar();
         setupBrushBar();
+        setupBuildButton();
         setupMapControls();
         setupBottomNav();
         setupDecreeGrid();
@@ -472,6 +500,132 @@ public class MainActivity extends Activity {
         lastPaintHintAt = System.currentTimeMillis();
     }
 
+    // ------------------------------------------------------------------
+    // In-game construction: planned building / sand expansion
+    // ------------------------------------------------------------------
+
+    /** The build tool lives in Worker 1's unified dock; no XML is touched here. */
+    private void setupBuildButton() {
+        View build = findViewById(R.id.buildButton);
+        if (build == null) {
+            return;
+        }
+        build.setContentDescription("أدوات البناء — اختر مبنى أو توسيع اليابسة");
+        if (build instanceof ImageButton) {
+            ((ImageButton) build).setImageDrawable(
+                    PixelIcons.brushIcon(this, IslandView.Brush.HOUSE));
+        }
+        build.setOnClickListener(v -> showBuildDialog());
+    }
+
+    private void showBuildDialog() {
+        CharSequence[] labels = new CharSequence[BUILD_MENU_TYPES.length + 2];
+        labels[0] = "توسيع اليابسة (رمال) — ماء يلامس شاطئًا فقط";
+        for (int i = 0; i < BUILD_MENU_TYPES.length; i++) {
+            BuildingType type = BUILD_MENU_TYPES[i];
+            labels[i + 1] = type.getDisplayNameAr() + " — خشب " + type.getWoodCost()
+                    + " • حجر " + type.getStoneCost() + " • ذهب " + type.getGoldCost();
+        }
+        labels[labels.length - 1] = "إلغاء البناء — العودة لفرش الطبيعة";
+
+        new AlertDialog.Builder(this)
+                .setTitle("ماذا تريد أن تبني؟")
+                .setItems(labels, (dialog, which) -> {
+                    if (which == 0) {
+                        islandView.setPlannedBuilding(null);
+                        islandView.setPlannedTerrain(TileType.SAND);
+                        markBuildMode(true);
+                        showHint("اختر مقطع ماء يلامس اليابسة — سيتحول إلى رمال ويتوسع الشاطئ.");
+                    } else if (which == labels.length - 1) {
+                        islandView.setPlannedBuilding(null);
+                        islandView.setPlannedTerrain(null);
+                        markBuildMode(false);
+                        showHint("أُلغي التخطيط — فرش الطبيعة يعمل كما كان.");
+                    } else {
+                        BuildingType type = BUILD_MENU_TYPES[which - 1];
+                        islandView.setPlannedTerrain(null);
+                        islandView.setPlannedBuilding(type);
+                        markBuildMode(true);
+                        showHint("اختر أرضًا فارغة لبناء «" + type.getDisplayNameAr() + "» — خشب "
+                                + type.getWoodCost() + " • حجر " + type.getStoneCost()
+                                + " • ذهب " + type.getGoldCost() + ".");
+                    }
+                })
+                .show();
+    }
+
+    /** Highlights the dock button only while a build or sand plan is active. */
+    private void markBuildMode(boolean active) {
+        View build = findViewById(R.id.buildButton);
+        if (build != null) {
+            build.setBackgroundResource(
+                    active ? R.drawable.brush_selected : R.drawable.bg_button);
+        }
+    }
+
+    private void handleBuildRequested(int x, int y, BuildingType type) {
+        if (type == null) {
+            return;
+        }
+        if (game.buildBuilding(x, y, type)) {
+            showHint("تم بناء «" + type.getDisplayNameAr() + "» عند (" + x + "," + y + ").");
+            refreshUi();
+        } else {
+            Tile tile = world().getMap().get(x, y);
+            if (tile == null) {
+                showHint("خارج الخريطة — لا يمكن البناء هنا.");
+            } else if (!tile.isFreeLand()) {
+                showHint(tile.getType() == TileType.WATER
+                        ? "لا يُبنى فوق الماء — توسّع اليابسة أولًا من أدوات البناء."
+                        : "الأرض غير فارغة — اختر مقطعًا بلا مبنى.");
+            } else {
+                World world = world();
+                showHint("الموارد غير كافية: خشب " + type.getWoodCost() + " (لديك "
+                        + (int) world.getWood() + ") • حجر " + type.getStoneCost() + " (لديك "
+                        + (int) world.getStone() + ") • ذهب " + type.getGoldCost()
+                        + " (لديك " + (int) world.getGold() + ").");
+            }
+        }
+        islandView.invalidate();
+    }
+
+    /** Sand expansion is allowed only on a water tile touching dry land. */
+    private void handleTerrainRequested(int x, int y, TileType type) {
+        if (type != TileType.SAND) {
+            showHint("أداة توسيع اليابسة تضع الرمال فقط.");
+            return;
+        }
+        World world = world();
+        if (!world.getMap().inBounds(x, y)) {
+            showHint("خارج الخريطة — لا يمكن توسيع اليابسة هنا.");
+            return;
+        }
+        TileType here = world.getMap().typeAt(x, y);
+        if (here != TileType.WATER) {
+            showHint("التوسيع يبدأ من الماء — هذا المقطع " + arabicTile(here) + ".");
+            return;
+        }
+        int[][] sides = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        boolean touchesLand = false;
+        for (int[] side : sides) {
+            if (world.getMap().typeAt(x + side[0], y + side[1]) != TileType.WATER) {
+                touchesLand = true;
+                break;
+            }
+        }
+        if (!touchesLand) {
+            showHint("هذا الماء بعيد عن الشاطئ — اختر مقطعًا يلامس أرضًا يابسة.");
+            return;
+        }
+        if (game.paintTile(x, y, TileType.SAND)) {
+            showHint("توسّعت اليابسة عند (" + x + "," + y + ") — صار المقطع رمالًا صالحة للبناء.");
+            refreshUi();
+        } else {
+            showHint("تعذّر توسيع اليابسة عند (" + x + "," + y + ").");
+        }
+        islandView.invalidate();
+    }
+
     private void setupMapControls() {
         ImageButton zoomIn = findViewById(R.id.zoomInButton);
         ImageButton zoomOut = findViewById(R.id.zoomOutButton);
@@ -682,6 +836,10 @@ public class MainActivity extends Activity {
             } else {
                 navButtons[i].clearColorFilter();
             }
+        }
+        View dockTools = findViewById(R.id.dockMapToolsRow);
+        if (dockTools != null) {
+            dockTools.setVisibility(index == 0 ? View.VISIBLE : View.GONE);
         }
         // Force a rebuild on tab open; later refreshes go through signature checks.
         signatures.remove(TAB_KEYS[index]);
@@ -1455,18 +1613,24 @@ public class MainActivity extends Activity {
                     + " • " + citizen.getSpecies().getArabicDisplayName());
             row.addView(info);
 
-            row.setOnClickListener(v -> {
-                selectedCitizenId = citizen.getId();
-                islandView.selectAgent(citizen.getId());
-                if (game.chooseRuler(citizen.getId())) {
-                    showHint("تم تعيين " + citizen.getName() + " حاكمًا للجزيرة.");
-                } else {
-                    showHint("لا يمكن تعيين هذا الشخص — يجب أن يكون بالغًا وحيًا.");
-                }
-                refreshUi();
-            });
+            row.setOnClickListener(v -> appointRuler(citizen));
             peopleList.addView(row);
         }
+    }
+
+    /** Shared by the People row and the citizen card, so both behave identically. */
+    private void appointRuler(Citizen citizen) {
+        if (citizen == null) {
+            return;
+        }
+        selectedCitizenId = citizen.getId();
+        islandView.selectAgent(citizen.getId());
+        if (game.chooseRuler(citizen.getId())) {
+            showHint("تم تعيين " + citizen.getName() + " حاكمًا للجزيرة.");
+        } else {
+            showHint("لا يمكن تعيين هذا الشخص — يجب أن يكون بالغًا وحيًا.");
+        }
+        refreshUi();
     }
 
     private int actorCitizenId() {
@@ -1615,6 +1779,103 @@ public class MainActivity extends Activity {
     // Explanations and Arabic labels
     // ------------------------------------------------------------------
 
+    /** Programmatic Arabic card; the simulation keeps ticking while it is open. */
+    private void openCitizenInfo(Citizen citizen) {
+        if (citizen == null) {
+            return;
+        }
+        String subtitle = citizen.getAgeYears() + " سنة • " + arabicGender(citizen.getGender())
+                + " • " + arabicJob(citizen.getJob());
+        CitizenInfoDialog.show(this, citizen, subtitle, citizenDetails(citizen),
+                appointed -> appointRuler(appointed));
+    }
+
+    /** Real values from Citizen / Agent / civ models; no invented family data. */
+    private String citizenDetails(Citizen citizen) {
+        World world = world();
+        StringBuilder details = new StringBuilder();
+        details.append("المهنة: ").append(arabicJob(citizen.getJob()))
+                .append(" • الطبقة: ").append(arabicSocialClass(citizen.getSocialClass())).append('\n');
+        details.append("العرق: ").append(citizen.getRace().getDisplayName())
+                .append(" — ").append(citizen.getRace().getDescription()).append('\n');
+        details.append("النوع: ").append(citizen.getSpecies().getArabicDisplayName()).append('\n');
+        details.append("الديانة: ").append(arabicReligion(citizen.getReligion())).append('\n');
+        details.append("الأيديولوجيا: ").append(arabicIdeology(citizen.getIdeology())).append('\n');
+        details.append("الصحة: ").append((int) citizen.getHealth())
+                .append("/100 • السعادة: ").append((int) citizen.getHappiness())
+                .append("/100 • الثروة: ").append((int) citizen.getWealth()).append("/100\n");
+        details.append("ذهب الجزيرة: ").append((int) world.getGold()).append('\n');
+
+        String kingdom = kingdomOf(citizen);
+        details.append("المملكة: ").append(kingdom == null ? "لا مملكة بعد" : kingdom).append('\n');
+
+        Agent agent = world.findAgent(citizen);
+        if (agent == null) {
+            details.append("الموقع: لا يظهر في الخريطة الآن.\n");
+        } else {
+            Tile tile = world.getMap().get(agent.getX(), agent.getY());
+            details.append("الموقع: (").append(agent.getX()).append(',').append(agent.getY())
+                    .append(") ").append(tile == null ? "خارج الخريطة" : arabicTile(tile.getType()));
+            if (agent.hasTarget()) {
+                details.append(" • يتجه إلى (").append(agent.getTargetX()).append(',')
+                        .append(agent.getTargetY()).append(')');
+            }
+            details.append('\n');
+        }
+
+        details.append("الحالة الاجتماعية: ").append(arabicSocialClass(citizen.getSocialClass()));
+        if (citizen.isPregnant()) {
+            details.append(" • حامل في يوم ")
+                    .append(citizen.getGestationDay(world.getDay())).append('/')
+                    .append(GameConfig.GESTATION_DAYS)
+                    .append(" • الراحة بعد الولادة ").append(GameConfig.MIN_BIRTH_SPACING_DAYS)
+                    .append(" يومًا");
+        } else {
+            details.append(" • غير حامل • فاصل الولادة ")
+                    .append(GameConfig.MIN_BIRTH_SPACING_DAYS)
+                    .append(" يومًا • الزواج غير مسجّل في هذه النسخة");
+        }
+        details.append('\n');
+
+        List<StatusEffect> effects = citizen.getActiveStatuses();
+        if (effects.isEmpty()) {
+            details.append("الأحوال المؤقتة: لا شيء.");
+        } else {
+            details.append("الأحوال المؤقتة: ");
+            for (int i = 0; i < effects.size(); i++) {
+                StatusEffect effect = effects.get(i);
+                if (i > 0) {
+                    details.append("، ");
+                }
+                details.append(effect.getDisplayNameAr()).append(' ')
+                        .append(citizen.getStatusDays(effect)).append(" يوم");
+            }
+            details.append('.');
+        }
+        details.append("\nالسمة: ").append(arabicTrait(citizen.getTrait()));
+        return details.toString();
+    }
+
+    /** Kingdom is derived through the citizen's clan; clans may exist before kingdoms. */
+    private String kingdomOf(Citizen citizen) {
+        List<Clan> clans = game.getClans();
+        List<Kingdom> kingdoms = game.getKingdoms();
+        for (Clan clan : clans) {
+            if (clan.getChiefId() != citizen.getId()
+                    && !clan.getMemberIds().contains(citizen.getId())) {
+                continue;
+            }
+            for (Kingdom kingdom : kingdoms) {
+                if (kingdom.getId() == clan.getKingdomId()
+                        || kingdom.getClanIds().contains(clan.getId())) {
+                    return "«" + kingdom.getName() + "» • عشيرة «" + clan.getName() + "»";
+                }
+            }
+            return "عشيرة «" + clan.getName() + "» بلا مملكة";
+        }
+        return null;
+    }
+
     private String citizenExplanation(Citizen citizen) {
         String state = citizen.isPregnant()
                 ? "حامل في يوم " + citizen.getGestationDay(world().getDay())
@@ -1633,7 +1894,7 @@ public class MainActivity extends Activity {
                 + " • " + citizen.getRace().getDescription() + "\n" + state + " • "
                 + arabicTrait(citizen.getTrait())
                 + (effects.length() > 0 ? "\nأحوال: " + effects : "")
-                + ". اضغط وجهه في تبويب السكان لتعيينه حاكمًا.";
+                + ". اضغط «تعيين حاكم» في بطاقته أو في تبويب السكان.";
     }
 
     private String tileExplanation(int x, int y) {
@@ -1719,6 +1980,57 @@ public class MainActivity extends Activity {
             case CLEANER: return "عامل نظافة";
             case FIREMAN: return "رجال إطفاء";
             case ATTACKER: return "مقاتل";
+            case LABORER:
+            default: return "عامل";
+        }
+    }
+
+    private static String arabicGender(Gender gender) {
+        if (gender == Gender.FEMALE) {
+            return "أنثى";
+        }
+        return "ذكر";
+    }
+
+    private static String arabicReligion(Religion religion) {
+        if (religion == null) {
+            return "لا ديانة";
+        }
+        switch (religion) {
+            case SOLARISM: return "عبادة الشمس";
+            case ANCESTOR_WORSHIP: return "عبادة الأجداد";
+            case NATURE_CULT: return "عبادة الطبيعة";
+            case THE_ONE: return "الإله الواحد";
+            case NONE:
+            default: return "لا ديانة";
+        }
+    }
+
+    private static String arabicIdeology(Ideology ideology) {
+        if (ideology == null) {
+            return "لا رأي سياسي";
+        }
+        switch (ideology) {
+            case MONARCHIST: return "مَلَكي";
+            case DEMOCRAT: return "ديمقراطي";
+            case THEOCRAT: return "ثيقراطي";
+            case TRADITIONALIST: return "تقليدي";
+            case EGALITARIAN: return "مساواتي";
+            case NATIONALIST: return "قومي";
+            case APATHETIC:
+            default: return "لا مبالٍ";
+        }
+    }
+
+    private static String arabicSocialClass(SocialClass socialClass) {
+        if (socialClass == null) {
+            return "عامل";
+        }
+        switch (socialClass) {
+            case CHILD: return "طفل";
+            case ARTISAN: return "حِرَفي";
+            case CLERGY: return "رجال دين";
+            case NOBLE: return "نبيل";
             case LABORER:
             default: return "عامل";
         }

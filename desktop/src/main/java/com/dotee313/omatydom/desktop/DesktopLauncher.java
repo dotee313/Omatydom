@@ -20,8 +20,11 @@ import com.dotee313.omatydom.core.model.Ruler;
 import com.dotee313.omatydom.core.world.Agent;
 import com.dotee313.omatydom.core.world.Animal;
 import com.dotee313.omatydom.core.world.AnimalType;
+import com.dotee313.omatydom.core.world.IslandMap;
 import com.dotee313.omatydom.core.world.MapTemplate;
 import com.dotee313.omatydom.core.world.Structure;
+import com.dotee313.omatydom.core.world.Tile;
+import com.dotee313.omatydom.core.world.TileType;
 import com.dotee313.omatydom.core.world.WorldLaw;
 
 import java.io.BufferedReader;
@@ -60,7 +63,7 @@ public final class DesktopLauncher {
         }
 
         createGame(seed, template, modPack);
-        System.out.println("=== Omatydom v0.8.0 — Living World & User Art | seed " + seed + " ===");
+        System.out.println("=== Omatydom v0.9.0 — Living World, Build & Wide Sea | seed " + seed + " ===");
         printHelp();
         printStatus();
 
@@ -195,6 +198,13 @@ public final class DesktopLauncher {
             case "map":
                 printMap();
                 break;
+            case "sea": {
+                double ratio = game.getMap().waterRatio();
+                System.out.printf(Locale.ROOT, "Sea waterRatio=%.4f (%.1f%% water, %d/%d tiles)%n",
+                        ratio, ratio * 100.0, game.getMap().count(TileType.WATER),
+                        game.getMap().getWidth() * game.getMap().getHeight());
+                break;
+            }
             case "agents":
                 printAgents();
                 break;
@@ -222,6 +232,26 @@ public final class DesktopLauncher {
                 break;
             }
             case "build": {
+                if (parts.length == 2) {
+                    BuildingType requested = parseEnum(BuildingType.class, parts[1], null);
+                    if (requested == null) {
+                        System.out.println("Unknown building type. Try e.g. REED_SHACK or CLAY_COTTAGE.");
+                        break;
+                    }
+                    int[] spot = firstFreeLand();
+                    if (spot == null) {
+                        System.out.println("No free land tile is available for "
+                                + requested.getDisplayName() + ".");
+                        break;
+                    }
+                    boolean done = game.buildBuilding(spot[0], spot[1], requested);
+                    System.out.printf(Locale.ROOT,
+                            "%s %s at %d,%d | cost wood %d, stone %d, gold %d%n",
+                            done ? "Built" : "Could not build", requested.getDisplayName(),
+                            spot[0], spot[1], requested.getWoodCost(), requested.getStoneCost(),
+                            requested.getGoldCost());
+                    break;
+                }
                 int x = argAsInt(parts, 1, -1);
                 int y = argAsInt(parts, 2, -1);
                 Structure structure = parts.length > 3
@@ -404,8 +434,8 @@ public final class DesktopLauncher {
     private static void printHelp() {
         System.out.println("Core: help | status | stats | events [n] | step [n] | run [n] | pause | resume | speed n");
         System.out.println("People: rulers | choose <id> | assassinate | control | auto | agents | jobs | job <id> <JOB>");
-        System.out.println("World: map | resources [TYPE] | animals | biome <x> <y> | build <x> <y> <STRUCTURE>");
-        System.out.println("       building <x> <y> <BUILDING_TYPE> | decree [NAME] | power [NAME]");
+        System.out.println("World: map | sea | resources [TYPE] | animals | biome <x> <y> | build <x> <y> <STRUCTURE>");
+        System.out.println("       build <BUILDING_TYPE> | building <x> <y> <BUILDING_TYPE> | decree [NAME] | power [NAME]");
         System.out.println("Deep: templates | mods | new [seed] [TEMPLATE] [MOD] | laws [KEY [on|off]]");
         System.out.println("      civs | trade | tech [research] | war [TYPE] [A_ID] [B_ID] | disaster [TYPE] | spawn [TYPE]");
         System.out.println("      achievements | quit");
@@ -573,6 +603,19 @@ public final class DesktopLauncher {
 
     private static boolean inGrid(int x, int y, int width, int height) {
         return x >= 0 && y >= 0 && x < width && y < height;
+    }
+
+    private static int[] firstFreeLand() {
+        IslandMap map = game.getMap();
+        for (int y = 0; y < map.getHeight(); y++) {
+            for (int x = 0; x < map.getWidth(); x++) {
+                Tile tile = map.get(x, y);
+                if (tile != null && tile.isFreeLand()) {
+                    return new int[]{x, y};
+                }
+            }
+        }
+        return null;
     }
 
     private static void printAgents() {

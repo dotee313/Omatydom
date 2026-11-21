@@ -13,15 +13,27 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 ## Download & play right now / التنزيل والتجربة
 
 **رابط التحميل المباشر للتطبيق (APK):**  
-https://github.com/dotee313/Omatydom/releases/download/v0.8.0/omatydom-0.8.0-debug.apk
+https://github.com/dotee313/Omatydom/releases/download/v0.9.0/omatydom-0.9.0-debug.apk
 
 افتح الرابط من جوالك،حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. التصميم الآن أنظف: سبع صفحات (الجزيرة، السكان، الطبيعة، المخلوقات، الممالك، القدرات، الأحداث) تتنقل بينها بقائمة سفلية من الأيقونات، وكل ضغطة على أيقونة أو شخص أو أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ. اختر أرضًا بالضغط ثم افتح «القدرات» لتوجيه تأثيرك إلى المكان المختار. السنة الكاملة في اللعبة تساوي ساعة واحدة من الوقت الحقيقي عند السرعة x1. يعمل على Android 5.0 أو أحدث.
 
-صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.8.0
+صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.9.0
 
 > The APK is debug-signed and intended for play-testing. Your phone may ask you to allow installation from unknown sources.
 
 ---
+
+## What's new in v0.9.0 — "Build Your Island"
+
+This release answers the latest play-test feedback: the logo is now a real launcher icon, every bar lives in one unified bottom dock, citizens open a portrait card, animals and people walk smoothly, the sea is wider, and you can build or reclaim land yourself.
+
+- **Logo fixed** — your supplied logo is installed as the Android launcher icon (PNG densities 48–192px) and stays visible in the bottom dock.
+- **One bottom dock** — the former top title/status/resource/time/tool bars and the bottom tabs are merged into a single scrollable bottom dock. The island takes the remaining screen space; map brushes and camera tools show only on the Island tab.
+- **Citizen cards** — tapping any islander opens an Arabic dialog with the existing pixel portrait, identity, job, class, race, faith, ideology, health, happiness, wealth, kingdom, location, pregnancy day, temporary statuses and trait, plus an "Appoint ruler" button. Simulation keeps running.
+- **Build your island** — a new dock button opens 15 real buildings with their wood/stone/gold costs and a land-reclaim option. Pick one, tap a tile, and the game charges the exact resources. A dashed orange/burgundy preview shows whether the tile is valid before you tap.
+- **Natural walking** — citizens and animals ease between their old and new tiles during each 10-second game day instead of snapping. Facing follows movement; pause and speed changes still come from the core clock.
+- **Wider sea** — the default island's water share rose from ~26.8% to ~42.7% across five seeds, with a more indented coastline and all 16 templates kept intact.
+- **Verification** — `qa/verify_v081.sh` runs `VerifyV060`, `VerifyV070`, `VerifyV080` and the new `VerifyV081` (sea share, exact build costs, land reclaim, calendar); all pass. Pregnancy remains 270 days + 360 days rest, and one game year is still one real hour at x1.
 
 ## What's new in v0.8.0 — "Your Art, Richer World"
 
@@ -228,12 +240,12 @@ gradle :desktop:run --args="42 CONTINENT TEST_MOD"       # template + ruleset
 ### Regression checks
 
 ```bash
-qa/verify_v080.sh          # VerifyV060 + VerifyV070 + VerifyV080 (trade and calendar)
+qa/verify_v081.sh          # VerifyV060 + VerifyV070 + VerifyV080 + VerifyV081 (sea, building, calendar)
 ```
 
 ### Desktop commands
 
-The CLI includes the full v0.6.0 command set plus the v0.8.0 `trade` command:
+The CLI includes the full v0.6.0 command set plus `trade`, `sea` and `build <BUILDING_TYPE>`:
 
 | Command | Description |
 | --- | --- |
@@ -243,7 +255,8 @@ The CLI includes the full v0.6.0 command set plus the v0.8.0 `trade` command:
 | `agents` | List living islanders with job, class, idea and position. |
 | `resources [TYPE]` / `animals` / `biome <x> <y>` | Inspect stockpiles, wildlife and tiles. |
 | `jobs` / `job <id> <JOB>` | List or assign jobs, including the six new ones. |
-| `build <x> <y> <STRUCTURE>` / `building <x> <y> <BUILDING_TYPE>` | Build a simple structure or any of the 134 catalogued types. |
+| `build <BUILDING_TYPE>` / `build <x> <y> <STRUCTURE>` / `building <x> <y> <BUILDING_TYPE>` | Build a catalogued type on free land, a simple structure at a tile, or any of the 134 types. |
+| `sea` | Print the current map's water ratio. |
 | `events [n]` / `achievements` | Show the chronicle / unlocked milestones. |
 | `step [n]` / `run [n]` / `pause` / `resume` / `speed n` | Time control. |
 | `rulers` / `choose <id>` / `assassinate` / `control` / `auto` | Politics and direct control. |
@@ -263,7 +276,7 @@ The CLI includes the full v0.6.0 command set plus the v0.8.0 `trade` command:
 - [ ] Save/load (serialize `World` to JSON).
 - [x] Zoom/pan on the Android island view (v0.7.0, enhanced in v0.8.0).
 - [ ] Fully data-driven events and jobs instead of hard-coded ones.
-- [ ] Character screens with portraits and needs.
+- [x] Character screens with portraits and needs (v0.9.0: Arabic citizen card on tap).
 - [ ] Android UI with fragments and Material 3.
 - [ ] Scenario/challenge modes ("keep the island stable for 10 years").
 
@@ -274,6 +287,8 @@ The CLI includes the full v0.6.0 command set plus the v0.8.0 `trade` command:
 **أوماتيدوم** لعبة محاكاة حياة على جزيرة، حيث تراقب مجتمعًا حيًا وتشكّله. الزمن يمضي تلقائيًا، ولك أن تتدخل أو تترك الأحداث تجري من نفسها.
 
 الجزيرة ليست دائرية بل مربع مدوّر فيه خلجان ورؤوس عشوائية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، وكل واحد منهم الآن **شخصية بكسلية أوضح وأكثر واقعية** (١٠×١٤ بكسل): شعر، وجه مضلّل، عينان، أنف، فم، ذراعان، حزام، حذاء، وأداة تختلف حسب المهنة (فأس، معول، صنارة، قوس، عصا، سلة، عملة). الحاكم يرتدي تاجًا ذهبيًا، والمرأة الحامل يظهر بطنها. أكثر أيقونات اللعبة مرسومة داخل التطبيق بالكود، ومعها الآن شعارك وأيقونات المعلومات والأنماط والإعدادات وخلفية قائمتك الأصلية من الملف الذي أرسلته، مُبسّطة لتناسب واجهة الجوال. الرسم مستطيلات مسطّحة خفيفة على الهاتف مع حواف وتظليل ووميض أقوى. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال.
+
+في الإصدار ٠٫٩٫٠ تحققت ملاحظاتك: الشعار صار أيقونة حقيقية للتطبيق، وكل الأشرطة صاروا شريطًا سفليًا موحدًا يترك مساحة أكبر للخريطة. الضغط على أي شخص يفتح بطاقة عربية بصورته ومعلوماته الحقيقية وزر تعيين الحاكم. الأحياء صارت تمشي بسلاسة بدل التنقل المفاجئ، والبحر كبر من نحو ٢٦٫٨٪ إلى ٤٢٫٧٪ بالمتوسط. وأضفت أداة بناء تختار ١٥ مبنى حقيقيًا أو توسّع اليابسة، مع معاينة قبل اللمس وخصم دقيق للخشب والحجر والذهب. الاختبارات الأربعة `VerifyV060/070/080/081` تنجح، والحمل ما زال ٢٧٠ يومًا ثم راحة سنة كاملة.
 
 في الإصدار ٠٫٨٫٠ دخلت تصميماتك الأصلية إلى اللعبة: الشعار والأيقونات وخلفية القائمة وألوانك (الخمري والبرتقالي والفحمي) صارت جزءًا من شريط العنوان وأزرار المعلومات والأنماط والإعدادات والتبويبات والفرش. تحسّنت الرسومات كثيرًا: حواف ساحلية وبيئية متجاورة، ظلال تحت الأشجار والحيوانات والمباني، وميض ماء، صفوف محاصيل في المزارع، طرق مرصوفة، اتجاه نظر للسكان، ودخان ووميض وذيول أطول للتأثيرات. وأُضيفت **قوافل تجارية** بين الممالك: تُفتح كل ٣٠–٤٥ يومًا، وتستغرق ١٠–٢٠ يومًا، وتجلب ذهبًا وطعامًا ومعرفة، ويظهر تقدّمها في صفحة الممالك وأمر `trade` في نسخة الحاسوب.
 

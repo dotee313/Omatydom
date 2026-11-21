@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.dotee313.omatydom.core.BuildingType;
 import com.dotee313.omatydom.core.OmatydomGame;
 import com.dotee313.omatydom.core.civ.Kingdom;
 import com.dotee313.omatydom.core.civ.StatusEffect;
@@ -27,6 +28,10 @@ import com.dotee313.omatydom.core.world.TileType;
 import com.dotee313.omatydom.core.world.Weather;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Standalone, code-drawn sandbox renderer for Omatydom.
@@ -64,6 +69,13 @@ public final class IslandView extends View {
         }
     }
 
+    /** Callback for the build/terrain preview contract shared with the UI. */
+    public interface OnBuildRequestedListener {
+        void onBuildRequested(int x, int y, com.dotee313.omatydom.core.BuildingType type);
+
+        void onTerrainRequested(int x, int y, com.dotee313.omatydom.core.world.TileType type);
+    }
+
     // ------------------------------------------------------------------
     // State
     // ------------------------------------------------------------------
@@ -71,6 +83,19 @@ public final class IslandView extends View {
     private static final int MAX_EFFECTS = 24;
     private static final int TAP_SLOP_PX = 12;
     private static final float ZOOM_STEP = 1.25f;
+
+    /** Slots of the tiny per-entity float[] used for walk interpolation. */
+    private static final int WALK_X = 0;
+    private static final int WALK_Y = 1;
+    private static final int WALK_FROM_X = 2;
+    private static final int WALK_FROM_Y = 3;
+    private static final int WALK_SEEN = 4;
+    private static final int WALK_FACING = 5;
+    private static final int WALK_SLOTS = 6;
+
+    /** Beyond this distance (in cells) a position change is a teleport, not a step. */
+    private static final float WALK_TELEPORT_CELLS = 3f;
+    private static final long WALK_CLEANUP_MILLIS = 1000L;
 
     // User palette, used sparingly as accents so the world keeps its own palette.
     private static final int ACCENT_BURGUNDY = 0xFF5B0A19;
@@ -119,6 +144,22 @@ public final class IslandView extends View {
     private float cameraY;
 
     private int selectedCitizenId = -1;
+
+    // Last rendered positions, kept between game days so movement can be eased.
+    // Animals have no stable id in the core model, hence identity keys for them.
+    private final HashMap<Integer, float[]> citizenWalk = new HashMap<Integer, float[]>();
+    private final IdentityHashMap<Animal, float[]> animalWalk =
+            new IdentityHashMap<Animal, float[]>();
+    private int walkLastDay = Integer.MIN_VALUE;
+    private int walkGeneration = 1;
+    private long lastWalkCleanup;
+
+    // Build/terrain preview contract.
+    private OnBuildRequestedListener buildListener;
+    private BuildingType plannedBuilding;
+    private TileType plannedTerrain;
+    private int previewX = Integer.MIN_VALUE;
+    private int previewY = Integer.MIN_VALUE;
 
     // Pointer tracking. -1 means "no pointer in that slot".
     private int primaryPointerId = -1;
@@ -174,6 +215,11 @@ public final class IslandView extends View {
         game = newGame;
         selectedCitizenId = -1;
         effects.clear();
+        citizenWalk.clear();
+        animalWalk.clear();
+        walkLastDay = Integer.MIN_VALUE;
+        previewX = Integer.MIN_VALUE;
+        previewY = Integer.MIN_VALUE;
         cameraInitialized = false;
         if (game != null) {
             centerOnMap();
@@ -245,6 +291,32 @@ public final class IslandView extends View {
 
     public void setOnThingTappedListener(OnThingTappedListener value) {
         listener = value;
+    }
+
+    /** Plan a building for the next qualifying tap; null cancels the plan. */
+    public void setPlannedBuilding(com.dotee313.omatydom.core.BuildingType type) {
+        plannedBuilding = type;
+        if (type != null) {
+            plannedTerrain = null;
+        }
+        invalidate();
+    }
+
+    /** Plan a terrain change for the next qualifying tap; null cancels the plan. */
+    public void setPlannedTerrain(com.dotee313.omatydom.core.world.TileType type) {
+        plannedTerrain = type;
+        if (type != null) {
+            plannedBuilding = null;
+        }
+        invalidate();
+    }
+
+    public void setOnBuildRequestedListener(OnBuildRequestedListener value) {
+        buildListener = value;
+    }
+
+    public boolean hasPlannedAction() {
+        return plannedBuilding != null || plannedTerrain != null;
     }
 
     @Override
@@ -330,11 +402,12 @@ public final class IslandView extends View {
         return (int) Math.floor(screenToWorldY(py));
     }
 
-    private float tileScreenX(int tx) {
+    /** Accepts both logical tile ints and interpolated float positions. */
+    private float tileScreenX(float tx) {
         return getWidth() / 2f + (tx - cameraX) * cell;
     }
 
-    private float tileScreenY(int ty) {
+    private float tileScreenY(float ty) {
         return getHeight() / 2f + (ty - cameraY) * cell;
     }
 
@@ -362,6 +435,189 @@ public final class IslandView extends View {
     }
 
     // ------------------------------------------------------------------
+    // Walk interpolation. The core moves units once per game day; the view
+    // remembers the last rendered tile and eases toward the new logical tile
+    // using the core's own day progress (pause and speed need no extra state).
+    // ------------------------------------------------------------------
+
+    private static float smoothstep(float value) {
+        float t = clamp(value, 0f, 1f);
+        return t * t * (3f - 2f * t);
+    }
+
+    private void updateWalkPositions(long now) {
+        int day = game.getWorld().getDay();
+        boolean dayChanged = walkLastDay != day;
+        walkLastDay = day;
+        float t = smoothstep((float) game.getDayProgress());
+
+        boolean cleanup = now - lastWalkCleanup >= WALK_CLEANUP_MILLIS;
+        if (cleanup) {
+            walkGeneration++;
+            lastWalkCleanup = now;
+        }
+
+        for (Agent agent : game.getAgents()) {
+            Citizen citizen = agent.getCitizen();
+            if (citizen == null) {
+                continue;
+            }
+            int id = citizen.getId();
+            float[] pos = citizenWalk.get(id);
+            if (pos == null) {
+                pos = new float[WALK_SLOTS];
+                pos[WALK_X] = agent.getX();
+                pos[WALK_Y] = agent.getY();
+                pos[WALK_FROM_X] = pos[WALK_X];
+                pos[WALK_FROM_Y] = pos[WALK_Y];
+                citizenWalk.put(id, pos);
+            }
+            pos[WALK_SEEN] = walkGeneration;
+            advanceWalk(pos, agent.getX(), agent.getY(), dayChanged, t);
+        }
+
+        for (Animal animal : game.getAnimals()) {
+            float[] pos = animalWalk.get(animal);
+            if (pos == null) {
+                pos = new float[WALK_SLOTS];
+                pos[WALK_X] = animal.getX();
+                pos[WALK_Y] = animal.getY();
+                pos[WALK_FROM_X] = pos[WALK_X];
+                pos[WALK_FROM_Y] = pos[WALK_Y];
+                animalWalk.put(animal, pos);
+            }
+            pos[WALK_SEEN] = walkGeneration;
+            advanceWalk(pos, animal.getX(), animal.getY(), dayChanged, t);
+        }
+
+        if (cleanup) {
+            Iterator<Map.Entry<Integer, float[]>> citizens = citizenWalk.entrySet().iterator();
+            while (citizens.hasNext()) {
+                if (citizens.next().getValue()[WALK_SEEN] != walkGeneration) {
+                    citizens.remove();
+                }
+            }
+            Iterator<Map.Entry<Animal, float[]>> animals = animalWalk.entrySet().iterator();
+            while (animals.hasNext()) {
+                if (animals.next().getValue()[WALK_SEEN] != walkGeneration) {
+                    animals.remove();
+                }
+            }
+        }
+    }
+
+    private static void advanceWalk(float[] pos, float logicalX, float logicalY,
+                                    boolean dayChanged, float t) {
+        float dx = logicalX - pos[WALK_X];
+        float dy = logicalY - pos[WALK_Y];
+        if (dx * dx + dy * dy > WALK_TELEPORT_CELLS * WALK_TELEPORT_CELLS) {
+            // Regeneration, brush moves or spawning: do not glide across the map.
+            pos[WALK_X] = logicalX;
+            pos[WALK_Y] = logicalY;
+            pos[WALK_FROM_X] = logicalX;
+            pos[WALK_FROM_Y] = logicalY;
+            pos[WALK_FACING] = 0f;
+            return;
+        }
+        if (dayChanged) {
+            // Start the new day exactly where the previous day was rendered.
+            pos[WALK_FROM_X] = pos[WALK_X];
+            pos[WALK_FROM_Y] = pos[WALK_Y];
+        }
+        float stepX = logicalX - pos[WALK_FROM_X];
+        pos[WALK_FACING] = Math.abs(stepX) >= 0.15f ? (stepX > 0f ? 1f : -1f) : 0f;
+        pos[WALK_X] = pos[WALK_FROM_X] + stepX * t;
+        pos[WALK_Y] = pos[WALK_FROM_Y] + (logicalY - pos[WALK_FROM_Y]) * t;
+    }
+
+    // ------------------------------------------------------------------
+    // Build / terrain preview helpers. All checks are read-only; spending and
+    // placement belong to the listener supplied by the Activity.
+    // ------------------------------------------------------------------
+
+    private void trackPlanPreview(float px, float py) {
+        if (!hasPlannedAction()) {
+            return;
+        }
+        previewX = screenToTileX(px);
+        previewY = screenToTileY(py);
+        invalidate();
+    }
+
+    private void requestPlannedAction(int tx, int ty) {
+        IslandMap map = game == null ? null : game.getMap();
+        if (map == null || !map.inBounds(tx, ty) || buildListener == null) {
+            return;
+        }
+        if (plannedBuilding != null) {
+            buildListener.onBuildRequested(tx, ty, plannedBuilding);
+        } else if (plannedTerrain != null) {
+            buildListener.onTerrainRequested(tx, ty, plannedTerrain);
+        }
+    }
+
+    private boolean isPlanValid(int tx, int ty) {
+        IslandMap map = game == null ? null : game.getMap();
+        if (map == null || !map.inBounds(tx, ty)) {
+            return false;
+        }
+        if (plannedBuilding != null) {
+            Tile tile = map.get(tx, ty);
+            if (tile == null || !tile.isFreeLand()) {
+                return false;
+            }
+            return game.getWorld().getWood() >= plannedBuilding.getWoodCost()
+                    && game.getWorld().getStone() >= plannedBuilding.getStoneCost()
+                    && game.getWorld().getGold() >= plannedBuilding.getGoldCost();
+        }
+        if (plannedTerrain != null) {
+            // Reclaimable sea: water with at least one dry neighbour.
+            return map.typeAt(tx, ty) == TileType.WATER
+                    && (!isWater(map, tx - 1, ty) || !isWater(map, tx + 1, ty)
+                    || !isWater(map, tx, ty - 1) || !isWater(map, tx, ty + 1));
+        }
+        return false;
+    }
+
+    /** Dashed translucent outline plus a tiny symbol, all on the shared Paint. */
+    private void drawPlanPreview(Canvas c) {
+        if (!hasPlannedAction() || previewX == Integer.MIN_VALUE
+                || previewY == Integer.MIN_VALUE) {
+            return;
+        }
+        IslandMap map = game == null ? null : game.getMap();
+        if (map == null || !map.inBounds(previewX, previewY)) {
+            return;
+        }
+        float left = tileScreenX(previewX);
+        float top = tileScreenY(previewY);
+        float u = cell / 8f;
+        boolean valid = isPlanValid(previewX, previewY);
+        int color = valid ? ACCENT_ORANGE : ACCENT_BURGUNDY;
+
+        paint.setColor(withAlpha(color, 0x1E));
+        rect(c, left, top, u, 0.5f, 0.5f, 7.5f, 7.5f);
+        paint.setColor(withAlpha(color, 0xA8));
+        for (int i = 0; i < 4; i++) {
+            float a = 0.2f + i * 1.95f;
+            float b = Math.min(8f, a + 1.1f);
+            rect(c, left, top, u, a, 0f, b, 0.42f);
+            rect(c, left, top, u, a, 7.58f, b, 8f);
+            rect(c, left, top, u, 0f, a, 0.42f, b);
+            rect(c, left, top, u, 7.58f, a, 8f, b);
+        }
+        int symbol = plannedBuilding != null ? 0xFFFFE082 : opaque(plannedTerrain.getColor());
+        paint.setColor(withAlpha(symbol, valid ? 0xEE : 0x99));
+        if (plannedBuilding != null) {
+            rect(c, left, top, u, 2.7f, 4.4f, 5.3f, 6.1f);
+            rect(c, left, top, u, 2.1f, 3.5f, 5.9f, 4.4f);
+        } else {
+            rect(c, left, top, u, 3.2f, 3.2f, 4.8f, 4.8f);
+            rect(c, left, top, u, 2.4f, 4.8f, 5.6f, 5.45f);
+        }
+    }
+
+    // ------------------------------------------------------------------
     // Touch: pointer-aware pan, paint, pinch and double-tap
     // ------------------------------------------------------------------
 
@@ -385,7 +641,8 @@ public final class IslandView extends View {
                 secondaryPointerId = -1;
                 lastPaintX = Integer.MIN_VALUE;
                 lastPaintY = Integer.MIN_VALUE;
-                if (brush != Brush.INSPECT) {
+                trackPlanPreview(primaryX, primaryY);
+                if (brush != Brush.INSPECT && !hasPlannedAction()) {
                     paintAt(screenToTileX(primaryX), screenToTileY(primaryY), now);
                 }
                 disallowParentIntercept();
@@ -415,6 +672,7 @@ public final class IslandView extends View {
                 }
                 float x = event.getX(primaryIndex);
                 float y = event.getY(primaryIndex);
+                trackPlanPreview(x, y);
                 if (pinching && secondaryPointerId != -1) {
                     int secondaryIndex = event.findPointerIndex(secondaryPointerId);
                     if (secondaryIndex >= 0) {
@@ -448,7 +706,7 @@ public final class IslandView extends View {
                         clampCamera();
                         invalidate();
                     }
-                } else if (pointerMoved) {
+                } else if (pointerMoved && !hasPlannedAction()) {
                     paintAt(screenToTileX(x), screenToTileY(y), now);
                 }
                 primaryX = x;
@@ -480,6 +738,7 @@ public final class IslandView extends View {
                 boolean isPrimary = pointerId == primaryPointerId;
                 float upX = event.getX(pointerIndex);
                 float upY = event.getY(pointerIndex);
+                trackPlanPreview(upX, upY);
                 if (isPrimary) {
                     finishTap(upX, upY, now);
                     performClick();
@@ -502,6 +761,15 @@ public final class IslandView extends View {
                 && (now - downTime) < 700L
                 && (x - downX) * (x - downX) + (y - downY) * (y - downY)
                 <= TAP_SLOP_PX * TAP_SLOP_PX;
+        if (hasPlannedAction()) {
+            // Build mode: taps place the plan (never zoom/inspect/paint), drags still pan.
+            lastTapTime = 0L;
+            if (!isTap) {
+                return;
+            }
+            requestPlannedAction(screenToTileX(x), screenToTileY(y));
+            return;
+        }
         if (isTap && now - lastTapTime < 300L
                 && (x - lastTapX) * (x - lastTapX) + (y - lastTapY) * (y - lastTapY) < 1600f) {
             zoomBy(ZOOM_STEP, x, y);
@@ -627,6 +895,7 @@ public final class IslandView extends View {
         }
         clampCamera();
         long now = System.currentTimeMillis();
+        updateWalkPositions(now);
         int day = game.getWorld().getDay();
         Weather weather = game.getWorld().getWeather();
         int season = OmatydomGame.seasonOf(day);
@@ -661,21 +930,34 @@ public final class IslandView extends View {
         drawAtmosphere(canvas, weather, season, day, game.getDayProgress());
 
         for (Animal animal : game.getAnimals()) {
-            if (animal.isAlive() && isOnScreen(animal.getX(), animal.getY(), 2)) {
-                drawAnimal(canvas, animal, tileScreenX(animal.getX()),
-                        tileScreenY(animal.getY()), u, now);
+            if (!animal.isAlive()) {
+                continue;
+            }
+            float[] pos = animalWalk.get(animal);
+            float ax = pos == null ? animal.getX() : pos[WALK_X];
+            float ay = pos == null ? animal.getY() : pos[WALK_Y];
+            if (isOnScreen(ax, ay, 2)) {
+                int facing = pos == null ? 0 : (int) pos[WALK_FACING];
+                drawAnimal(canvas, animal, tileScreenX(ax), tileScreenY(ay), u, now, facing);
             }
         }
         for (Agent agent : game.getAgents()) {
-            if (agent.getCitizen().isAlive() && isOnScreen(agent.getX(), agent.getY(), 2)) {
-                drawPerson(canvas, agent, tileScreenX(agent.getX()),
-                        tileScreenY(agent.getY()), now);
+            if (!agent.getCitizen().isAlive()) {
+                continue;
+            }
+            float[] pos = citizenWalk.get(agent.getCitizen().getId());
+            float ax = pos == null ? agent.getX() : pos[WALK_X];
+            float ay = pos == null ? agent.getY() : pos[WALK_Y];
+            if (isOnScreen(ax, ay, 2)) {
+                int facing = pos == null ? 0 : (int) pos[WALK_FACING];
+                drawPerson(canvas, agent, tileScreenX(ax), tileScreenY(ay), now, facing);
             }
         }
         drawEffects(canvas, now, u);
+        drawPlanPreview(canvas);
     }
 
-    private boolean isOnScreen(int tx, int ty, int marginTiles) {
+    private boolean isOnScreen(float tx, float ty, int marginTiles) {
         float sx = tileScreenX(tx);
         float sy = tileScreenY(ty);
         return sx > -marginTiles * cell && sx < getWidth() + marginTiles * cell
@@ -1954,7 +2236,8 @@ public final class IslandView extends View {
     // People: shaded pixel figures with job, mood and animation detail
     // ------------------------------------------------------------------
 
-    private void drawPerson(Canvas c, Agent agent, float cx, float cy, long now) {
+    private void drawPerson(Canvas c, Agent agent, float cx, float cy,
+                            long now, int walkFacing) {
         Citizen citizen = agent.getCitizen();
         int u = Math.max(1, Math.round(cell / 15f));
         boolean child = citizen.getAgeYears() < 18;
@@ -1966,11 +2249,14 @@ public final class IslandView extends View {
         if (moving) {
             bob = (int) Math.round(Math.sin(now / 115.0 + (citizen.getId() & 7)) * 0.9);
         }
-        int facing;
-        if (moving && agent.getTargetX() != agent.getX()) {
-            facing = agent.getTargetX() > agent.getX() ? 1 : -1;
-        } else {
-            facing = (citizen.getId() & 1) == 0 ? 1 : -1;
+        // Prefer the direction of the eased step; fall back to the target/id cue.
+        int facing = walkFacing;
+        if (facing == 0) {
+            if (moving && agent.getTargetX() != agent.getX()) {
+                facing = agent.getTargetX() > agent.getX() ? 1 : -1;
+            } else {
+                facing = (citizen.getId() & 1) == 0 ? 1 : -1;
+            }
         }
         float armLift = moving ? facing * bob * 0.3f : 0f;
         boolean detailed = cell >= DETAIL_ZOOM_CELL * density;
@@ -2256,7 +2542,14 @@ public final class IslandView extends View {
     // ------------------------------------------------------------------
 
     private void drawAnimal(Canvas c, Animal animal, float cx, float cy,
-                            float u, long now) {
+                            float u, long now, int facing) {
+        // Sprites are drawn facing right; mirror the canvas for a leftward step.
+        boolean flipped = facing < 0;
+        if (flipped) {
+            c.save();
+            c.translate(2f * cx, 0f);
+            c.scale(-1f, 1f);
+        }
         float au = Math.max(1f, u * 0.8f);
         AnimalType type = animal.getType();
         float ox = cx - 5f * au;
@@ -2458,6 +2751,9 @@ public final class IslandView extends View {
                 || type == AnimalType.WOLF) {
             paint.setColor(withAlpha(0xFFFFFFFF, 0x22));
             rect(c, ox, oy, au, 2.2f, 3.9f, 5.8f, 4.25f);
+        }
+        if (flipped) {
+            c.restore();
         }
     }
 

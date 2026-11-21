@@ -6,6 +6,9 @@ import java.util.Random;
 
 /** The island grid: sixteen original world templates, sixteen biome flavours and buildings. */
 public final class IslandMap {
+    /** Land masks are evaluated in a slightly zoomed-out space, leaving a wider sea. */
+    private static final double LAND_SCALE = 0.89;
+
     private final int width;
     private final int height;
     private final Tile[][] tiles;
@@ -26,7 +29,12 @@ public final class IslandMap {
         return generate(width, height, random, MapTemplate.ISLANDS);
     }
 
-    /** Build a deterministic island from one of the sixteen map templates. */
+    /**
+     * Build a deterministic island from one of the sixteen map templates.
+     * The land masks use the original thresholds, but in coordinates shrunk by
+     * {@link #LAND_SCALE}; that enlarges the sea by roughly ten percentage
+     * points without changing the seeded noise or any template's identity.
+     */
     public static IslandMap generate(int width, int height, Random random, MapTemplate template) {
         MapTemplate chosen = template == null ? MapTemplate.ISLANDS : template;
         int shape = chosen.getShapeCode();
@@ -49,60 +57,66 @@ public final class IslandMap {
                 double radius = Math.sqrt(nx * nx + ny * ny);
                 double angle = Math.atan2(ny, nx);
 
+                // Same seeded coastline, just a little farther from the shore.
+                double lx = nx / LAND_SCALE;
+                double ly = ny / LAND_SCALE;
+                double landRounded = Math.pow(Math.abs(lx), 3.2) + Math.pow(Math.abs(ly), 3.2);
+                double landRadius = Math.sqrt(lx * lx + ly * ly);
+
                 boolean land;
                 switch (shape) {
                     case 1: // continent
-                        land = rounded < 1.32 + wave;
+                        land = landRounded < 1.32 + wave;
                         break;
-                    case 2: // checkerboard
-                        land = ((x / 4) + (y / 4)) % 2 == 0;
+                    case 2: // checkerboard — same alternating blocks, slightly narrower
+                        land = ((x / 5) + (y / 5)) % 2 == 0 && x % 5 < 4;
                         break;
                     case 3: // cheese — a broad landmass punctured by holes
-                        land = rounded < 1.05 + wave;
+                        land = landRounded < 1.05 + wave;
                         if (circle(x, y, width * 0.30, height * 0.30, width * 0.09)) land = false;
                         if (circle(x, y, width * 0.70, height * 0.40, width * 0.07)) land = false;
                         if (circle(x, y, width * 0.55, height * 0.72, width * 0.08)) land = false;
                         break;
-                    case 4: // donut
-                        land = radius > 0.42 + wave * 0.35 && radius < 0.98 + wave;
+                    case 4: // donut — same lake and ring, just a slimmer ring
+                        land = landRadius > 0.45 + wave * 0.35 && landRadius < 0.98 + wave;
                         break;
                     case 5: // anthill — many small mounds
-                        land = detail > 0.43 && radius < 1.02 + wave;
+                        land = detail > 0.45 && landRadius < 1.02 + wave;
                         break;
                     case 6: // volcano
-                        land = radius < 1.02 + wave && radius > 0.10;
+                        land = landRadius < 1.02 + wave && landRadius > 0.10;
                         break;
                     case 7: // empty
                         land = false;
                         break;
                     case 8: // box world
-                        land = Math.abs(nx) < 0.94 && Math.abs(ny) < 0.94;
+                        land = Math.abs(lx) < 0.94 && Math.abs(ly) < 0.94;
                         break;
                     case 9: // pancake
-                        land = Math.pow(Math.abs(nx), 4.0) + Math.pow(Math.abs(ny), 2.0) < 0.95 + wave;
+                        land = Math.pow(Math.abs(lx), 4.0) + Math.pow(Math.abs(ly), 2.0) < 0.95 + wave;
                         break;
                     case 10: // toast
-                        land = rounded < 1.08 + Math.sin(x * 0.38) * 0.07 + wave;
+                        land = landRounded < 1.08 + Math.sin(x * 0.38) * 0.07 + wave;
                         break;
-                    case 11: // lasagna — striped land and sea
-                        land = Math.sin(y * 0.62 + detail * 2.0) > -0.15 && radius < 1.12;
+                    case 11: // lasagna — striped land and sea, slightly thinner layers
+                        land = Math.sin(y * 0.62 + detail * 2.0) > 0.05 && landRadius < 1.12;
                         break;
-                    case 12: // cubicles
-                        land = radius < 1.05 && (x % 7 != 0) && (y % 6 != 0);
+                    case 12: // cubicles — ordered tiles divided by narrow channels
+                        land = landRadius < 1.05 && (x % 6 != 0) && (y % 5 != 0);
                         break;
                     case 13: // bad apple — a bite out of one side
-                        land = radius < 0.98 + wave
+                        land = landRadius < 0.97 + wave
                                 && !circle(x, y, width * 0.86, height * 0.30, width * 0.16);
                         break;
                     case 14: // chaos pearl
-                        land = radius < 0.78 + (detail - 0.5) * 0.55 + wave;
+                        land = landRadius < 0.74 + (detail - 0.5) * 0.55 + wave;
                         break;
                     case 15: // dormant volcano
-                        land = radius < 1.04 + wave && radius > 0.16 + wave * 0.25;
+                        land = landRadius < 1.04 + wave && landRadius > 0.16 + wave * 0.25;
                         break;
                     case 0: // islands
                     default:
-                        land = rounded < 1.0 + wave;
+                        land = landRounded < 1.0 + wave;
                         break;
                 }
 
@@ -111,13 +125,13 @@ public final class IslandMap {
                     type = TileType.WATER;
                 } else if (shape == 7) {
                     type = TileType.WATER;
-                } else if ((shape == 6 || shape == 15) && radius < 0.30) {
+                } else if ((shape == 6 || shape == 15) && landRadius < 0.30) {
                     type = TileType.MOUNTAIN;
-                } else if (Math.abs(nx) + Math.abs(ny) > 0.78 + wave) {
+                } else if (Math.abs(nx) + Math.abs(ny) > 0.76 + wave) {
                     type = TileType.SAND;
                 } else if (shape == 11 && y % 7 == 0) {
                     type = TileType.ORCHARD;
-                } else if (shape == 2 && ((x / 4) + (y / 4)) % 3 == 0) {
+                } else if (shape == 2 && ((x / 5) + (y / 5)) % 3 == 0) {
                     type = TileType.FOREST;
                 } else if (detail > 0.69 && radius < 0.80) {
                     type = ridge > 0.72 ? TileType.CAVE : TileType.MOUNTAIN;
@@ -300,6 +314,11 @@ public final class IslandMap {
             }
         }
         return total;
+    }
+
+    /** Fraction of the grid that is open water, in the range 0..1. */
+    public double waterRatio() {
+        return count(TileType.WATER) / (double) (width * height);
     }
 
     public int countStructures() {
