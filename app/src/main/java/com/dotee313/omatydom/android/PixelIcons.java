@@ -12,7 +12,7 @@ import com.dotee313.omatydom.core.model.Citizen;
 import com.dotee313.omatydom.core.model.Gender;
 import com.dotee313.omatydom.core.model.Job;
 
-/** Top-bar pixel controls plus detailed little portraits. */
+/** Code-only pixel art: top controls, tabs, overlays and small system badges. */
 final class PixelIcons {
 
     enum Control { PAUSE, SPEED, CONTROL, ASSASSINATE, NEXT }
@@ -118,6 +118,106 @@ final class PixelIcons {
             "........."
     };
 
+    // Seven distinct bottom-tab badges.
+    private static final String[] NAV_WORLD = {
+            ".........", "..GGGGG..", ".GGLLLGG.", "GLLYYYLGG", "GLLYYYLGG",
+            ".GLLLLLG.", "..BBBBB..", ".B.B.B.B.", "........."
+    };
+    private static final String[] NAV_PEOPLE = {
+            ".........", "..KK.KK..", ".KKK.KKK.", "..KK.KK..", "...KKK...",
+            "..WWWWW..", ".WWWWWWW.", "WWWWWWWWW", "........."
+    };
+    private static final String[] NAV_NATURE = {
+            ".........", "......LL.", "....LLLL.", "...LLLL..", "..LLLLL..",
+            ".LLLKK...", "LLK......", "K........", "........."
+    };
+    private static final String[] NAV_CREATURES = {
+            "..R...R..", "..RR.RR..", "RRRRRRRRR", ".RRRRRRR.", "..RWKWR..",
+            "..RRRRR..", "...R.R...", "..R...R..", "........."
+    };
+    private static final String[] NAV_KINGDOMS = {
+            "Y...Y...Y", "YY..Y..YY", "YYYYYYYYY", "YWYYYYYWY", "YYYYYYYYY",
+            ".NNNNNNN.", ".N.N.N.N.", ".NNNNNNN.", "........."
+    };
+    private static final String[] NAV_POWERS = {
+            "....Y....", "...YYY...", "..YYYYY..", ".YYYYYYY.", "YYYPYYYYY",
+            ".YYYYYYY.", "..YYYYY..", "...YYY...", "....Y...."
+    };
+    private static final String[] NAV_EVENTS = {
+            ".........", ".WWWWWWW.", ".WKKKKKW.", ".WWWWWWW.", ".WKKKKKW.",
+            ".WWWWWWW.", ".WKKKKKW.", ".WWWWWWW.", "........."
+    };
+
+    // Five map-overlay badges.
+    private static final String[] OVER_TERRAIN = {
+            ".........", "G..G..G..", "GG.GG.GG.", "GGGGGGGGG", ".GGGGGGG.",
+            "..GGGGG..", "...GGG...", "....G....", "........."
+    };
+    private static final String[] OVER_BIOME = {
+            ".........", "..LL.LL..", ".LLLLLLL.", "LLLLLLLLL", "LLLLLLLLL",
+            ".LLLLLLL.", "..L...L..", ".L.....L.", "........."
+    };
+    private static final String[] OVER_KINGDOM = {
+            ".Y.......", ".YY......", ".YYY.....", ".YYYY....", ".YYYYY...",
+            ".NYYYYY..", ".NNYYYY..", ".NNNYY...", ".NNNN...."
+    };
+    private static final String[] OVER_RELIGION = {
+            "....Y....", "..Y.Y.Y..", "...YYY...", ".YYYYYYY.", "..YYYYY..",
+            "...YYY...", "..Y.Y.Y..", ".Y..Y..Y.", "........."
+    };
+    private static final String[] OVER_JOB = {
+            ".........", ".....NN..", "....NNN..", "...NNN...", "..NNN....",
+            ".KKK.....", "KK.......", "K........", "........."
+    };
+
+    private static final String[] LAW_ON = {
+            ".........", "...GGG...", "..GGGGG..", ".GGWWWGG.", "GGGGGGGGG",
+            "..W...W..", ".WW...WW.", "WW.....WW", "........."
+    };
+    private static final String[] LAW_OFF = {
+            ".........", "...KKK...", "..KKKKK..", ".KKRRRKK.", "KKKKKKKKK",
+            "..R...R..", ".RR...RR.", "RR.....RR", "........."
+    };
+
+    private static final String[] CLAN = {
+            ".........", "..Y...Y..", "..NN.NN..", "NNNNNNNNN", ".NNNNNNN.",
+            "..NNNNN..", "..N.N.N..", ".NN...NN.", "........."
+    };
+
+    // Decree badges, generated rather than loaded from an art pack.
+    private static final String[] DECREE_FESTIVAL = {
+            "...YYY...", "..YYYYY..", ".YYYYYYY.", "YYYWYYYYY", "YYYYYYYYY",
+            "..YWWWY..", ".WWY.WWW.", "..W...W..", "........."
+    };
+    private static final String[] DECREE_TAX_CUT = {
+            "..YYYYY..", ".YYYYYYY.", "YYYYYYYYY", "YYYYY....", "YYYY.....",
+            "YYY......", "YY.......", "Y........", "........."
+    };
+    private static final String[] DECREE_TAX_RAISE = {
+            "Y........", "YY.......", "YYY......", "YYYY.....", "YYYYY....",
+            "YYYYYYYYY", ".YYYYYYY.", "..YYYYY..", "........."
+    };
+    private static final String[] DECREE_TEMPLE = {
+            "..YYYYY..", ".YYYYYYY.", "YYYYYYYYY", "..YNYNY..", "..YYYYY..",
+            "..YYYYY..", "..NNNNN..", ".NNNNNNN.", "........."
+    };
+    private static final String[] DECREE_AMNESTY = {
+            ".........", "....WWW..", "..WWWWWW.", ".WWWWWWWW", "WWWWWWWWW",
+            ".WWWWWWW.", "..WWWWW..", "...WWW...", "........."
+    };
+    private static final String[] DECREE_CONSCRIPTION = {
+            ".......K.", "......KK.", ".....KK..", "....KK...", "...KK....",
+            "..KK.....", ".KK......", "K........", "........."
+    };
+    private static final String[] DECREE_FREE_TRADE = {
+            ".....W...", "....WW...", "WWWWWWWW.", ".NNNNNNN.", "..NNNNN..",
+            "...NNN...", "..BBBBB..", ".B.B.B.B.", "........."
+    };
+    private static final String[] DECREE_CRACKDOWN = {
+            "..KKKKK..", ".KKKKKKK.", "KKKKKKKKK", "KKKWWWKKK", "KKKWWWKKK",
+            ".KKWWWKK.", "..KKKKK..", "...KKK...", "....K...."
+    };
+
     private PixelIcons() {
         // utility class
     }
@@ -138,6 +238,96 @@ final class PixelIcons {
         }
     }
 
+    /** One generated badge per bottom-navigation tab. */
+    static Drawable nav(Context context, int index) {
+        switch (index) {
+            case 1: return pattern(context, NAV_PEOPLE);
+            case 2: return pattern(context, NAV_NATURE);
+            case 3: return pattern(context, NAV_CREATURES);
+            case 4: return pattern(context, NAV_KINGDOMS);
+            case 5: return pattern(context, NAV_POWERS);
+            case 6: return pattern(context, NAV_EVENTS);
+            case 0:
+            default: return pattern(context, NAV_WORLD);
+        }
+    }
+
+    /** Badges for the five map overlays. */
+    static Drawable overlay(Context context, int index) {
+        switch (index) {
+            case 1: return pattern(context, OVER_BIOME);
+            case 2: return pattern(context, OVER_KINGDOM);
+            case 3: return pattern(context, OVER_RELIGION);
+            case 4: return pattern(context, OVER_JOB);
+            case 0:
+            default: return pattern(context, OVER_TERRAIN);
+        }
+    }
+
+    static Drawable lawIcon(Context context, boolean enabled) {
+        return pattern(context, enabled ? LAW_ON : LAW_OFF);
+    }
+
+    static Drawable biomeSwatch(Context context, int color) {
+        int[] pixels = new int[81];
+        fill(pixels, Color.TRANSPARENT);
+        rect(pixels, 9, 0, 0, 8, 8, shade(color, 0.55f));
+        rect(pixels, 9, 1, 1, 7, 7, color);
+        rect(pixels, 9, 2, 2, 4, 3, mix(color, 0xFFFFFFFF, 0.38f));
+        rect(pixels, 9, 6, 5, 7, 6, shade(color, 0.72f));
+        return fromPixels(context, 9, 9, pixels);
+    }
+
+    static Drawable resourceSwatch(Context context, int color) {
+        int[] pixels = new int[81];
+        fill(pixels, Color.TRANSPARENT);
+        int light = mix(color, 0xFFFFFFFF, 0.42f);
+        int dark = shade(color, 0.62f);
+        rect(pixels, 9, 3, 0, 5, 1, light);
+        rect(pixels, 9, 1, 2, 7, 3, color);
+        rect(pixels, 9, 0, 4, 8, 5, color);
+        rect(pixels, 9, 2, 6, 6, 7, dark);
+        rect(pixels, 9, 3, 8, 5, 8, dark);
+        return fromPixels(context, 9, 9, pixels);
+    }
+
+    static Drawable disasterIcon(Context context, int color) {
+        int[] pixels = new int[81];
+        fill(pixels, Color.TRANSPARENT);
+        int light = mix(color, 0xFFFFFFFF, 0.5f);
+        rect(pixels, 9, 4, 0, 4, 2, color);
+        rect(pixels, 9, 4, 6, 4, 8, color);
+        rect(pixels, 9, 0, 4, 2, 4, color);
+        rect(pixels, 9, 6, 4, 8, 4, color);
+        rect(pixels, 9, 2, 2, 6, 6, color);
+        rect(pixels, 9, 3, 3, 5, 5, light);
+        rect(pixels, 9, 1, 1, 1, 1, light);
+        rect(pixels, 9, 7, 7, 7, 7, light);
+        return fromPixels(context, 9, 9, pixels);
+    }
+
+    static Drawable techIcon(Context context, int color) {
+        int[] pixels = new int[81];
+        fill(pixels, Color.TRANSPARENT);
+        int dark = shade(color, 0.65f);
+        int light = mix(color, 0xFFFFFFFF, 0.45f);
+        rect(pixels, 9, 2, 2, 6, 6, dark);
+        rect(pixels, 9, 3, 1, 5, 1, color);
+        rect(pixels, 9, 3, 7, 5, 7, color);
+        rect(pixels, 9, 1, 3, 1, 5, color);
+        rect(pixels, 9, 7, 3, 7, 5, color);
+        rect(pixels, 9, 3, 3, 5, 5, light);
+        return fromPixels(context, 9, 9, pixels);
+    }
+
+    static Drawable clanIcon(Context context) {
+        return pattern(context, CLAN);
+    }
+
+    static Drawable kingdomIcon(Context context) {
+        return pattern(context, CROWN);
+    }
+
     static Drawable power(Context context, Power power) {
         switch (power) {
             case RAIN: return pattern(context, POWER_RAIN);
@@ -154,27 +344,18 @@ final class PixelIcons {
         }
     }
 
-    /** Decree icons come from the supplied WorldBox diplomacy art pack. */
-    static int decreeImage(Decree decree) {
+    /** Decree art is now generated in code too — no bundled art pack is used. */
+    static Drawable decreeImage(Context context, Decree decree) {
         switch (decree) {
-            case FESTIVAL:
-                return R.drawable.decree_festival;
-            case TAX_CUT:
-                return R.drawable.decree_tax_cut;
-            case TAX_RAISE:
-                return R.drawable.decree_tax_raise;
-            case BUILD_TEMPLE:
-                return R.drawable.decree_temple;
-            case AMNESTY:
-                return R.drawable.decree_amnesty;
-            case CONSCRIPTION:
-                return R.drawable.decree_conscription;
-            case FREE_TRADE:
-                return R.drawable.decree_free_trade;
-            case CRACKDOWN:
-                return R.drawable.decree_crackdown;
-            default:
-                return R.drawable.decree_festival;
+            case FESTIVAL: return pattern(context, DECREE_FESTIVAL);
+            case TAX_CUT: return pattern(context, DECREE_TAX_CUT);
+            case TAX_RAISE: return pattern(context, DECREE_TAX_RAISE);
+            case BUILD_TEMPLE: return pattern(context, DECREE_TEMPLE);
+            case AMNESTY: return pattern(context, DECREE_AMNESTY);
+            case CONSCRIPTION: return pattern(context, DECREE_CONSCRIPTION);
+            case FREE_TRADE: return pattern(context, DECREE_FREE_TRADE);
+            case CRACKDOWN: return pattern(context, DECREE_CRACKDOWN);
+            default: return pattern(context, DECREE_FESTIVAL);
         }
     }
 
@@ -262,6 +443,9 @@ final class PixelIcons {
             case 'B': return 0xFF42A5F5;
             case 'P': return 0xFFAB47BC;
             case 'N': return 0xFF8D6E63;
+            case 'R': return 0xFFEF5350;
+            case 'L': return 0xFF66BB6A;
+            case 'C': return 0xFF26C6DA;
             default: return Color.TRANSPARENT;
         }
     }

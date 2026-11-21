@@ -1,6 +1,6 @@
 # Omatydom
 
-> A tiny living island: watch a society think, believe, work, build and change — and decide when (or whether) to intervene.
+> A living island of kingdoms, clans, cultures and disasters: watch a society think, believe, work, build and change — and decide when (or whether) to intervene.
 
 **Omatydom** is a life-simulation game set on an island, where you observe and shape a living society. The game runs semi-automatically, giving you the freedom to intervene — or to step back and let events unfold on their own.
 
@@ -13,17 +13,37 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 ## Download & play right now / التنزيل والتجربة
 
 **رابط التحميل المباشر للتطبيق (APK):**  
-https://github.com/dotee313/Omatydom/releases/download/v0.5.0/omatydom-0.5.0-debug.apk
+https://github.com/dotee313/Omatydom/releases/download/v0.6.0/omatydom-0.6.0-debug.apk
 
-افتح الرابط من جوالك، حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. التصميم الآن أنظف: خمس صفحات (الجزيرة، السكان، المراسيم، القدرات، الأحداث) تتنقل بينها بقائمة سفلية من الأيقونات، وكل ضغطة على أيقونة أو شخص أو أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ. اختر أرضًا بالضغط ثم افتح «القدرات» لتوجيه تأثيرك إلى المكان المختار. السنة الكاملة في اللعبة تساوي ساعة واحدة من الوقت الحقيقي عند السرعة x1. يعمل على Android 5.0 أو أحدث.
+افتح الرابط من جوالك،حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. التصميم الآن أنظف: سبع صفحات (الجزيرة، السكان، الطبيعة، المخلوقات، الممالك، القدرات، الأحداث) تتنقل بينها بقائمة سفلية من الأيقونات، وكل ضغطة على أيقونة أو شخص أو أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ. اختر أرضًا بالضغط ثم افتح «القدرات» لتوجيه تأثيرك إلى المكان المختار. السنة الكاملة في اللعبة تساوي ساعة واحدة من الوقت الحقيقي عند السرعة x1. يعمل على Android 5.0 أو أحدث.
 
-صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.5.0
+صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.6.0
 
 > The APK is debug-signed and intended for play-testing. Your phone may ask you to allow installation from unknown sources.
 
 ---
 
-## What's new in v0.5.0 — "Living World"
+## What's new in v0.6.0 — "Living Civilizations"
+
+This is the large follow-up to v0.5.0, built from the systems discovered in the supplied `New.zip` data pack. Every icon, name and rule here is an original lightweight implementation; no proprietary WorldBox art or text was copied.
+
+- **Sixteen map templates** — islands, continent, checkerboard, cheese, donut, anthill, volcano, empty, box world, pancake, toast, lasagna, cubicles, bad apple, chaos pearl and dormant volcano. Templates change real terrain generation, not just the label.
+- **Nineteen biomes** — grass, savanna, enchanted, mushroom, corrupted, infernal, jungle, swamp, wasteland, desert, crystal, candy, lemon, tumor, biomass, pumpkin, cybertile, permafrost and sand. Biomes alter work, food, regrowth and tile colouring.
+- **Four civilized peoples** — human, elf, orc and dwarf. Species affect names, colours and the kingdoms that settlers can found; children inherit their mother's people.
+- **Kingdoms, clans, cultures and diplomacy** — capitals move, treasuries and armies grow, clans form, cultures accumulate knowledge, and relations shift between peace, alliance, rivalry and war.
+- **Five war types** — conquest, inspire, rebellion, spite and whisper. Wars consume armies and treasure, lower stability and eventually end with a treaty.
+- **Seventy technologies** — a real research tree with costs, categories and effects. Priests and traders generate knowledge, and research improves work, food, wood, ore, birth rate, learning, loyalty, defence, trade and construction costs.
+- **Twenty-three toggleable world laws** — hunger, old age, animals, grass, minerals, erosion, disasters, diplomacy, borders, armies, population cap, forever peace, forever lava and more. Laws are simulated in both the engine and the Android Nature tab.
+- **Seventeen disasters** — from earthquakes, meteorites, tornadoes and ash fall to necromancers, plague ships, bandits and alien vessels. Each one changes tiles, resources, creatures, health or stability.
+- **Twelve status effects** — burning, poisoned, frozen, enchanted, caffeinated, shielded, enraged and others now tick down each day and modify health, mood and work. Powers and disasters apply them.
+- **Thirty-three named resources** — the original stockpiles are still used by the economy, while fish, meat, herbs, crops, metals, gems and other named resources are tracked and displayed.
+- **Six extra jobs** — blacksmith, settler, road builder, cleaner, fireman and attacker join the original ten, with real daily behaviour.
+- **134 building types** — grouped into housing, food, craft, military, culture, trade and utility. Twenty hand-drawn structure glyphs are rendered on the map; the rest map to a matching visual family.
+- **Three mod packs and twelve achievements** — Core, Test Mod and Crazy Traits tune birth rate, work and trait frequency; achievements are unlocked by real milestones and announced in the chronicle.
+- **Seven-tab Android interface** — world, people, nature, creatures, kingdoms, powers and events. New overlay modes tint the island by terrain, biome, kingdom, religion or job. All icons remain code-generated and every tap still explains itself for three seconds.
+- **Preserved rules** — 12 months, four seasons, one game year per real hour at x1, one child at a time, 270-day pregnancy and a full-year rest are unchanged.
+
+## Earlier: v0.5.0 — "Living World"
 
 A major update inspired by the structure and design ideas found in the supplied `New.zip` archive. All new icons, names and behaviour are original and generated in code; no proprietary art or text was copied.
 
@@ -96,18 +116,20 @@ The front-ends never contain game rules. They only call `OmatydomGame` and rende
 
 ### Key classes
 
-- `OmatydomGame` — facade: create/tick, pause/speed, appoint or assassinate a ruler, take/release control, issue decrees, cast powers, assign jobs, build structures.
-- `SimulationEngine` — one day: weather, ages, economy, resource regrowth, agent work, wildlife, monsters, idea spread, ageing, births, deaths, coups, succession, powers and events.
-- `World` — island state: map, citizens, agents, animals, stockpiles, ruler, weather and chronicle statistics.
-- `IslandMap` / `Tile` / `TileType` / `Structure` — terrain and buildings.
+- `OmatydomGame` — facade: create/tick, pause/speed, rulers, decrees, powers, laws, mod packs, research, wars, disasters, creatures, jobs and construction.
+- `SimulationEngine` — one day: weather, ages, economy, biomes, agent work, wildlife, monsters, ideas, ageing, births, deaths, politics, kingdoms, clans, cultures, technology, laws, disasters, achievements and events.
+- `World` — island state: map, citizens, agents, animals, named resources, laws, achievements, civs, wars, relations, tech bonuses, ruler, weather and chronicle statistics.
+- `IslandMap` / `Tile` / `TileType` / `Biome` / `MapTemplate` / `Structure` / `BuildingType` — generated terrain, biomes and buildings.
+- `Kingdom` / `Clan` / `Culture` / `War` / `Species` / `DiplomacyRelation` / `StatusEffect` / `Achievement` — the deep civilization layer.
+- `Technology` / `TechEffect` / `TechCategory` / `ResourceType` / `ModPack` / `DisasterType` — data catalogues with real gameplay effects.
 - `Agent` / `Animal` — positions, jobs, targets, work and wildlife.
-- `Citizen` / `Ruler` / `Trait` — the people, the throne and personalities.
+- `Citizen` / `Ruler` / `Trait` — the people, the throne, personalities and temporary conditions.
 - `Race`, `SocialClass`, `Idea`, `Job` — identity and daily life.
 - `Decree`, `Power`, `Age`, `Weather`, `GameEvent`, `EventType` — actions, world states and the chronicle.
 
 ---
 
-## Project layout (v0.5.0)
+## Project layout (v0.6.0)
 
 ```
 Omatydom/
@@ -124,19 +146,23 @@ Omatydom/
 │       ├── SimulationEngine.java
 │       ├── SimulationListener.java
 │       ├── World.java
-│       ├── Age.java, Power.java
-│       ├── Decree.java
-│       ├── GameEvent.java
-│       ├── EventType.java
-│       ├── NameGenerator.java
+│       ├── Age.java, Power.java, Decree.java
+│       ├── GameEvent.java, EventType.java, NameGenerator.java
+│       ├── Technology.java, TechEffect.java, TechCategory.java
+│       ├── ResourceType.java, BuildingType.java, ModPack.java, DisasterType.java
+│       ├── civ/
+│       │   ├── Species.java, Kingdom.java, Clan.java, Culture.java
+│       │   └── War.java, WarType.java, DiplomacyRelation.java
+│       │   └── StatusEffect.java, Achievement.java
 │       ├── model/
 │       │   ├── Citizen.java, Ruler.java, Trait.java
 │       │   ├── Race.java, Gender.java
 │       │   ├── Religion.java, Ideology.java
-│       │   ├── Job.java, SocialClass.java, Idea.java
+│       │   └── Job.java, SocialClass.java, Idea.java
 │       └── world/
-│           ├── IslandMap.java, Tile.java
-│           ├── TileType.java, Structure.java, Weather.java
+│           ├── IslandMap.java, Tile.java, TileType.java
+│           ├── Biome.java, MapTemplate.java, WorldLaw.java
+│           ├── Structure.java, Weather.java
 │           └── Agent.java, Animal.java, AnimalType.java
 ├── desktop/
 │   └── src/main/java/com/dotee313/omatydom/desktop/DesktopLauncher.java
@@ -171,42 +197,43 @@ gradle :app:assembleDebug
 ### Desktop demo
 
 ```bash
-gradle :desktop:run                 # random island
-gradle :desktop:run --args="42"     # reproducible island
+gradle :desktop:run                                      # random island
+gradle :desktop:run --args="42"                          # reproducible island
+gradle :desktop:run --args="42 CONTINENT TEST_MOD"       # template + ruleset
 ```
 
 ### Desktop commands
 
+The CLI includes the full v0.6.0 command set:
+
 | Command | Description |
 | --- | --- |
 | `help` | Show all commands. |
-| `status` | Day, population, stability, stockpiles, ruler, mood. |
+| `status` / `stats` | Current world / deep simulation counters. |
 | `map` | ASCII island: terrain, buildings, animals and working islanders. |
-| `agents [n]` | List living islanders with job, class, idea and position. |
-| `resources` | Wood, stone, ore, crystal, food, gold, buildings, wildlife. |
-| `animals` | Deer / boar / fish counts. |
-| `jobs` | List assignable job names. |
-| `job <id> <JOB>` | Reassign an islander (e.g. `job 3 BUILDER`). |
-| `build <x> <y> <STRUCTURE>` | Build from your own stockpile (e.g. `build 12 8 HUT`). |
-| `events [n]` | Show the last `n` chronicle entries. |
-| `step [n]` / `run [n]` | Advance `n` days. |
-| `pause` / `resume` | Stop or resume the clock. |
-| `speed n` | Days per tick (1–10). |
-| `rulers` / `choose <id>` | List candidates / appoint a ruler. |
-| `assassinate` | Remove the ruler and trigger a succession. |
-| `control` / `auto` | Take direct control / step back. |
-| `decree [NAME]` | Issue a decree (`FESTIVAL`, `CRACKDOWN`, …). |
-| `power [NAME]` | Cast a world power (`RAIN`, `BLOOM`, `METEOR`, …) at a random land tile. |
+| `agents` | List living islanders with job, class, idea and position. |
+| `resources [TYPE]` / `animals` / `biome <x> <y>` | Inspect stockpiles, wildlife and tiles. |
+| `jobs` / `job <id> <JOB>` | List or assign jobs, including the six new ones. |
+| `build <x> <y> <STRUCTURE>` / `building <x> <y> <BUILDING_TYPE>` | Build a simple structure or any of the 134 catalogued types. |
+| `events [n]` / `achievements` | Show the chronicle / unlocked milestones. |
+| `step [n]` / `run [n]` / `pause` / `resume` / `speed n` | Time control. |
+| `rulers` / `choose <id>` / `assassinate` / `control` / `auto` | Politics and direct control. |
+| `decree [NAME]` / `power [NAME]` | Issue a decree / cast a world power at a random land tile. |
+| `templates` / `mods` / `new [seed] [TEMPLATE] [MOD]` | Browse and start worlds with different generation and rules. |
+| `laws [KEY [on|off]]` | List or toggle any of the 23 world laws. |
+| `civs` / `tech [research]` / `war [TYPE] [A_ID] [B_ID]` | Inspect civilizations, advance research and declare wars. |
+| `disaster [TYPE]` / `spawn [TYPE]` | Trigger any disaster or spawn any creature. |
 | `quit` | Exit. |
 
 ---
 
 ## Roadmap
 
+- [x] Factions with relations, rivalries and wars.
+- [x] Deep Android interface with map overlays and code-generated icons.
 - [ ] Save/load (serialize `World` to JSON).
-- [ ] Zoom/pan and touch interaction on the Android island view.
-- [ ] Factions with relations, rivalries and wars.
-- [ ] Data-driven events and jobs instead of hard-coded ones.
+- [ ] Zoom/pan on the Android island view.
+- [ ] Fully data-driven events and jobs instead of hard-coded ones.
 - [ ] Character screens with portraits and needs.
 - [ ] Android UI with fragments and Material 3.
 - [ ] Scenario/challenge modes ("keep the island stable for 10 years").
@@ -217,9 +244,9 @@ gradle :desktop:run --args="42"     # reproducible island
 
 **أوماتيدوم** لعبة محاكاة حياة على جزيرة، حيث تراقب مجتمعًا حيًا وتشكّله. الزمن يمضي تلقائيًا، ولك أن تتدخل أو تترك الأحداث تجري من نفسها.
 
-الجزيرة ليست دائرية بل مربع مدوّر فيه خلجان ورؤوس عشوائية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، وكل واحد منهم الآن **شخصية بكسلية أوضح وأكثر واقعية** (١٠×١٤ بكسل): شعر، وجه مضلّل، عينان، أنف، فم، ذراعان، حزام، حذاء، وأداة تختلف حسب المهنة (فأس، معول، صنارة، قوس، عصا، سلة، عملة). الحاكم يرتدي تاجًا ذهبيًا، والمرأة الحامل يظهر بطنها. الأيقونات مأخوذة من الملف الذي أرسلته ومحفوظة داخل التطبيق. الرسم مستطيلات مسطّحة خفيفة على الهاتف. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال.
+الجزيرة ليست دائرية بل مربع مدوّر فيه خلجان ورؤوس عشوائية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، وكل واحد منهم الآن **شخصية بكسلية أوضح وأكثر واقعية** (١٠×١٤ بكسل): شعر، وجه مضلّل، عينان، أنف، فم، ذراعان، حزام، حذاء، وأداة تختلف حسب المهنة (فأس، معول، صنارة، قوس، عصا، سلة، عملة). الحاكم يرتدي تاجًا ذهبيًا، والمرأة الحامل يظهر بطنها. الأيقونات مرسومة داخل التطبيق بالكود، دون استخدام أي صور محفوظة من الملف الذي أرسلته. الرسم مستطيلات مسطّحة خفيفة على الهاتف. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال.
 
-الواجهة صارت أنظف: شريط علوي للمعلومات والفصل، وأربع صفحات تتنقل بينها **قائمة سفلية بالأيقونات**: الجزيرة، السكان، المراسيم، الأحداث. اضغط أي وجه في صفحة السكان لتعيينه حاكمًا. وأي ضغطة على أيقونة أو شخص أو قطعة أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ ثم يختفي تلقائيًا.
+في الإصدار ٠٫٦٫٠ صارت الجزيرة عالمًا أعمق: **١٦ شكلًا للخريطة**، **١٩ بيئة حيوية**، أربع شعوب (إنسان، إلف، أورك، قزم)، ممالك وعشائر وثقافات وعلاقات دبلوماسية وخمس أنواع حروب، **٧٠ تقنية** تُبحث وتغيّر الاقتصاد والولاء والدفاع، **٢٣ قانونًا عالميًا** يمكن تفعيله أو إيقافه، **١٧ كارثة** و**١٢ حالة مؤقتة** و**٣٣ موردًا** و**١٣٤ نوع مبنى**. تظهر كل هذه الأنظمة في سبع صفحات: الجزيرة، السكان، الطبيعة، المخلوقات، الممالك، القدرات، الأحداث. اضغط أي وجه في صفحة السكان لتعيينه حاكمًا. وأي ضغطة على أيقونة أو شخص أو قطعة أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ ثم يختفي تلقائيًا.
 
 **الزمن والحمل:** السنة في اللعبة = ٤ فصول × ٩٠ يومًا = ٣٦٠ يومًا، وتستغرق **ساعة واحدة** من الوقت الحقيقي عند السرعة x1 (كل يوم = ١٠ ثوانٍ). المرأة تحمل مرة واحدة فقط، ويستغرق الحمل **٣ فصول = ٩ أشهر = ٢٧٠ يومًا**، ثم ترتاح سنة كاملة قبل حمل جديد. تجد اليوم الحالي للمرة الحامل في صفحة السكان وفي شرح الضغط عليها.
 

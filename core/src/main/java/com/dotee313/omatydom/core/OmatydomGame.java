@@ -1,6 +1,13 @@
 package com.dotee313.omatydom.core;
 
+import com.dotee313.omatydom.core.civ.Clan;
+import com.dotee313.omatydom.core.civ.Culture;
+import com.dotee313.omatydom.core.civ.DiplomacyRelation;
+import com.dotee313.omatydom.core.civ.Kingdom;
+import com.dotee313.omatydom.core.civ.War;
+import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
+import com.dotee313.omatydom.core.world.AnimalType;
 import com.dotee313.omatydom.core.model.Job;
 import com.dotee313.omatydom.core.model.Religion;
 import com.dotee313.omatydom.core.model.Ruler;
@@ -8,7 +15,9 @@ import com.dotee313.omatydom.core.model.SocialClass;
 import com.dotee313.omatydom.core.world.Agent;
 import com.dotee313.omatydom.core.world.Animal;
 import com.dotee313.omatydom.core.world.IslandMap;
+import com.dotee313.omatydom.core.world.MapTemplate;
 import com.dotee313.omatydom.core.world.Structure;
+import com.dotee313.omatydom.core.world.WorldLaw;
 import com.dotee313.omatydom.core.world.Tile;
 
 import java.util.ArrayList;
@@ -44,8 +53,14 @@ public final class OmatydomGame {
 
     /** Create a reproducible island from a seed. */
     public static OmatydomGame create(long seed) {
+        return create(seed, MapTemplate.ISLANDS, ModPack.CORE);
+    }
+
+    /** Create a reproducible island from a seed, template and ruleset. */
+    public static OmatydomGame create(long seed, MapTemplate template, ModPack modPack) {
         Random random = new Random(seed);
-        World world = World.create("Omatydom", GameConfig.INITIAL_POPULATION, random);
+        World world = World.create("Omatydom", GameConfig.INITIAL_POPULATION, random, template);
+        world.setModPack(modPack);
         return new OmatydomGame(world, random);
     }
 
@@ -371,6 +386,196 @@ public final class OmatydomGame {
         engine.postEvent(new GameEvent(world.getDay(), EventType.ECONOMY, "Built by your hand",
                 structure.getDisplayName() + " rises at " + x + "," + y + ".", 3));
         return true;
+    }
+
+    // ------------------------------------------------------------------
+    // Deep systems exposed to the front-ends
+    // ------------------------------------------------------------------
+
+    public void setLawEnabled(WorldLaw law, boolean enabled) {
+        world.setLawEnabled(law, enabled);
+        if (law != null) {
+            engine.postEvent(new GameEvent(world.getDay(), EventType.LAW,
+                    law.name().replace('_', ' '),
+                    (enabled ? "Enabled: " : "Disabled: ") + law.getArabicLabel(), 3));
+        }
+    }
+
+    public void toggleLaw(WorldLaw law) {
+        setLawEnabled(law, !world.isLawEnabled(law));
+    }
+
+    public void setModPack(ModPack modPack) {
+        world.setModPack(modPack);
+    }
+
+    public ModPack getModPack() {
+        return world.getModPack();
+    }
+
+    public List<Kingdom> getKingdoms() {
+        return world.getKingdoms();
+    }
+
+    public List<Clan> getClans() {
+        return world.getClans();
+    }
+
+    public List<Culture> getCultures() {
+        return world.getCultures();
+    }
+
+    public List<War> getWars() {
+        return world.getWars();
+    }
+
+    public List<Technology> getUnlockedTechnologies() {
+        List<Technology> result = new ArrayList<>();
+        if (world.getCultures().isEmpty()) {
+            return result;
+        }
+        for (String id : world.getCultures().get(0).getTechIds()) {
+            try {
+                result.add(Technology.valueOf(id));
+            } catch (IllegalArgumentException ignored) {
+                // Ignore unknown ids from future data packs.
+            }
+        }
+        return result;
+    }
+
+    public Technology getNextTechnology() {
+        Technology[] all = Technology.values();
+        int index = world.getTechsUnlocked();
+        return index < all.length ? all[index] : null;
+    }
+
+    /** Rush research by feeding the culture; the engine unlocks it on the next day. */
+    public boolean researchNextTechnology() {
+        Technology next = getNextTechnology();
+        if (next == null || world.getCultures().isEmpty()) {
+            return false;
+        }
+        Culture culture = world.getCultures().get(0);
+        culture.setKnowledge(Math.max(culture.getKnowledge(), next.getCost()));
+        if (world.getGold() < next.getCost() / 4.0) {
+            world.setGold(next.getCost() / 4.0);
+        }
+        return true;
+    }
+
+    public void startWar(WarType type, int attackerId, int defenderId) {
+        engine.startWar(world.getDay(), type, attackerId, defenderId);
+    }
+
+    public void castDisaster(DisasterType type) {
+        engine.triggerDisaster(world.getDay(), type);
+    }
+
+    public void spawnCreature(AnimalType type) {
+        engine.spawnCreature(type);
+    }
+
+    public void setRelation(int a, int b, DiplomacyRelation relation) {
+        world.setRelation(a, b, relation);
+    }
+
+    public void foundClan(int citizenId) {
+        Citizen citizen = findCitizen(citizenId);
+        if (citizen != null && citizen.isAlive()) {
+            engine.foundClan(citizen, world.getDay());
+        }
+    }
+
+    public void foundKingdom(int citizenId) {
+        Citizen citizen = findCitizen(citizenId);
+        if (citizen != null && citizen.isAlive()) {
+            engine.foundKingdom(citizen, world.getDay());
+        }
+    }
+
+    /** Build any of the 134 catalogued building types at a chosen tile. */
+    public boolean buildBuilding(int x, int y, BuildingType type) {
+        if (type == null) {
+            return false;
+        }
+        Tile tile = world.getMap().get(x, y);
+        if (tile == null || !tile.isFreeLand()) {
+            return false;
+        }
+        if (world.getWood() < type.getWoodCost() || world.getStone() < type.getStoneCost()
+                || world.getGold() < type.getGoldCost()) {
+            return false;
+        }
+        world.setWood(world.getWood() - type.getWoodCost());
+        world.setStone(world.getStone() - type.getStoneCost());
+        world.setGold(world.getGold() - type.getGoldCost());
+        world.getMap().placeStructure(x, y, structureFor(type));
+        world.incrementStructuresBuilt();
+        engine.postEvent(new GameEvent(world.getDay(), EventType.ECONOMY, "A new building",
+                type.getDisplayName() + " rises at " + x + "," + y + ".", 3));
+        return true;
+    }
+
+    private static Structure structureFor(BuildingType type) {
+        switch (type) {
+            case HUT:
+                return Structure.HUT;
+            case HALL:
+                return Structure.HALL;
+            case FARM:
+                return Structure.FARM;
+            case GRANARY:
+                return Structure.GRANARY;
+            case WINDMILL:
+                return Structure.WINDMILL;
+            case WELL:
+                return Structure.WELL;
+            case MINE:
+                return Structure.MINE;
+            case SMITHY:
+                return Structure.SMITHY;
+            case BARRACKS:
+                return Structure.BARRACKS;
+            case WATCHTOWER:
+                return Structure.TOWER;
+            case TEMPLE:
+                return Structure.TEMPLE;
+            case LIBRARY:
+                return Structure.LIBRARY;
+            case MARKET:
+                return Structure.MARKET;
+            case DOCK:
+                return Structure.DOCK;
+            case ROAD:
+                return Structure.ROAD;
+            case BRIDGE:
+                return Structure.BRIDGE;
+            case WAREHOUSE:
+                return Structure.WAREHOUSE;
+            case GARDEN:
+                return Structure.GARDEN;
+            case PALACE:
+                return Structure.PALACE;
+            default:
+                switch (type.getCategory()) {
+                    case HOUSING:
+                        return Structure.HUT;
+                    case FOOD:
+                        return Structure.FARM;
+                    case CRAFT:
+                        return Structure.SMITHY;
+                    case MILITARY:
+                        return Structure.BARRACKS;
+                    case CULTURE:
+                        return Structure.TEMPLE;
+                    case TRADE:
+                        return Structure.MARKET;
+                    case UTILITY:
+                    default:
+                        return Structure.WELL;
+                }
+        }
     }
 
     public String resourceSummary() {

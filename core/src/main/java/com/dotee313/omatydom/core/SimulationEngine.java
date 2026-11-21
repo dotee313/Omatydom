@@ -1,6 +1,16 @@
 package com.dotee313.omatydom.core;
 
+import com.dotee313.omatydom.core.civ.Achievement;
+import com.dotee313.omatydom.core.civ.Clan;
+import com.dotee313.omatydom.core.civ.Culture;
+import com.dotee313.omatydom.core.civ.DiplomacyRelation;
+import com.dotee313.omatydom.core.civ.Kingdom;
+import com.dotee313.omatydom.core.civ.Species;
+import com.dotee313.omatydom.core.civ.StatusEffect;
+import com.dotee313.omatydom.core.civ.War;
+import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
+import com.dotee313.omatydom.core.ResourceType;
 import com.dotee313.omatydom.core.model.Gender;
 import com.dotee313.omatydom.core.model.Idea;
 import com.dotee313.omatydom.core.model.Ideology;
@@ -9,14 +19,18 @@ import com.dotee313.omatydom.core.model.Race;
 import com.dotee313.omatydom.core.model.Religion;
 import com.dotee313.omatydom.core.model.Ruler;
 import com.dotee313.omatydom.core.model.SocialClass;
+import com.dotee313.omatydom.core.model.Trait;
 import com.dotee313.omatydom.core.world.Agent;
 import com.dotee313.omatydom.core.world.Animal;
 import com.dotee313.omatydom.core.world.AnimalType;
+import com.dotee313.omatydom.core.world.Biome;
 import com.dotee313.omatydom.core.world.IslandMap;
+import com.dotee313.omatydom.core.world.MapTemplate;
 import com.dotee313.omatydom.core.world.Structure;
 import com.dotee313.omatydom.core.world.Tile;
 import com.dotee313.omatydom.core.world.TileType;
 import com.dotee313.omatydom.core.world.Weather;
+import com.dotee313.omatydom.core.world.WorldLaw;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +90,7 @@ public final class SimulationEngine {
         double population = Math.max(1, world.getPopulation());
         stepEconomy(population, day);
         stepAgents(day);
-        stepAnimals();
+        stepAnimals(day);
         stepMonsters(day);
         stepIdeas();
 
@@ -84,6 +98,10 @@ public final class SimulationEngine {
         stepCitizens(day, population, mood);
         stepBirths(day, mood);
         stepPolitics(day, mood);
+        stepCivilizations(day, mood);
+        stepCultureAndTech(day);
+        stepWorldLaws(day);
+        checkAchievements(day);
 
         // Stability eases towards a target instead of drifting to a permanent zero.
         double stabilityTarget = clamp(50 + (mood - 50) * 0.7);
@@ -131,6 +149,9 @@ public final class SimulationEngine {
 
     /** Dangerous creatures hurt nearby islanders each day. */
     private void stepMonsters(int day) {
+        if (world.isLawEnabled(WorldLaw.PEACEFUL_MONSTERS)) {
+            return;
+        }
         for (Animal animal : new ArrayList<>(world.getAnimals())) {
             if (!animal.isAlive() || !animal.getType().isDangerous()) {
                 continue;
@@ -197,9 +218,12 @@ public final class SimulationEngine {
     private void stepEconomy(double population, int day) {
         regrowResources();
         double before = world.getFood();
-        world.setFood(world.getFood() - population * GameConfig.FOOD_PER_CITIZEN);
+        if (world.isLawEnabled(WorldLaw.HUNGER)) {
+            world.setFood(world.getFood() - population * GameConfig.FOOD_PER_CITIZEN);
+        }
 
-        if (before < population * GameConfig.FOOD_PER_CITIZEN) {
+        if (world.isLawEnabled(WorldLaw.HUNGER)
+                && before < population * GameConfig.FOOD_PER_CITIZEN) {
             for (Citizen citizen : world.getLivingCitizens()) {
                 citizen.setHappiness(citizen.getHappiness() - 3);
                 citizen.setHealth(citizen.getHealth() - 1.5);
@@ -227,10 +251,18 @@ public final class SimulationEngine {
                     continue;
                 }
                 TileType type = tile.getType();
-                if ((type == TileType.FOREST || type == TileType.ORCHARD
-                        || type == TileType.MOUNTAIN || type == TileType.CAVE)
-                        && random.nextDouble() < chance / 4) {
+                boolean plants = type == TileType.FOREST || type == TileType.ORCHARD;
+                boolean minerals = type == TileType.MOUNTAIN || type == TileType.CAVE;
+                boolean growthAllowed = (plants && world.isLawEnabled(WorldLaw.GROW_GRASS))
+                        || (minerals && world.isLawEnabled(WorldLaw.GROW_MINERALS));
+                double biomeFactor = tile.getBiome().getRegrowthModifier();
+                if (growthAllowed && random.nextDouble() < chance * biomeFactor / 4) {
                     tile.setResource(Math.min(24, tile.getResource() + 1));
+                }
+                if (world.isLawEnabled(WorldLaw.VEGETATION_SEEDS) && type == TileType.GRASS
+                        && random.nextDouble() < 0.0015 * biomeFactor && tile.getStructure() == Structure.NONE) {
+                    tile.setType(random.nextBoolean() ? TileType.FOREST : TileType.ORCHARD);
+                    tile.setResource(6);
                 }
             }
         }
@@ -272,6 +304,10 @@ public final class SimulationEngine {
     private boolean targetIsValid(Agent agent) {
         Job job = agent.getJob();
         IslandMap map = world.getMap();
+        if (job == Job.BUILDER || job == Job.ROAD_BUILDER || job == Job.SETTLER) {
+            Tile tile = map.get(agent.getTargetX(), agent.getTargetY());
+            return tile != null && tile.isFreeLand();
+        }
         if (job.getTarget() != null) {
             Tile tile = map.get(agent.getTargetX(), agent.getTargetY());
             return tile != null && tile.getType() == job.getTarget() && tile.getResource() > 0;
@@ -279,10 +315,6 @@ public final class SimulationEngine {
         if (job == Job.HUNTER) {
             Animal animal = agent.getTargetAnimal();
             return animal != null && animal.isAlive();
-        }
-        if (job == Job.BUILDER) {
-            Tile tile = map.get(agent.getTargetX(), agent.getTargetY());
-            return tile != null && tile.isFreeLand();
         }
         return true;
     }
@@ -355,6 +387,21 @@ public final class SimulationEngine {
                 }
                 break;
             }
+            case BLACKSMITH:
+                setTerrainTarget(agent, TileType.MOUNTAIN);
+                break;
+            case SETTLER:
+            case ROAD_BUILDER:
+                setTerrainTarget(agent, TileType.GRASS);
+                break;
+            case CLEANER:
+            case FIREMAN:
+            case ATTACKER:
+                if (random.nextDouble() < 0.25) {
+                    int[] spot = map.randomWalkable(random);
+                    agent.setTarget(spot[0], spot[1]);
+                }
+                break;
             case RULER:
             case PRIEST:
             case TRADER:
@@ -450,12 +497,29 @@ public final class SimulationEngine {
                 && agent.getY() == agent.getTargetY();
     }
 
-    /** Innate traits make some islanders noticeably better or worse at work. */
+    /** Traits, biome, weather, age, temporary states and technology shape every yield. */
     private double workYield(Agent agent, double base) {
-        double traitFactor = 1.0 + agent.getCitizen().getTrait().getWorkModifier();
-        double weatherFactor = world.getWeather().getWorkMultiplier();
-        double ageFactor = Age.of(world.getDay()).getWorkMultiplier();
-        return Math.max(base * 0.3, base * traitFactor * weatherFactor * ageFactor);
+        Citizen citizen = agent.getCitizen();
+        double factor = 1.0 + citizen.getTrait().getWorkModifier()
+                + world.getTechBonus(TechEffect.WORK)
+                + world.getModPack().getWorkModifier() - 1.0;
+        factor *= world.getWeather().getWorkMultiplier();
+        factor *= Age.of(world.getDay()).getWorkMultiplier();
+        Tile tile = world.getMap().get(agent.getX(), agent.getY());
+        if (tile != null) {
+            factor *= tile.getBiome().getWorkModifier();
+        }
+        for (StatusEffect effect : citizen.getActiveStatuses()) {
+            factor *= 1.0 + effect.getWorkModifier();
+        }
+        return Math.max(base * 0.15, base * factor);
+    }
+
+    /** Food-focused work also feels the local biome's fertility. */
+    private double foodYield(Agent agent, double base) {
+        Tile tile = world.getMap().get(agent.getX(), agent.getY());
+        double fertility = tile == null ? 1.0 : tile.getBiome().getFoodModifier();
+        return workYield(agent, base * fertility);
     }
 
     private void work(Agent agent, int day) {
@@ -467,7 +531,8 @@ public final class SimulationEngine {
             case WOODCUTTER:
                 if (tile != null && tile.getType() == TileType.FOREST && tile.getResource() > 0) {
                     tile.setResource(tile.getResource() - 1);
-                    world.setWood(world.getWood() + workYield(agent, GameConfig.WOOD_PER_LOG));
+                    world.setWood(world.getWood() + workYield(agent,
+                            GameConfig.WOOD_PER_LOG * (1.0 + world.getTechBonus(TechEffect.WOOD))));
                     if (random.nextDouble() < 0.03) {
                         postEvent(new GameEvent(day, EventType.ECONOMY, "Axes in the forest",
                                 agent.getCitizen().getName() + " brings back a load of wood.", 1));
@@ -477,7 +542,8 @@ public final class SimulationEngine {
             case GATHERER:
                 if (tile != null && tile.getType() == TileType.ORCHARD && tile.getResource() > 0) {
                     tile.setResource(tile.getResource() - 1);
-                    world.setFood(world.getFood() + workYield(agent, GameConfig.FOOD_PER_FRUIT));
+                    world.setFood(world.getFood() + foodYield(agent,
+                            GameConfig.FOOD_PER_FRUIT * (1.0 + world.getTechBonus(TechEffect.FOOD))));
                     if (random.nextDouble() < 0.03) {
                         postEvent(new GameEvent(day, EventType.ECONOMY, "Fruit harvest",
                                 agent.getCitizen().getName() + " fills a basket in the orchard.", 1));
@@ -488,11 +554,16 @@ public final class SimulationEngine {
                 if (tile != null && (tile.getType() == TileType.MOUNTAIN || tile.getType() == TileType.CAVE)
                         && tile.getResource() > 0) {
                     tile.setResource(tile.getResource() - 1);
-                    world.setStone(world.getStone() + workYield(agent, GameConfig.STONE_PER_DIG));
-                    if (random.nextDouble() < 0.5) {
+                    world.setStone(world.getStone() + workYield(agent,
+                            GameConfig.STONE_PER_DIG * (1.0 + world.getTechBonus(TechEffect.STONE))));
+                    if (random.nextDouble() < 0.5 + world.getTechBonus(TechEffect.ORE)) {
                         world.setOre(world.getOre() + GameConfig.ORE_PER_DIG);
                     }
-                    if (random.nextDouble() < 0.06) {
+                    if (random.nextDouble() < 0.06 + world.getTechBonus(TechEffect.ORE) * 0.3) {
+                        world.setCrystal(world.getCrystal() + 1);
+                    }
+                    Tile here = map.get(agent.getX(), agent.getY());
+                    if (here != null && here.getBiome() == Biome.CRYSTAL && random.nextDouble() < 0.08) {
                         world.setCrystal(world.getCrystal() + 1);
                     }
                     if (random.nextDouble() < 0.03) {
@@ -503,7 +574,10 @@ public final class SimulationEngine {
                 break;
             case FISHER:
                 if (map.hasWaterNeighbour(agent.getX(), agent.getY())) {
-                    world.setFood(world.getFood() + workYield(agent, GameConfig.FOOD_PER_FISH));
+                    double catchSize = foodYield(agent,
+                            GameConfig.FOOD_PER_FISH * (1.0 + world.getTechBonus(TechEffect.FOOD)));
+                    world.setFood(world.getFood() + catchSize);
+                    world.addResource(ResourceType.FISH, catchSize / 6.0);
                     if (random.nextDouble() < 0.03) {
                         postEvent(new GameEvent(day, EventType.ECONOMY, "The nets are full",
                                 agent.getCitizen().getName() + " returns with fish from the shore.", 1));
@@ -528,7 +602,12 @@ public final class SimulationEngine {
                     }
                     if (animal.getHealth() <= 0) {
                         animal.setAlive(false);
-                        world.setFood(world.getFood() + workYield(agent, GameConfig.FOOD_PER_HUNT));
+                        double meat = foodYield(agent,
+                                GameConfig.FOOD_PER_HUNT * (1.0 + world.getTechBonus(TechEffect.FOOD)));
+                        world.setFood(world.getFood() + meat);
+                        world.addResource(ResourceType.MEAT, meat / 8.0);
+                        world.addResource(ResourceType.BONES, 0.4);
+                        world.addResource(ResourceType.LEATHER, 0.3);
                         postEvent(new GameEvent(day, EventType.ECONOMY, "A successful hunt",
                                 agent.getCitizen().getName() + " brings down a "
                                         + animal.getType().getDisplayName().toLowerCase() + ".", 2));
@@ -543,10 +622,12 @@ public final class SimulationEngine {
                 agent.setProgress(agent.getProgress() + 1);
                 if (agent.getProgress() >= 6 && tile != null && tile.isFreeLand()) {
                     Structure structure = pickStructure();
-                    if (world.getWood() >= structure.getWoodCost()
-                            && world.getStone() >= structure.getStoneCost()) {
-                        world.setWood(world.getWood() - structure.getWoodCost());
-                        world.setStone(world.getStone() - structure.getStoneCost());
+                    double discount = Math.min(0.35, world.getTechBonus(TechEffect.BUILD_COST));
+                    int woodCost = (int) Math.ceil(structure.getWoodCost() * (1.0 - discount));
+                    int stoneCost = (int) Math.ceil(structure.getStoneCost() * (1.0 - discount));
+                    if (world.getWood() >= woodCost && world.getStone() >= stoneCost) {
+                        world.setWood(world.getWood() - woodCost);
+                        world.setStone(world.getStone() - stoneCost);
                         map.placeStructure(agent.getX(), agent.getY(), structure);
                         world.incrementStructuresBuilt();
                         postEvent(new GameEvent(day, EventType.ECONOMY, "New construction",
@@ -560,6 +641,10 @@ public final class SimulationEngine {
                 break;
             }
             case PRIEST:
+                for (Culture culture : world.getCultures()) {
+                    culture.setKnowledge(culture.getKnowledge()
+                            + 0.08 + world.getTechBonus(TechEffect.CULTURE));
+                }
                 for (Citizen nearby : world.getLivingCitizens()) {
                     if (nearby != agent.getCitizen()
                             && near(agent, nearby, 4)) {
@@ -579,12 +664,73 @@ public final class SimulationEngine {
                 }
                 break;
             case TRADER:
-                world.setGold(world.getGold() + 1.5);
+                world.setGold(world.getGold() + 1.5
+                        + world.getTechBonus(TechEffect.TRADE) * 2.0);
+                for (Culture culture : world.getCultures()) {
+                    culture.setKnowledge(culture.getKnowledge() + 0.03);
+                }
+                break;
+            case BLACKSMITH:
+                if (world.getOre() >= 0.4) {
+                    world.setOre(world.getOre() - 0.4);
+                    world.setGold(world.getGold() + 1.2
+                            + world.getTechBonus(TechEffect.MILITARY) * 2.0);
+                    world.addResource(ResourceType.IRON, 0.3);
+                    if (random.nextDouble() < 0.04) {
+                        for (Kingdom kingdom : world.getKingdoms()) {
+                            kingdom.setArmy(kingdom.getArmy() + 1);
+                        }
+                    }
+                }
+                break;
+            case SETTLER:
+                if (tile != null && tile.getType() == TileType.GRASS && random.nextDouble() < 0.01) {
+                    maybeFoundClan(agent.getCitizen(), day);
+                    maybeFoundKingdom(agent.getCitizen(), day);
+                }
+                world.setFood(world.getFood() + foodYield(agent, 0.5));
+                break;
+            case ROAD_BUILDER:
+                if (tile != null && tile.isFreeLand() && random.nextDouble() < 0.03
+                        && world.getWood() >= Structure.ROAD.getWoodCost()) {
+                    world.setWood(world.getWood() - Structure.ROAD.getWoodCost());
+                    map.placeStructure(agent.getX(), agent.getY(), Structure.ROAD);
+                    world.incrementStructuresBuilt();
+                }
+                world.setGold(world.getGold() + 0.2);
+                break;
+            case CLEANER:
+                world.setStability(world.getStability() + 0.05);
+                for (Citizen nearby : world.getLivingCitizens()) {
+                    if (near(agent, nearby, 3)) {
+                        nearby.setHappiness(nearby.getHappiness() + 0.08);
+                        nearby.addStatus(StatusEffect.CAFFEINATED);
+                    }
+                }
+                break;
+            case FIREMAN:
+                for (int y = agent.getY() - 1; y <= agent.getY() + 1; y++) {
+                    for (int x = agent.getX() - 1; x <= agent.getX() + 1; x++) {
+                        Tile burning = map.get(x, y);
+                        if (burning != null) {
+                            burning.setBiome(Biome.GRASS);
+                        }
+                    }
+                }
+                world.setStability(world.getStability() + 0.03);
+                break;
+            case ATTACKER:
+                if (random.nextDouble() < 0.02) {
+                    for (Kingdom kingdom : world.getKingdoms()) {
+                        kingdom.setArmy(kingdom.getArmy() + 1);
+                    }
+                }
+                world.setGold(world.getGold() + 0.3);
                 break;
             case LABORER:
             default:
                 if (tile != null && tile.getType() == TileType.GRASS) {
-                    world.setFood(world.getFood() + 1);
+                    world.setFood(world.getFood() + foodYield(agent, 1));
                 }
                 break;
         }
@@ -595,20 +741,13 @@ public final class SimulationEngine {
     }
 
     private Structure pickStructure() {
-        double roll = random.nextDouble();
-        if (roll < 0.50) {
-            return Structure.HUT;
-        }
-        if (roll < 0.65) {
-            return Structure.DOCK;
-        }
-        if (roll < 0.80) {
-            return Structure.TOWER;
-        }
-        if (roll < 0.90) {
-            return Structure.TEMPLE;
-        }
-        return Structure.MINE;
+        Structure[] basic = {Structure.HUT, Structure.HUT, Structure.FARM, Structure.MINE,
+                Structure.DOCK, Structure.TOWER, Structure.TEMPLE, Structure.WELL};
+        Structure[] advanced = {Structure.HALL, Structure.SMITHY, Structure.BARRACKS,
+                Structure.GRANARY, Structure.WINDMILL, Structure.MARKET, Structure.LIBRARY,
+                Structure.ROAD, Structure.GARDEN, Structure.WAREHOUSE};
+        Structure[] pool = world.getTechsUnlocked() >= 8 ? advanced : basic;
+        return pool[random.nextInt(pool.length)];
     }
 
     private boolean near(Agent agent, Citizen citizen, int distance) {
@@ -628,7 +767,7 @@ public final class SimulationEngine {
     // Wildlife and ideas
     // ------------------------------------------------------------------
 
-    private void stepAnimals() {
+    private void stepAnimals(int day) {
         IslandMap map = world.getMap();
         for (Animal animal : new ArrayList<>(world.getAnimals())) {
             if (!animal.isAlive()) {
@@ -654,7 +793,12 @@ public final class SimulationEngine {
                 alive++;
             }
         }
-        if (alive < GameConfig.INITIAL_ANIMALS && random.nextDouble() < 0.06) {
+        if (world.isLawEnabled(WorldLaw.ANIMALS_BABIES)
+                && alive < GameConfig.INITIAL_ANIMALS && random.nextDouble() < 0.06) {
+            World.spawnAnimal(world, random);
+        }
+        if (world.isLawEnabled(WorldLaw.ANIMALS_SPAWN)
+                && alive < GameConfig.MAX_ANIMALS && day % 30 == 0 && random.nextDouble() < 0.25) {
             World.spawnAnimal(world, random);
         }
     }
@@ -708,6 +852,10 @@ public final class SimulationEngine {
         mood += Math.min(10, world.getMap().countStructures() * 0.8);
         mood += world.getWeather().getMoodDelta();
         mood += Age.of(world.getDay()).getMoodDelta();
+        mood += world.getTechBonus(TechEffect.LOYALTY) * 4.0;
+        if (world.isLawEnabled(WorldLaw.ANGRY_CIVILIANS)) {
+            mood -= 8;
+        }
         return clamp(mood * 0.6 + averageHappiness * 0.4);
     }
 
@@ -728,10 +876,18 @@ public final class SimulationEngine {
             double loyaltyDelta = (mood - 50) / 50.0 * 0.25
                     + (world.getRuler() == null ? -1.5 : 0)
                     + random.nextDouble() * 0.3 - 0.15;
+            double statusMood = 0;
+            double statusHealth = 0;
+            for (StatusEffect effect : citizen.getActiveStatuses()) {
+                statusMood += effect.getMoodModifier() * 0.05;
+                statusHealth += effect.getHealthPerDay() * 0.25;
+            }
+            loyaltyDelta += world.getTechBonus(TechEffect.LOYALTY) * 0.2;
 
             citizen.setHappiness(citizen.getHappiness()
-                    + happinessDelta + citizen.getTrait().getHappinessModifier() * 0.02);
-            citizen.setHealth(citizen.getHealth() + healthDelta);
+                    + happinessDelta + statusMood
+                    + citizen.getTrait().getHappinessModifier() * 0.02);
+            citizen.setHealth(citizen.getHealth() + healthDelta + statusHealth);
             citizen.setWealth(citizen.getWealth() + wealthDelta);
             citizen.setLoyalty(citizen.getLoyalty()
                     + loyaltyDelta + citizen.getTrait().getLoyaltyModifier() * 0.02);
@@ -772,10 +928,15 @@ public final class SimulationEngine {
             if (random.nextDouble() < 0.0015) {
                 citizen.setIdeology(pick(Ideology.values()));
             }
+            if (random.nextDouble() < 0.0015 * world.getModPack().getTraitChanceModifier()) {
+                citizen.setTrait(pick(Trait.values()));
+            }
+            citizen.tickStatuses();
 
             double ageYears = citizen.getAgeYears();
             double deathChance = 0.00015
-                    + Math.max(0, ageYears - 60) * 0.00006
+                    + (world.isLawEnabled(WorldLaw.OLD_AGE)
+                            ? Math.max(0, ageYears - 60) * 0.00006 : 0)
                     + (citizen.getHealth() < 25 ? 0.008 : 0);
             deathChance *= 1.0 - Math.max(0, citizen.getTrait().getSurvivalModifier());
             if (random.nextDouble() < deathChance) {
@@ -793,7 +954,10 @@ public final class SimulationEngine {
      * then rests for a full year. No instant population spikes.
      */
     private void stepBirths(int day, double mood) {
-        if (world.getPopulation() >= GameConfig.MAX_POPULATION) {
+        int populationCap = world.isLawEnabled(WorldLaw.POPULATION_CAP)
+                ? GameConfig.MAX_POPULATION : GameConfig.MAX_POPULATION + 40;
+        if (!world.isLawEnabled(WorldLaw.CIV_BABIES)
+                || world.getPopulation() >= populationCap) {
             return;
         }
 
@@ -803,13 +967,15 @@ public final class SimulationEngine {
                 continue;
             }
             deliverChild(day, mother);
-            if (world.getPopulation() >= GameConfig.MAX_POPULATION) {
+            if (world.getPopulation() >= populationCap) {
                 return;
             }
         }
 
         // Then a small number of eligible women can begin a new pregnancy.
-        double fertility = 0.35 + mood / 100.0;
+        double fertility = (0.35 + mood / 100.0)
+                * world.getModPack().getBirthModifier()
+                * (1.0 + world.getTechBonus(TechEffect.BIRTH));
         for (Citizen woman : new ArrayList<>(world.getLivingCitizens())) {
             if (!woman.canConceive(day)) {
                 continue;
@@ -831,13 +997,14 @@ public final class SimulationEngine {
         mother.deliver(day);
         Citizen child = new Citizen(
                 world.nextId(),
-                NameGenerator.fullName(random),
+                NameGenerator.personName(random, mother.getSpecies().getNamePoolKey()),
                 random.nextBoolean() ? Gender.MALE : Gender.FEMALE,
                 mother.getRace(),
                 mother.getReligion(),
                 pick(Ideology.values()),
                 0
         );
+        child.setSpecies(mother.getSpecies());
         child.setJob(Job.LABORER);
         child.setOccupation(Job.LABORER.getDisplayName());
         child.setSocialClass(SocialClass.CHILD);
@@ -869,7 +1036,8 @@ public final class SimulationEngine {
                 + random.nextDouble() * 0.4 - 0.2);
 
         boolean unstable = world.getStability() < 35 && ruler.getApproval() < 25;
-        if (unstable && random.nextDouble() < 0.02) {
+        if (world.isLawEnabled(WorldLaw.REBELLIONS)
+                && unstable && random.nextDouble() < 0.02) {
             postEvent(new GameEvent(day, EventType.COUP, "The throne is stormed",
                     "Soldiers surround the palace of " + ruler.getCitizen().getName()
                             + ". A coup is under way.", 5));
@@ -911,8 +1079,512 @@ public final class SimulationEngine {
                         + ". " + best.getName() + " now holds the throne.", 4));
     }
 
+    // ------------------------------------------------------------------
+    // Civilizations, cultures, technology, world laws and achievements
+    // ------------------------------------------------------------------
+
+    /** Kingdoms, clans, relations and wars evolve on their own clocks. */
+    private void stepCivilizations(int day, double mood) {
+        for (Kingdom kingdom : world.getKingdoms()) {
+            kingdom.setStability(kingdom.getStability()
+                    + (mood - kingdom.getStability()) * 0.02);
+            if (world.isLawEnabled(WorldLaw.CIV_ARMY) && random.nextDouble() < 0.08) {
+                kingdom.setArmy(kingdom.getArmy() + 1);
+            }
+            if (world.isLawEnabled(WorldLaw.KINGDOM_EXPANSION) && day % 180 == 0
+                    && kingdom.getTreasury() > 40) {
+                kingdom.setTreasury(kingdom.getTreasury() - 40);
+                int[] site = world.getMap().randomWalkable(random);
+                if (site != null) {
+                    kingdom.setCapitalX(site[0]);
+                    kingdom.setCapitalY(site[1]);
+                    postEvent(new GameEvent(day, EventType.KINGDOM, "A capital moves",
+                            kingdom.getName() + " claims new ground at " + site[0] + "," + site[1]
+                                    + ".", 3));
+                }
+            }
+        }
+
+        List<Kingdom> kingdoms = new ArrayList<>(world.getKingdoms());
+        for (int i = 0; i < kingdoms.size(); i++) {
+            for (int j = i + 1; j < kingdoms.size(); j++) {
+                Kingdom a = kingdoms.get(i);
+                Kingdom b = kingdoms.get(j);
+                DiplomacyRelation relation = world.getRelation(a.getId(), b.getId());
+                if (world.isLawEnabled(WorldLaw.DIPLOMACY) && day % 30 == 0
+                        && random.nextDouble() < 0.20) {
+                    double shift = random.nextDouble() < 0.5 ? -5 : 5;
+                    if (relation == DiplomacyRelation.WAR) {
+                        shift = 3;
+                    }
+                    DiplomacyRelation next = relation;
+                    if (shift < 0 && relation == DiplomacyRelation.ALLIANCE) {
+                        next = DiplomacyRelation.PEACE;
+                    } else if (shift < 0 && relation == DiplomacyRelation.PEACE
+                            && random.nextDouble() < 0.35) {
+                        next = DiplomacyRelation.RIVALRY;
+                    } else if (shift > 0 && relation == DiplomacyRelation.RIVALRY) {
+                        next = DiplomacyRelation.PEACE;
+                    } else if (shift > 0 && relation == DiplomacyRelation.PEACE
+                            && random.nextDouble() < 0.25) {
+                        next = DiplomacyRelation.ALLIANCE;
+                    }
+                    world.setRelation(a.getId(), b.getId(), next);
+                    relation = next;
+                }
+                boolean canWar = !world.isLawEnabled(WorldLaw.FOREVER_PEACE)
+                        && (relation == DiplomacyRelation.RIVALRY
+                        || (relation == DiplomacyRelation.PEACE && random.nextDouble() < 0.4));
+                if (canWar && random.nextDouble() < 0.015) {
+                    startWar(day, pick(WarType.values()), a.getId(), b.getId());
+                }
+            }
+        }
+
+        for (War war : new ArrayList<>(world.getWars())) {
+            war.setIntensity(Math.max(0, war.getIntensity() - 0.003 + random.nextDouble() * 0.004));
+            Kingdom attacker = findKingdom(war.getAttackerId());
+            Kingdom defender = findKingdom(war.getDefenderId());
+            int armyLoss = (int) Math.ceil(war.getIntensity() * 1.2);
+            int goldLoss = (int) Math.ceil(war.getIntensity() * 2.0);
+            if (attacker != null) {
+                attacker.setArmy(Math.max(0, attacker.getArmy() - armyLoss));
+                attacker.setTreasury(Math.max(0, attacker.getTreasury() - goldLoss));
+            }
+            if (defender != null) {
+                defender.setArmy(Math.max(0, defender.getArmy() - Math.max(1, armyLoss - 1)));
+                defender.setTreasury(Math.max(0, defender.getTreasury() - Math.max(1, goldLoss - 1)));
+            }
+            if (world.isLawEnabled(WorldLaw.BORDER_STEALING) && random.nextDouble() < 0.02) {
+                world.setGold(world.getGold() + 6);
+            }
+            boolean exhausted = war.getIntensity() <= 0.05 || day - war.getStartDay() > 120;
+            if (exhausted) {
+                world.getWars().remove(war);
+                world.setRelation(war.getAttackerId(), war.getDefenderId(), DiplomacyRelation.PEACE);
+                postEvent(new GameEvent(day, EventType.WAR, "A treaty is signed",
+                        "The fighting between kingdom " + war.getAttackerId() + " and kingdom "
+                                + war.getDefenderId() + " has ended.", 4));
+            }
+        }
+
+        if (day % 90 == 0 && world.getClans().size() < 12 && world.getPopulation() > 12) {
+            for (Citizen citizen : world.getLivingAdults()) {
+                if (!belongsToClan(citizen)) {
+                    foundClan(citizen, day);
+                    break;
+                }
+            }
+        }
+        if (day % 240 == 0 && world.getKingdoms().size() < 6
+                && world.getPopulation() >= 24 && world.isLawEnabled(WorldLaw.KINGDOM_EXPANSION)) {
+            for (Citizen citizen : world.getLivingAdults()) {
+                if (citizen.getJob() == Job.SETTLER || citizen.getJob() == Job.RULER) {
+                    foundKingdom(citizen, day);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void maybeFoundClan(Citizen citizen, int day) {
+        if (world.getClans().size() < 12 && !belongsToClan(citizen)) {
+            foundClan(citizen, day);
+        }
+    }
+
+    private void maybeFoundKingdom(Citizen citizen, int day) {
+        if (world.getKingdoms().size() < 6 && world.getPopulation() >= 24
+                && world.isLawEnabled(WorldLaw.KINGDOM_EXPANSION)) {
+            foundKingdom(citizen, day);
+        }
+    }
+
+    public void foundClan(Citizen founder, int day) {
+        int kingdomId = world.getKingdoms().isEmpty() ? 0 : world.getKingdoms().get(0).getId();
+        Clan clan = new Clan(world.getClans().size() + 1,
+                NameGenerator.clanName(random), kingdomId, founder.getId());
+        clan.addMember(founder.getId());
+        world.getClans().add(clan);
+        world.incrementClansFounded();
+        postEvent(new GameEvent(day, EventType.CLAN, "A clan is founded",
+                founder.getName() + " gathers a following called " + clan.getName() + ".", 3));
+    }
+
+    public void foundKingdom(Citizen founder, int day) {
+        Species species = founder.getSpecies();
+        for (Kingdom existing : world.getKingdoms()) {
+            if (existing.getSpecies() == species) {
+                return;
+            }
+        }
+        int id = world.getKingdoms().size() + 1;
+        Agent seat = world.findAgent(founder);
+        int x = seat == null ? world.getMap().getWidth() / 2 : seat.getX();
+        int y = seat == null ? world.getMap().getHeight() / 2 : seat.getY();
+        Kingdom kingdom = new Kingdom(id, NameGenerator.kingdomName(random), species,
+                species.getColor(), x, y);
+        kingdom.setStability(60);
+        kingdom.setArmy(4);
+        kingdom.setTreasury(50);
+        world.getKingdoms().add(kingdom);
+        world.incrementKingdomsFounded();
+        postEvent(new GameEvent(day, EventType.KINGDOM, "A kingdom rises",
+                species.getDisplayName() + "-speaking settlers found " + kingdom.getName() + ".", 4));
+    }
+
+    private boolean belongsToClan(Citizen citizen) {
+        for (Clan clan : world.getClans()) {
+            if (clan.getMemberIds().contains(citizen.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Kingdom findKingdom(int id) {
+        for (Kingdom kingdom : world.getKingdoms()) {
+            if (kingdom.getId() == id) {
+                return kingdom;
+            }
+        }
+        return null;
+    }
+
+    /** Start one of the five war types with a unique id and fresh intensity. */
+    public void startWar(int day, WarType type, int attackerId, int defenderId) {
+        if (type == null || attackerId == defenderId) {
+            return;
+        }
+        War war = new War(world.getWars().size() + 1, type, attackerId, defenderId, day);
+        war.setIntensity(0.7 + random.nextDouble() * 0.3);
+        world.getWars().add(war);
+        world.incrementWarsStarted();
+        world.setRelation(attackerId, defenderId, DiplomacyRelation.WAR);
+        postEvent(new GameEvent(day, EventType.WAR, "War is declared",
+                type.getDisplayName() + " between kingdom " + attackerId + " and kingdom "
+                        + defenderId + " begins.", 5));
+    }
+
+    /** Culture accumulates knowledge and unlocks the next original technology. */
+    private void stepCultureAndTech(int day) {
+        if (world.getCultures().isEmpty()) {
+            world.getCultures().add(new Culture(1, NameGenerator.cultureName(random)));
+        }
+        Culture culture = world.getCultures().get(0);
+        double education = 0;
+        List<Citizen> living = world.getLivingCitizens();
+        for (Citizen citizen : living) {
+            education += citizen.getEducation();
+        }
+        double average = living.isEmpty() ? 0 : education / living.size();
+        culture.setKnowledge(culture.getKnowledge()
+                + (0.01 + average * 0.0015) * (1.0 + world.getTechBonus(TechEffect.LEARNING)));
+
+        Technology[] techs = Technology.values();
+        int index = world.getTechsUnlocked();
+        if (index >= techs.length) {
+            return;
+        }
+        Technology next = techs[index];
+        double goldCost = next.getCost() / 4.0;
+        if (culture.getKnowledge() >= next.getCost() && world.getGold() >= goldCost) {
+            culture.setKnowledge(culture.getKnowledge() - next.getCost());
+            world.setGold(world.getGold() - goldCost);
+            culture.addTech(next.name());
+            world.incrementTechsUnlocked();
+            world.addTechBonus(next.getEffect(), next.getMagnitude());
+            postEvent(new GameEvent(day, EventType.TECH, "A new art is learned",
+                    culture.getName() + " masters " + next.getDisplayName() + " ("
+                            + next.getArabicName() + ").", 4));
+        }
+    }
+
+    /** Per-tile effects of the twenty-three toggleable world laws. */
+    private void stepWorldLaws(int day) {
+        IslandMap map = world.getMap();
+        for (int y = 0; y < map.getHeight(); y++) {
+            for (int x = 0; x < map.getWidth(); x++) {
+                Tile tile = map.get(x, y);
+                if (tile == null || tile.getType() == TileType.WATER) {
+                    continue;
+                }
+                if (world.isLawEnabled(WorldLaw.FOREVER_LAVA)
+                        && (tile.getType() == TileType.MOUNTAIN || tile.getType() == TileType.CAVE)
+                        && random.nextDouble() < 0.001) {
+                    tile.setBiome(Biome.INFERNAL);
+                    if (tile.getStructure() != Structure.NONE && random.nextDouble() < 0.3) {
+                        tile.setStructure(Structure.NONE);
+                    }
+                }
+                if (world.isLawEnabled(WorldLaw.FOREVER_TUMOR)
+                        && tile.getType() == TileType.FOREST && random.nextDouble() < 0.0008) {
+                    tile.setBiome(Biome.TUMOR);
+                }
+                if (world.isLawEnabled(WorldLaw.BIOME_OVERGROWTH)
+                        && tile.getType() == TileType.GRASS && random.nextDouble() < 0.0005) {
+                    tile.setBiome(pick(Biome.values()));
+                }
+                if (world.isLawEnabled(WorldLaw.EROSION)
+                        && tile.getType() == TileType.FOREST && random.nextDouble() < 0.0002) {
+                    tile.setType(TileType.GRASS);
+                    tile.setResource(0);
+                }
+            }
+        }
+        for (Kingdom kingdom : world.getKingdoms()) {
+            if (world.isLawEnabled(WorldLaw.CIV_ARMY) && random.nextDouble() < 0.01) {
+                kingdom.setArmy(kingdom.getArmy() + 1);
+            }
+        }
+        if (world.isLawEnabled(WorldLaw.FOREVER_PEACE) && !world.getWars().isEmpty()) {
+            world.getWars().clear();
+            for (Kingdom kingdom : world.getKingdoms()) {
+                world.setRelation(kingdom.getId(), 0, DiplomacyRelation.PEACE);
+            }
+        }
+    }
+
+    private void checkAchievements(int day) {
+        unlock(Achievement.FIRST_BLOOD, world.getBirths() >= 1);
+        unlock(Achievement.BUILDER, world.getStructuresBuilt() >= 25);
+        unlock(Achievement.POPULATION_50, world.getPopulation() >= 50);
+        unlock(Achievement.LONG_RAIN, world.getWeatherDaysLeft() >= 5);
+        unlock(Achievement.METEOR_MASTER, world.getPowersUsed() >= 10 && world.getCrystal() >= 20);
+        unlock(Achievement.PEACEKEEPER, world.getWars().isEmpty() && world.getStability() >= 80);
+        unlock(Achievement.WARLORD, world.getWarsStarted() >= 3);
+        unlock(Achievement.SCHOLAR, world.getTechsUnlocked() >= 20);
+        unlock(Achievement.CLAN_FOUNDER, world.getClansFounded() >= 5);
+        unlock(Achievement.KINGDOM_FOUNDER, world.getKingdomsFounded() >= 4);
+        unlock(Achievement.SURVIVOR, day >= GameConfig.DAYS_PER_YEAR * 10);
+        unlock(Achievement.CENTURY, day >= GameConfig.DAYS_PER_YEAR * 100);
+    }
+
+    private void unlock(Achievement achievement, boolean condition) {
+        if (!condition || !world.unlockAchievement(achievement)) {
+            return;
+        }
+        postEvent(new GameEvent(world.getDay(), EventType.ACHIEVEMENT, "Achievement unlocked",
+                achievement.getDisplayName() + " — " + achievement.getDescription(), 5));
+    }
+
+    private DisasterType[] disasterPool(boolean nature, boolean other) {
+        List<DisasterType> pool = new ArrayList<>();
+        for (DisasterType type : DisasterType.values()) {
+            boolean natural = type == DisasterType.DRAGON_FLIGHT
+                    || type == DisasterType.EARTHQUAKE || type == DisasterType.HEATWAVE
+                    || type == DisasterType.METEORITE || type == DisasterType.TORNADO
+                    || type == DisasterType.ACID_RAIN || type == DisasterType.ASH_FALL
+                    || type == DisasterType.LAVA_FLOW || type == DisasterType.WILD_STAMPEDE
+                    || type == DisasterType.BIOMASS_BLOOM || type == DisasterType.TUMOR_SPREAD;
+            if ((natural && nature) || (!natural && other)) {
+                pool.add(type);
+            }
+        }
+        if (pool.isEmpty()) {
+            return new DisasterType[]{DisasterType.EARTHQUAKE};
+        }
+        return pool.toArray(new DisasterType[0]);
+    }
+
+    /** Apply one of the seventeen world-log disasters with a real gameplay effect. */
+    public void triggerDisaster(int day, DisasterType type) {
+        IslandMap map = world.getMap();
+        int[] center = map.randomWalkable(random);
+        int cx = center == null ? map.getWidth() / 2 : center[0];
+        int cy = center == null ? map.getHeight() / 2 : center[1];
+
+        switch (type) {
+            case ALIEN_VESSLE:
+                world.addAnimal(new Animal(AnimalType.DRAGON, cx, cy));
+                world.setGold(world.getGold() + 30);
+                world.setCrystal(world.getCrystal() + 4);
+                break;
+            case BANDIT_RAID:
+                world.setGold(world.getGold() - 15);
+                for (Citizen citizen : world.getLivingCitizens()) {
+                    citizen.setWealth(citizen.getWealth() - 10);
+                    citizen.setHappiness(citizen.getHappiness() - 4);
+                }
+                for (Kingdom kingdom : world.getKingdoms()) {
+                    kingdom.setArmy(Math.max(0, kingdom.getArmy() - 2));
+                }
+                break;
+            case BIOMASS_BLOOM:
+                for (int y = cy - 3; y <= cy + 3; y++) {
+                    for (int x = cx - 3; x <= cx + 3; x++) {
+                        Tile tile = map.get(x, y);
+                        if (tile != null && tile.getType() == TileType.GRASS
+                                && random.nextDouble() < 0.35) {
+                            tile.setType(TileType.FOREST);
+                            tile.setBiome(Biome.BIOMASS);
+                            tile.setResource(12);
+                        }
+                    }
+                }
+                world.setFood(world.getFood() + 20);
+                break;
+            case DRAGON_FLIGHT:
+                world.addAnimal(new Animal(AnimalType.DRAGON, cx, cy));
+                world.setStability(world.getStability() - 6);
+                break;
+            case EARTHQUAKE:
+                for (int y = 0; y < map.getHeight(); y++) {
+                    for (int x = 0; x < map.getWidth(); x++) {
+                        Tile tile = map.get(x, y);
+                        if (tile != null && tile.getStructure() != Structure.NONE
+                                && random.nextDouble() < 0.04) {
+                            tile.setStructure(Structure.NONE);
+                        }
+                    }
+                }
+                world.setStability(world.getStability() - 8);
+                break;
+            case EVIL_MAGE:
+                for (Citizen citizen : world.getLivingCitizens()) {
+                    if (random.nextDouble() < 0.08) {
+                        citizen.setTrait(pick(Trait.values()));
+                        citizen.setEducation(citizen.getEducation() - 5);
+                        citizen.addStatus(StatusEffect.POISONED);
+                    }
+                }
+                break;
+            case HEATWAVE:
+                world.setFood(world.getFood() - 25);
+                for (Citizen citizen : world.getLivingCitizens()) {
+                    citizen.setHappiness(citizen.getHappiness() - 3);
+                }
+                break;
+            case HELLSPAWN:
+                world.addAnimal(new Animal(AnimalType.ZOMBIE, cx, cy));
+                world.addAnimal(new Animal(AnimalType.GOLEM, cx, cy));
+                world.addAnimal(new Animal(AnimalType.WOLF, cx, cy));
+                break;
+            case METEORITE:
+                for (int y = cy - 3; y <= cy + 3; y++) {
+                    for (int x = cx - 3; x <= cx + 3; x++) {
+                        Tile tile = map.get(x, y);
+                        if (tile == null) {
+                            continue;
+                        }
+                        if (distance(x, y, cx, cy) <= 1 && tile.getType() != TileType.WATER) {
+                            tile.setType(TileType.MOUNTAIN);
+                            tile.setBiome(Biome.INFERNAL);
+                            tile.setResource(12);
+                        }
+                        tile.setStructure(Structure.NONE);
+                    }
+                }
+                world.setStone(world.getStone() + 30);
+                world.setOre(world.getOre() + 12);
+                world.setStability(world.getStability() - 12);
+                break;
+            case TORNADO:
+                for (int y = cy - 1; y <= cy + 1; y++) {
+                    for (int x = 0; x < map.getWidth(); x++) {
+                        Tile tile = map.get(x, y);
+                        if (tile != null && tile.getStructure() != Structure.NONE) {
+                            tile.setStructure(Structure.NONE);
+                        }
+                    }
+                }
+                break;
+            case TUMOR_SPREAD:
+                for (int y = cy - 4; y <= cy + 4; y++) {
+                    for (int x = cx - 4; x <= cx + 4; x++) {
+                        Tile tile = map.get(x, y);
+                        if (tile != null && tile.getType() != TileType.WATER
+                                && random.nextDouble() < 0.3) {
+                            tile.setBiome(Biome.TUMOR);
+                        }
+                    }
+                }
+                for (Citizen citizen : world.getLivingCitizens()) {
+                    citizen.setHealth(citizen.getHealth() - 6);
+                }
+                break;
+            case NECROMANCER_RISE:
+                world.addAnimal(new Animal(AnimalType.ZOMBIE, cx, cy));
+                world.addAnimal(new Animal(AnimalType.ZOMBIE, cx, cy));
+                world.addAnimal(new Animal(AnimalType.ZOMBIE, cx, cy));
+                for (Citizen citizen : world.getLivingCitizens()) {
+                    if (random.nextDouble() < 0.05) {
+                        killCitizenByCause(citizen, day, "the risen dead");
+                    }
+                }
+                break;
+            case ACID_RAIN:
+                for (int y = cy - 3; y <= cy + 3; y++) {
+                    for (int x = cx - 3; x <= cx + 3; x++) {
+                        Tile tile = map.get(x, y);
+                        if (tile != null && tile.getType() != TileType.WATER) {
+                            tile.setResource(Math.max(0, tile.getResource() - 4));
+                        }
+                    }
+                }
+                for (Citizen citizen : world.getLivingCitizens()) {
+                    if (nearAgent(citizen, cx, cy, 5)) {
+                        citizen.addStatus(StatusEffect.POISONED);
+                    }
+                }
+                break;
+            case ASH_FALL:
+                for (int y = cy - 4; y <= cy + 4; y++) {
+                    for (int x = cx - 4; x <= cx + 4; x++) {
+                        Tile tile = map.get(x, y);
+                        if (tile != null && tile.getType() != TileType.WATER) {
+                            tile.setBiome(Biome.WASTELAND);
+                        }
+                    }
+                }
+                break;
+            case LAVA_FLOW:
+                for (int y = cy - 3; y <= cy + 3; y++) {
+                    for (int x = cx - 3; x <= cx + 3; x++) {
+                        Tile tile = map.get(x, y);
+                        if (tile != null && tile.getType() != TileType.WATER
+                                && random.nextDouble() < 0.4) {
+                            tile.setBiome(Biome.INFERNAL);
+                            tile.setStructure(Structure.NONE);
+                        }
+                    }
+                }
+                break;
+            case PLAGUE_SHIP:
+                for (Citizen citizen : world.getLivingCitizens()) {
+                    if (random.nextDouble() < 0.2) {
+                        citizen.addStatus(StatusEffect.COUGH);
+                        citizen.addStatus(StatusEffect.ASH_FEVER);
+                    }
+                }
+                world.setFood(world.getFood() - 10);
+                break;
+            case WILD_STAMPEDE:
+                for (Agent agent : new ArrayList<>(world.getAgents())) {
+                    if (nearAgent(agent.getCitizen(), cx, cy, 5)) {
+                        agent.getCitizen().setHealth(agent.getCitizen().getHealth() - 12);
+                    }
+                }
+                World.spawnAnimal(world, random);
+                World.spawnAnimal(world, random);
+                break;
+            default:
+                break;
+        }
+        postEvent(new GameEvent(day, EventType.DISASTER, type.getDisplayName(),
+                type.getArabicName() + " strikes near " + cx + "," + cy + ".", 5));
+    }
+
     private void maybeGenerateEvent(int day) {
-        if (random.nextDouble() > 0.09) {
+        boolean natureDisasters = world.isLawEnabled(WorldLaw.DISASTERS_NATURE);
+        boolean otherDisasters = world.isLawEnabled(WorldLaw.DISASTERS_OTHER);
+        double chance = natureDisasters || otherDisasters ? 0.14 : 0.09;
+        if (random.nextDouble() > chance) {
+            return;
+        }
+        if ((natureDisasters || otherDisasters) && random.nextDouble() < 0.5) {
+            DisasterType[] pool = disasterPool(natureDisasters, otherDisasters);
+            triggerDisaster(day, pool[random.nextInt(pool.length)]);
             return;
         }
         switch (random.nextInt(12)) {
@@ -930,9 +1602,11 @@ public final class SimulationEngine {
                 break;
             }
             case 1:
-                world.setFood(world.getFood() - 35);
-                postEvent(new GameEvent(day, EventType.DISASTER, "Drought",
-                        "The rains fail. The storehouses lose 35 food.", 4));
+                if (natureDisasters) {
+                    world.setFood(world.getFood() - 35);
+                    postEvent(new GameEvent(day, EventType.DISASTER, "Drought",
+                            "The rains fail. The storehouses lose 35 food.", 4));
+                }
                 break;
             case 2:
                 world.setGold(world.getGold() - 8);
@@ -1050,6 +1724,28 @@ public final class SimulationEngine {
     // World powers (player-triggered miracles and disasters)
     // ------------------------------------------------------------------
 
+    /** Spawn any of the catalogued creatures at a fitting habitat. */
+    public void spawnCreature(AnimalType type) {
+        if (type == null) {
+            return;
+        }
+        int[] spot;
+        if (type.isWater()) {
+            spot = world.getMap().randomTileOf(TileType.WATER, random);
+        } else if (type == AnimalType.DRAGON || type == AnimalType.GOLEM) {
+            spot = world.getMap().randomTileOf(random.nextBoolean()
+                    ? TileType.MOUNTAIN : TileType.CAVE, random);
+        } else {
+            spot = world.getMap().randomWalkable(random);
+        }
+        if (spot == null) {
+            return;
+        }
+        world.addAnimal(new Animal(type, spot[0], spot[1]));
+        postEvent(new GameEvent(world.getDay(), EventType.DISASTER, "A creature arrives",
+                type.getDisplayName() + " appears at " + spot[0] + "," + spot[1] + ".", 3));
+    }
+
     public void castPower(Power power, int tx, int ty) {
         int day = world.getDay();
         int radius;
@@ -1090,6 +1786,10 @@ public final class SimulationEngine {
                 for (Citizen citizen : world.getLivingCitizens()) {
                     if (nearAgent(citizen, tx, ty, radius)) {
                         citizen.setHealth(Math.min(100, citizen.getHealth() + 40));
+                        citizen.removeStatus(StatusEffect.BURNING);
+                        citizen.removeStatus(StatusEffect.POISONED);
+                        citizen.removeStatus(StatusEffect.ASH_FEVER);
+                        citizen.addStatus(StatusEffect.SHIELD);
                     }
                 }
                 break;
@@ -1099,6 +1799,7 @@ public final class SimulationEngine {
                     if (nearAgent(citizen, tx, ty, radius)) {
                         citizen.setHappiness(Math.min(100, citizen.getHappiness() + 18));
                         citizen.setLoyalty(Math.min(100, citizen.getLoyalty() + 14));
+                        citizen.addStatus(StatusEffect.ENCHANTED);
                     }
                 }
                 break;
@@ -1115,6 +1816,14 @@ public final class SimulationEngine {
                             : (power == Power.EARTHQUAKE ? 22
                             : (power == Power.LIGHTNING ? 55 : 34));
                     citizen.setHealth(citizen.getHealth() - damage - random.nextDouble() * 10);
+                    if (power == Power.PLAGUE) {
+                        citizen.addStatus(random.nextBoolean()
+                                ? StatusEffect.ASH_FEVER : StatusEffect.COUGH);
+                    } else if (power == Power.LIGHTNING || power == Power.METEOR) {
+                        citizen.addStatus(StatusEffect.BURNING);
+                    } else if (power == Power.EARTHQUAKE) {
+                        citizen.addStatus(StatusEffect.SLOWNESS);
+                    }
                     if (citizen.getHealth() <= 0) {
                         killCitizen(citizen, day, power);
                     }

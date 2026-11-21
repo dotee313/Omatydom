@@ -18,7 +18,14 @@ public enum EventType {
     POLITICS("Politics"),
     POWER("World Power"),
     WEATHER("Weather"),
-    AGE("Age");
+    AGE("Age"),
+    CLAN("Clan"),
+    KINGDOM("Kingdom"),
+    WAR("War"),
+    TECH("Technology"),
+    LAW("World Law"),
+    ACHIEVEMENT("Achievement"),
+    BIOME("Biome");
 
     private final String displayName;
 

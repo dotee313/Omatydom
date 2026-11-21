@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="#FF0E1720"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="8dp">
 
     <TextView
         android:id="@+id/titleText"
@@ -12,17 +12,17 @@
         android:layout_height="wrap_content"
         android:text="@string/title"
         android:textColor="#FFFFFFFF"
-        android:textSize="17sp"
+        android:textSize="16sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/statusText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="4dp"
         android:maxLines="3"
         android:textColor="#FFCFD8DC"
-        android:textSize="12sp" />
+        android:textSize="11sp" />
 
     <TextView
         android:id="@+id/rulerText"
@@ -31,18 +31,18 @@
         android:layout_marginTop="2dp"
         android:maxLines="2"
         android:textColor="#FFFFD54F"
-        android:textSize="12sp" />
+        android:textSize="11sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="7dp"
+        android:layout_marginTop="5dp"
         android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/pauseButton"
             android:layout_width="0dp"
-            android:layout_height="42dp"
+            android:layout_height="40dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:contentDescription="@string/pause"
@@ -52,7 +52,7 @@
         <ImageButton
             android:id="@+id/speedButton"
             android:layout_width="0dp"
-            android:layout_height="42dp"
+            android:layout_height="40dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:contentDescription="@string/speed"
@@ -62,7 +62,7 @@
         <ImageButton
             android:id="@+id/controlButton"
             android:layout_width="0dp"
-            android:layout_height="42dp"
+            android:layout_height="40dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:contentDescription="@string/control"
@@ -72,7 +72,7 @@
         <ImageButton
             android:id="@+id/assassinateButton"
             android:layout_width="0dp"
-            android:layout_height="42dp"
+            android:layout_height="40dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:contentDescription="@string/assassinate"
@@ -85,8 +85,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
+        android:maxLines="2"
         android:textColor="#FF90CAF9"
-        android:textSize="11sp" />
+        android:textSize="10sp" />
 
     <ProgressBar
         android:id="@+id/dayProgress"
@@ -101,22 +102,78 @@
         android:id="@+id/pageContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="5dp"
         android:layout_weight="1">
 
+        <!-- 0: world -->
         <LinearLayout
             android:id="@+id/worldPage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <LinearLayout
+                android:id="@+id/overlayBar"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:background="#FF1B2833"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/overlayTerrainButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:padding="3dp"
+                    android:scaleType="fitCenter" />
+
+                <ImageButton
+                    android:id="@+id/overlayBiomeButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:padding="3dp"
+                    android:scaleType="fitCenter" />
+
+                <ImageButton
+                    android:id="@+id/overlayKingdomButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:padding="3dp"
+                    android:scaleType="fitCenter" />
+
+                <ImageButton
+                    android:id="@+id/overlayReligionButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:padding="3dp"
+                    android:scaleType="fitCenter" />
+
+                <ImageButton
+                    android:id="@+id/overlayJobButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:padding="3dp"
+                    android:scaleType="fitCenter" />
+            </LinearLayout>
+
             <com.dotee313.omatydom.android.IslandView
                 android:id="@+id/islandView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:minHeight="150dp" />
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:minHeight="120dp" />
         </LinearLayout>
 
+        <!-- 1: people -->
         <LinearLayout
             android:id="@+id/peoplePage"
             android:layout_width="match_parent"
@@ -127,10 +184,10 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="6dp"
+                android:padding="5dp"
                 android:text="@string/people_header"
                 android:textColor="#FFFFFFFF"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
             <ScrollView
@@ -146,21 +203,21 @@
             </ScrollView>
         </LinearLayout>
 
+        <!-- 2: nature -->
         <LinearLayout
-            android:id="@+id/decreesPage"
+            android:id="@+id/naturePage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center_horizontal"
             android:orientation="vertical"
             android:visibility="gone">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="6dp"
-                android:text="@string/decrees_header"
+                android:padding="5dp"
+                android:text="الطبيعة — القوانين، الأحياء الحيوية والموارد — اضغط أيقونة لتعرفها"
                 android:textColor="#FFFFFFFF"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
             <ScrollView
@@ -168,16 +225,167 @@
                 android:layout_height="0dp"
                 android:layout_weight="1">
 
-                <GridLayout
-                    android:id="@+id/decreeGrid"
+                <LinearLayout
+                    android:id="@+id/natureList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:columnCount="4"
-                    android:padding="6dp"
-                    android:useDefaultMargins="true" />
+                    android:orientation="vertical" />
             </ScrollView>
         </LinearLayout>
 
+        <!-- 3: creatures -->
+        <LinearLayout
+            android:id="@+id/creaturesPage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:text="المخلوقات — اضغط + لتطلق مخلوقًا جديدًا في الجزيرة"
+                android:textColor="#FFFFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:id="@+id/creatureList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </ScrollView>
+        </LinearLayout>
+
+        <!-- 4: kingdoms -->
+        <LinearLayout
+            android:id="@+id/kingdomsPage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:text="الممالك — العشائر، الثقافة، الحروب، التقنيات والمراسيم"
+                android:textColor="#FFFFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/foundClanButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:padding="2dp"
+                    android:scaleType="fitCenter" />
+
+                <ImageButton
+                    android:id="@+id/foundKingdomButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:padding="2dp"
+                    android:scaleType="fitCenter" />
+
+                <ImageButton
+                    android:id="@+id/researchButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:padding="2dp"
+                    android:scaleType="fitCenter" />
+
+                <ImageButton
+                    android:id="@+id/warButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:padding="2dp"
+                    android:scaleType="fitCenter" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/warTypeRow"
+                android:layout_width="match_parent"
+                android:layout_height="34dp"
+                android:orientation="horizontal" />
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/kingdomList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <LinearLayout
+                        android:id="@+id/clanList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="5dp"
+                        android:text="@string/decrees_header"
+                        android:textColor="#FFFFD54F"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <GridLayout
+                        android:id="@+id/decreeGrid"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:columnCount="4"
+                        android:padding="4dp"
+                        android:useDefaultMargins="true" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="5dp"
+                        android:text="التقنيات — ٧٠ اكتشافًا، اضغط أي صف لقراءة أثره"
+                        android:textColor="#FFFFD54F"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:id="@+id/techList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </ScrollView>
+        </LinearLayout>
+
+        <!-- 5: powers -->
         <LinearLayout
             android:id="@+id/powersPage"
             android:layout_width="match_parent"
@@ -188,10 +396,10 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="6dp"
+                android:padding="5dp"
                 android:text="@string/powers_header"
                 android:textColor="#FFFFFFFF"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
             <ScrollView
@@ -199,16 +407,40 @@
                 android:layout_height="0dp"
                 android:layout_weight="1">
 
-                <GridLayout
-                    android:id="@+id/powerGrid"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:columnCount="5"
-                    android:padding="4dp"
-                    android:useDefaultMargins="true" />
+                    android:orientation="vertical">
+
+                    <GridLayout
+                        android:id="@+id/powerGrid"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:columnCount="5"
+                        android:padding="4dp"
+                        android:useDefaultMargins="true" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="5dp"
+                        android:text="الكوارث — ١٧ حدثًا، اضغط أيقونة لترسل الكارثة إلى الجزيرة"
+                        android:textColor="#FFFF8A80"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <GridLayout
+                        android:id="@+id/disasterGrid"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:columnCount="6"
+                        android:padding="4dp"
+                        android:useDefaultMargins="true" />
+                </LinearLayout>
             </ScrollView>
         </LinearLayout>
 
+        <!-- 6: events -->
         <LinearLayout
             android:id="@+id/eventsPage"
             android:layout_width="match_parent"
@@ -216,10 +448,33 @@
             android:orientation="vertical"
             android:visibility="gone">
 
+            <TextView
+                android:id="@+id/statText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="6"
+                android:padding="5dp"
+                android:textColor="#FFB0BEC5"
+                android:textSize="10sp" />
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:background="#FF1B2833"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/achievementList"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal" />
+            </HorizontalScrollView>
+
             <ListView
                 android:id="@+id/eventsList"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:divider="#FF37474F"
                 android:dividerHeight="1dp" />
         </LinearLayout>
@@ -229,20 +484,20 @@
         android:id="@+id/hintText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="4dp"
         android:background="#DD263238"
         android:ellipsize="end"
         android:maxLines="2"
-        android:minHeight="38dp"
-        android:padding="8dp"
+        android:minHeight="34dp"
+        android:padding="7dp"
         android:textColor="#FFFFFFFF"
-        android:textSize="12sp" />
+        android:textSize="11sp" />
 
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="5dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="4dp"
         android:background="#FF1B2833"
         android:orientation="horizontal">
 
@@ -252,10 +507,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:contentDescription="@string/nav_world"
-            android:padding="8dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/nav_world" />
+            android:padding="5dp"
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/navPeopleButton"
@@ -263,21 +516,35 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:contentDescription="@string/nav_people"
-            android:padding="8dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/nav_people" />
+            android:padding="5dp"
+            android:scaleType="fitCenter" />
 
         <ImageButton
-            android:id="@+id/navDecreesButton"
+            android:id="@+id/navNatureButton"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:contentDescription="@string/nav_decrees"
-            android:padding="8dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/nav_decrees" />
+            android:padding="5dp"
+            android:scaleType="fitCenter" />
+
+        <ImageButton
+            android:id="@+id/navCreaturesButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:padding="5dp"
+            android:scaleType="fitCenter" />
+
+        <ImageButton
+            android:id="@+id/navKingdomsButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:padding="5dp"
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/navPowersButton"
@@ -285,8 +552,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:contentDescription="@string/nav_powers"
-            android:padding="8dp"
+            android:padding="5dp"
             android:scaleType="fitCenter" />
 
         <ImageButton
@@ -295,10 +561,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:contentDescription="@string/nav_events"
-            android:padding="8dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/nav_events" />
+            android:padding="5dp"
+            android:scaleType="fitCenter" />
     </LinearLayout>
 
 </LinearLayout>

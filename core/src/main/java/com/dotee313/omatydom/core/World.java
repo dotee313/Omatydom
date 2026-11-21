@@ -1,6 +1,16 @@
 package com.dotee313.omatydom.core;
 
+import com.dotee313.omatydom.core.civ.Achievement;
+import com.dotee313.omatydom.core.civ.Clan;
+import com.dotee313.omatydom.core.civ.Culture;
+import com.dotee313.omatydom.core.civ.DiplomacyRelation;
+import com.dotee313.omatydom.core.civ.Kingdom;
+import com.dotee313.omatydom.core.civ.Species;
+import com.dotee313.omatydom.core.civ.War;
+import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
+import com.dotee313.omatydom.core.ModPack;
+import com.dotee313.omatydom.core.ResourceType;
 import com.dotee313.omatydom.core.model.Gender;
 import com.dotee313.omatydom.core.model.Idea;
 import com.dotee313.omatydom.core.model.Ideology;
@@ -12,15 +22,24 @@ import com.dotee313.omatydom.core.model.SocialClass;
 import com.dotee313.omatydom.core.world.Agent;
 import com.dotee313.omatydom.core.world.Animal;
 import com.dotee313.omatydom.core.world.AnimalType;
+import com.dotee313.omatydom.core.world.Biome;
 import com.dotee313.omatydom.core.world.IslandMap;
+import com.dotee313.omatydom.core.world.MapTemplate;
 import com.dotee313.omatydom.core.world.Structure;
+import com.dotee313.omatydom.core.world.Tile;
+import com.dotee313.omatydom.core.world.WorldLaw;
 import com.dotee313.omatydom.core.world.TileType;
 import com.dotee313.omatydom.core.world.Weather;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /** Mutable state of the island. The engine changes it; front-ends only read it. */
 public final class World {
@@ -48,16 +67,47 @@ public final class World {
     private int deaths;
     private int structuresBuilt;
     private int powersUsed;
+    private int warsStarted;
+    private int techsUnlocked;
+    private int clansFounded;
+    private int kingdomsFounded;
+
+    private MapTemplate mapTemplate = MapTemplate.ISLANDS;
+    private ModPack modPack = ModPack.CORE;
+    private final Map<ResourceType, Double> resources = new EnumMap<>(ResourceType.class);
+    private final Set<WorldLaw> laws = EnumSet.noneOf(WorldLaw.class);
+    private final Set<Achievement> achievements = EnumSet.noneOf(Achievement.class);
+    private final List<Kingdom> kingdoms = new ArrayList<>();
+    private final List<Clan> clans = new ArrayList<>();
+    private final List<Culture> cultures = new ArrayList<>();
+    private final List<War> wars = new ArrayList<>();
+    private final Map<Long, DiplomacyRelation> relations = new HashMap<>();
+    private final Map<TechEffect, Double> techBonuses = new EnumMap<>(TechEffect.class);
 
     public World(String name, IslandMap map) {
         this.name = name == null ? "Omatydom" : name;
         this.map = map == null ? new IslandMap(GameConfig.MAP_WIDTH, GameConfig.MAP_HEIGHT) : map;
+        for (ResourceType resource : ResourceType.values()) {
+            resources.put(resource, resource.getBaseValue() * 2.0);
+        }
+        for (WorldLaw law : WorldLaw.values()) {
+            if (law.isDefaultEnabled()) {
+                laws.add(law);
+            }
+        }
     }
 
     /** Build a fresh island with terrain, wildlife, resources and a first ruler. */
     public static World create(String name, int population, Random random) {
-        IslandMap map = IslandMap.generate(GameConfig.MAP_WIDTH, GameConfig.MAP_HEIGHT, random);
+        return create(name, population, random, MapTemplate.ISLANDS);
+    }
+
+    /** Build a fresh island from one of the sixteen map templates. */
+    public static World create(String name, int population, Random random, MapTemplate template) {
+        MapTemplate chosen = template == null ? MapTemplate.ISLANDS : template;
+        IslandMap map = IslandMap.generate(GameConfig.MAP_WIDTH, GameConfig.MAP_HEIGHT, random, chosen);
         World world = new World(name, map);
+        world.mapTemplate = chosen;
 
         for (int i = 0; i < 3; i++) {
             int[] spot = map.randomTileOf(TileType.GRASS, random);
@@ -69,6 +119,7 @@ public final class World {
         int count = Math.max(1, population);
         for (int i = 0; i < count; i++) {
             Race race = pick(Race.values(), random);
+            Species species = pick(Species.values(), random);
             Job job = random.nextDouble() < 0.65 ? race.getPreferredJob() : pick(Job.values(), random);
             if (job == Job.RULER) {
                 job = Job.LABORER;
@@ -78,13 +129,14 @@ public final class World {
 
             Citizen citizen = new Citizen(
                     world.nextId(),
-                    NameGenerator.fullName(random),
+                    NameGenerator.personName(random, species.getNamePoolKey()),
                     gender,
                     race,
                     pick(Religion.values(), random),
                     pick(Ideology.values(), random),
                     ageYears * GameConfig.DAYS_PER_YEAR
             );
+            citizen.setSpecies(species);
             citizen.setJob(job);
             citizen.setOccupation(job.getDisplayName());
             citizen.setIdea(pick(Idea.values(), random));
@@ -125,6 +177,8 @@ public final class World {
             }
         }
 
+        world.foundStartingCiv(random);
+
         world.addEvent(new GameEvent(1, EventType.POLITICS, "The island awakens",
                 "A new chronicle begins on the shores of " + world.name + ".", 2));
         return world;
@@ -150,6 +204,52 @@ public final class World {
                 }
                 return SocialClass.LABORER;
         }
+    }
+
+    /** Seed the first culture, kingdom and clan from the founding population. */
+    private void foundStartingCiv(Random random) {
+        Culture culture = new Culture(1, NameGenerator.cultureName(random));
+        culture.addTech(Technology.ANCESTRAL_WISDOM.name());
+        cultures.add(culture);
+        techsUnlocked = 1;
+
+        Species species = ruler == null ? Species.HUMAN : ruler.getCitizen().getSpecies();
+        int cx = width() / 2;
+        int cy = height() / 2;
+        if (ruler != null) {
+            Agent seat = findAgent(ruler.getCitizen());
+            if (seat != null) {
+                cx = seat.getX();
+                cy = seat.getY();
+            }
+        }
+        Kingdom kingdom = new Kingdom(1, NameGenerator.kingdomName(random), species,
+                species.getColor(), cx, cy);
+        kingdom.setStability(stability);
+        kingdom.setArmy(4);
+        kingdom.setTreasury(50);
+        kingdoms.add(kingdom);
+        kingdomsFounded = 1;
+
+        Clan clan = new Clan(1, NameGenerator.clanName(random), 1,
+                ruler == null ? 0 : ruler.getCitizen().getId());
+        clan.setInfluence(20);
+        for (Citizen citizen : citizens) {
+            if (citizen.isAdult()) {
+                clan.addMember(citizen.getId());
+            }
+        }
+        clans.add(clan);
+        clansFounded = 1;
+        kingdom.addClan(1);
+    }
+
+    private int width() {
+        return map.getWidth();
+    }
+
+    private int height() {
+        return map.getHeight();
     }
 
     /** Add one animal in a suitable habitat. */
@@ -388,6 +488,229 @@ public final class World {
 
     public void incrementPowersUsed() {
         powersUsed++;
+    }
+
+    public int getWarsStarted() {
+        return warsStarted;
+    }
+
+    public void incrementWarsStarted() {
+        warsStarted++;
+    }
+
+    public int getTechsUnlocked() {
+        return techsUnlocked;
+    }
+
+    public void incrementTechsUnlocked() {
+        techsUnlocked++;
+    }
+
+    public int getClansFounded() {
+        return clansFounded;
+    }
+
+    public void incrementClansFounded() {
+        clansFounded++;
+    }
+
+    public int getKingdomsFounded() {
+        return kingdomsFounded;
+    }
+
+    public void incrementKingdomsFounded() {
+        kingdomsFounded++;
+    }
+
+    public MapTemplate getMapTemplate() {
+        return mapTemplate;
+    }
+
+    public ModPack getModPack() {
+        return modPack;
+    }
+
+    public void setModPack(ModPack modPack) {
+        this.modPack = modPack == null ? ModPack.CORE : modPack;
+    }
+
+    /** Read a named stockpile. Core resources mirror the legacy getters. */
+    public double getResource(ResourceType type) {
+        if (type == null) {
+            return 0;
+        }
+        switch (type) {
+            case WOOD:
+                return wood;
+            case STONE:
+            case SAND:
+            case CLAY:
+                return stone;
+            case GOLD:
+                return gold;
+            case ORE:
+            case IRON:
+            case COPPER:
+            case SILVER:
+            case ADAMANTINE:
+            case MYTHRIL:
+                return ore;
+            case CRYSTAL:
+            case GEMS:
+                return crystal;
+            case FISH:
+            case MEAT:
+            case WHEAT:
+            case BREAD:
+            case BERRIES:
+            case BANANA:
+            case COCONUT:
+            case LEMONS:
+            case PEPPERS:
+            case MUSHROOMS:
+            case COOKED_MEAT:
+            case FLOUR:
+            case HERBS:
+                return food;
+            default:
+                Double value = resources.get(type);
+                return value == null ? 0 : value;
+        }
+    }
+
+    /** Add to a named stockpile; also feeds the legacy resource counters. */
+    public void addResource(ResourceType type, double amount) {
+        if (type == null || amount == 0) {
+            return;
+        }
+        switch (type) {
+            case WOOD:
+                setWood(wood + amount);
+                break;
+            case STONE:
+                setStone(stone + amount);
+                break;
+            case GOLD:
+                setGold(gold + amount);
+                break;
+            case ORE:
+            case IRON:
+            case COPPER:
+            case SILVER:
+            case ADAMANTINE:
+            case MYTHRIL:
+                setOre(ore + amount);
+                break;
+            case CRYSTAL:
+            case GEMS:
+                setCrystal(crystal + amount);
+                break;
+            case FISH:
+            case MEAT:
+            case WHEAT:
+            case BREAD:
+            case BERRIES:
+            case BANANA:
+            case COCONUT:
+            case LEMONS:
+            case PEPPERS:
+            case MUSHROOMS:
+            case COOKED_MEAT:
+            case FLOUR:
+            case HERBS:
+                setFood(food + amount);
+                break;
+            default:
+                resources.merge(type, amount, Double::sum);
+                break;
+        }
+    }
+
+    public Set<WorldLaw> getLaws() {
+        return laws;
+    }
+
+    public boolean isLawEnabled(WorldLaw law) {
+        return law != null && laws.contains(law);
+    }
+
+    public void setLawEnabled(WorldLaw law, boolean enabled) {
+        if (law == null) {
+            return;
+        }
+        if (enabled) {
+            laws.add(law);
+        } else {
+            laws.remove(law);
+        }
+    }
+
+    public Set<Achievement> getAchievements() {
+        return achievements;
+    }
+
+    public boolean unlockAchievement(Achievement achievement) {
+        return achievement != null && achievements.add(achievement);
+    }
+
+    public List<Kingdom> getKingdoms() {
+        return kingdoms;
+    }
+
+    public List<Clan> getClans() {
+        return clans;
+    }
+
+    public List<Culture> getCultures() {
+        return cultures;
+    }
+
+    public List<War> getWars() {
+        return wars;
+    }
+
+    public Map<Long, DiplomacyRelation> getRelations() {
+        return relations;
+    }
+
+    public DiplomacyRelation getRelation(int a, int b) {
+        DiplomacyRelation relation = relations.get(pairKey(a, b));
+        return relation == null ? DiplomacyRelation.PEACE : relation;
+    }
+
+    public void setRelation(int a, int b, DiplomacyRelation relation) {
+        relations.put(pairKey(a, b), relation == null ? DiplomacyRelation.PEACE : relation);
+    }
+
+    private static long pairKey(int a, int b) {
+        int low = Math.min(a, b);
+        int high = Math.max(a, b);
+        return ((long) low << 32) | (high & 0xFFFFFFFFL);
+    }
+
+    public double getTechBonus(TechEffect effect) {
+        Double value = techBonuses.get(effect);
+        return value == null ? 0.0 : value;
+    }
+
+    public void addTechBonus(TechEffect effect, double amount) {
+        if (effect != null && amount > 0) {
+            techBonuses.merge(effect, amount, Double::sum);
+        }
+    }
+
+    public Citizen findCitizen(int id) {
+        for (Citizen citizen : citizens) {
+            if (citizen.getId() == id) {
+                return citizen;
+            }
+        }
+        return null;
+    }
+
+    public Biome biomeAt(int x, int y) {
+        Tile tile = map.get(x, y);
+        return tile == null ? Biome.SAND : tile.getBiome();
     }
 
     public void addEvent(GameEvent event) {

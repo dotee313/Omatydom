@@ -1,6 +1,14 @@
 package com.dotee313.omatydom.core.model;
 
 import com.dotee313.omatydom.core.GameConfig;
+import com.dotee313.omatydom.core.civ.Species;
+import com.dotee313.omatydom.core.civ.StatusEffect;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 /** A single inhabitant of the island. Pure data plus clamped setters. */
 public final class Citizen {
@@ -8,6 +16,8 @@ public final class Citizen {
     private final String name;
     private final Gender gender;
     private final Race race;
+    private Species species;
+    private final Map<StatusEffect, Integer> statusEffects = new EnumMap<>(StatusEffect.class);
 
     private Religion religion;
     private Ideology ideology;
@@ -34,6 +44,7 @@ public final class Citizen {
         this.name = name == null ? "Nameless" : name;
         this.gender = gender == null ? Gender.MALE : gender;
         this.race = race == null ? Race.VAELI : race;
+        this.species = Species.HUMAN;
         this.religion = religion == null ? Religion.NONE : religion;
         this.ideology = ideology == null ? Ideology.APATHETIC : ideology;
         this.job = Job.LABORER;
@@ -65,6 +76,15 @@ public final class Citizen {
 
     public Race getRace() {
         return race;
+    }
+
+    /** The four civilized peoples used by kingdoms, clans and name generation. */
+    public Species getSpecies() {
+        return species;
+    }
+
+    public void setSpecies(Species species) {
+        this.species = species == null ? Species.HUMAN : species;
     }
 
     public Religion getReligion() {
@@ -113,6 +133,51 @@ public final class Citizen {
 
     public void setIdea(Idea idea) {
         this.idea = idea == null ? Idea.SURVIVAL : idea;
+    }
+
+    /** Add or refresh a temporary condition; a longer duration wins. */
+    public void addStatus(StatusEffect effect) {
+        if (effect == null) {
+            return;
+        }
+        int duration = effect.getDurationDays();
+        Integer current = statusEffects.get(effect);
+        if (current == null || current < duration) {
+            statusEffects.put(effect, duration);
+        }
+    }
+
+    public boolean hasStatus(StatusEffect effect) {
+        return statusEffects.containsKey(effect);
+    }
+
+    public void removeStatus(StatusEffect effect) {
+        statusEffects.remove(effect);
+    }
+
+    public int getStatusDays(StatusEffect effect) {
+        Integer days = statusEffects.get(effect);
+        return days == null ? 0 : days;
+    }
+
+    public List<StatusEffect> getActiveStatuses() {
+        return Collections.unmodifiableList(new ArrayList<>(statusEffects.keySet()));
+    }
+
+    /** Age all conditions by one day and drop the expired ones. */
+    public void tickStatuses() {
+        List<StatusEffect> expired = new ArrayList<>();
+        for (Map.Entry<StatusEffect, Integer> entry : statusEffects.entrySet()) {
+            int left = entry.getValue() - 1;
+            if (left <= 0) {
+                expired.add(entry.getKey());
+            } else {
+                entry.setValue(left);
+            }
+        }
+        for (StatusEffect effect : expired) {
+            statusEffects.remove(effect);
+        }
     }
 
     public int getAgeDays() {

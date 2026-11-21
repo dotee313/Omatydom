@@ -13,7 +13,13 @@ public enum Job {
     HUNTER("Hunter", 'H', 0xFFEF5350, null),
     FISHER("Fisher", 'F', 0xFF4FC3F7, null),
     TRADER("Trader", 'T', 0xFF26A69A, null),
-    LABORER("Laborer", 'L', 0xFF9E9E9E, null);
+    LABORER("Laborer", 'L', 0xFF9E9E9E, null),
+    BLACKSMITH("Blacksmith", 'K', 0xFFB0BEC5, TileType.MOUNTAIN),
+    SETTLER("Settler", 'S', 0xFF8BC34A, TileType.GRASS),
+    ROAD_BUILDER("Road Builder", 'D', 0xFFA1887F, TileType.GRASS),
+    CLEANER("Cleaner", 'C', 0xFF4DD0E1, null),
+    FIREMAN("Fireman", 'E', 0xFFFF7043, null),
+    ATTACKER("Attacker", 'A', 0xFFE53935, null);
 
     private final String displayName;
     private final char marker;

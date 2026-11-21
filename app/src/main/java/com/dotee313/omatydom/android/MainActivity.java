@@ -1,6 +1,8 @@
 package com.dotee313.omatydom.android;
 
 import android.app.Activity;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,52 +17,111 @@ import android.widget.TextView;
 
 import com.dotee313.omatydom.core.Age;
 import com.dotee313.omatydom.core.Decree;
+import com.dotee313.omatydom.core.DisasterType;
 import com.dotee313.omatydom.core.GameConfig;
 import com.dotee313.omatydom.core.GameEvent;
+import com.dotee313.omatydom.core.ModPack;
 import com.dotee313.omatydom.core.OmatydomGame;
 import com.dotee313.omatydom.core.Power;
+import com.dotee313.omatydom.core.ResourceType;
+import com.dotee313.omatydom.core.TechCategory;
+import com.dotee313.omatydom.core.Technology;
 import com.dotee313.omatydom.core.World;
+import com.dotee313.omatydom.core.civ.Achievement;
+import com.dotee313.omatydom.core.civ.Clan;
+import com.dotee313.omatydom.core.civ.Culture;
+import com.dotee313.omatydom.core.civ.Kingdom;
+import com.dotee313.omatydom.core.civ.StatusEffect;
+import com.dotee313.omatydom.core.civ.War;
+import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
 import com.dotee313.omatydom.core.model.Job;
+import com.dotee313.omatydom.core.world.AnimalType;
+import com.dotee313.omatydom.core.world.Biome;
+import com.dotee313.omatydom.core.world.MapTemplate;
 import com.dotee313.omatydom.core.world.Structure;
 import com.dotee313.omatydom.core.world.Tile;
 import com.dotee313.omatydom.core.world.TileType;
+import com.dotee313.omatydom.core.world.Weather;
+import com.dotee313.omatydom.core.world.WorldLaw;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
-/** Native Android front-end with four tabs, a bottom bar and 3-second hints. */
+/** Seven-tab Android front-end with code-drawn pixel icons and 3-second Arabic hints. */
 public class MainActivity extends Activity {
 
     private static final int HINT_MILLIS = 3000;
     private static final String[] SEASONS = {"ربيع", "صيف", "خريف", "شتاء"};
+    private static final String[] TAB_HINTS = {
+            "الجزيرة: اختر طبقة الألوان، ثم اضغط أي شخص أو قطعة أرض لتعرف ما هي.",
+            "السكان: اضغط أي وجه لتعيين صاحبه حاكمًا.",
+            "الطبيعة: قوانين العالم، نمط اللعبة، الأحياء الحيوية والموارد.",
+            "المخلوقات: عدد كل كائن، واضغط + لتطلق كائنًا جديدًا.",
+            "الممالك: عشائر وممالك وحروب وتقنيات ومراسيم — كل أيقونة تشرح نفسها.",
+            "القدرات: اضغط أيقونة لتغيير العالم، أو أرسل إحدى الكوارث السبع عشرة.",
+            "الأحداث: إحصاءات عميقة، الإنجازات وسجل الأيام."
+    };
+    private static final String[] OVERLAY_HINTS = {
+            "طبقة التضاريس: الألوان الطبيعية للبر والماء والغابات.",
+            "طبقة الأحياء الحيوية: كل قطعة تُلوَّن بحسب حيويتها.",
+            "طبقة الممالك: اللون لأقرب عاصمة ملكية إلى كل قطعة.",
+            "طبقة المعتقدات: لون الدين والفكرة لأقرب شخص إلى المقطع.",
+            "طبقة المهن: لون عمل الشخص الواقف على المقطع."
+    };
+    private static final String[] TAB_KEYS = {
+            "world", "people", "nature", "creatures", "kingdoms", "powers", "events"
+    };
 
     private OmatydomGame game;
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
+    private final Map<String, String> signatures = new HashMap<>();
     private boolean ticking;
 
     private TextView statusView;
     private TextView rulerView;
     private TextView seasonView;
     private TextView hintView;
+    private TextView statText;
+    private TextView templateText;
+    private TextView modPackText;
+    private TextView nextTechText;
     private ProgressBar dayProgress;
     private ListView eventsView;
     private IslandView islandView;
     private EventAdapter eventAdapter;
 
     private LinearLayout peopleList;
+    private LinearLayout natureList;
+    private LinearLayout creatureList;
+    private LinearLayout kingdomList;
+    private LinearLayout clanList;
+    private LinearLayout techList;
+    private LinearLayout achievementList;
+    private LinearLayout warTypeRow;
     private GridLayout decreeGrid;
     private GridLayout powerGrid;
+    private GridLayout disasterGrid;
 
-    private final ImageButton[] navButtons = new ImageButton[5];
-    private final View[] pages = new View[5];
-    private int selectedTileX = -1;
-    private int selectedTileY = -1;
-    private int currentTab;
+    private final ImageButton[] navButtons = new ImageButton[7];
+    private final View[] pages = new View[7];
+    private final ImageButton[] overlayButtons = new ImageButton[5];
+    private final ImageButton[] lawButtons = new ImageButton[WorldLaw.values().length];
+    private final ImageButton[] modPackButtons = new ImageButton[ModPack.values().length];
+    private final ImageButton[] achievementButtons = new ImageButton[Achievement.values().length];
+    private final TextView[] creatureCounts = new TextView[AnimalType.values().length];
+    private final TextView[] resourceAmounts = new TextView[ResourceType.values().length];
 
     private final List<Citizen> candidates = new ArrayList<>();
-    private String peopleSignature;
+    private int currentTab;
+    private int selectedTileX = -1;
+    private int selectedTileY = -1;
+    private int selectedCitizenId = -1;
 
     private final Runnable hideHint = () -> hintView.setText("");
 
@@ -87,11 +148,20 @@ public class MainActivity extends Activity {
         rulerView = findViewById(R.id.rulerText);
         seasonView = findViewById(R.id.seasonText);
         hintView = findViewById(R.id.hintText);
+        statText = findViewById(R.id.statText);
         dayProgress = findViewById(R.id.dayProgress);
         eventsView = findViewById(R.id.eventsList);
         peopleList = findViewById(R.id.peopleList);
+        natureList = findViewById(R.id.natureList);
+        creatureList = findViewById(R.id.creatureList);
+        kingdomList = findViewById(R.id.kingdomList);
+        clanList = findViewById(R.id.clanList);
+        techList = findViewById(R.id.techList);
+        achievementList = findViewById(R.id.achievementList);
+        warTypeRow = findViewById(R.id.warTypeRow);
         decreeGrid = findViewById(R.id.decreeGrid);
         powerGrid = findViewById(R.id.powerGrid);
+        disasterGrid = findViewById(R.id.disasterGrid);
 
         eventAdapter = new EventAdapter(this);
         eventsView.setAdapter(eventAdapter);
@@ -101,6 +171,7 @@ public class MainActivity extends Activity {
         islandView.setOnThingTappedListener(new IslandView.OnThingTappedListener() {
             @Override
             public void onAgentTapped(Citizen citizen) {
+                selectedCitizenId = citizen.getId();
                 islandView.selectAgent(citizen.getId());
                 showHint(citizenExplanation(citizen));
             }
@@ -114,10 +185,17 @@ public class MainActivity extends Activity {
         });
 
         setupTopControls();
+        setupOverlayBar();
         setupBottomNav();
         setupDecreeGrid();
         setupPowersGrid();
+        setupDisasterGrid();
+        setupNatureStatic();
+        setupCreaturesStatic();
+        setupKingdomActions();
+        setupAchievements();
 
+        selectTab(0);
         refreshUi();
     }
 
@@ -133,6 +211,10 @@ public class MainActivity extends Activity {
         uiHandler.removeCallbacks(hideHint);
         super.onPause();
     }
+
+    // ------------------------------------------------------------------
+    // Static controls
+    // ------------------------------------------------------------------
 
     private void setupTopControls() {
         ImageButton pause = findViewById(R.id.pauseButton);
@@ -159,13 +241,10 @@ public class MainActivity extends Activity {
 
         control.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.CONTROL));
         control.setOnClickListener(v -> {
-            if (game.isPlayerControlled()) {
-                game.releaseControl();
-                showHint("تركت الحاكم يتخذ قراراته وحده مرة أخرى.");
-            } else {
-                game.takeControl();
-                showHint("قرارات الحاكم أصبحت بيدك — اختر من صف السكان من تريد تعيينه.");
-            }
+            game.togglePlayerControl();
+            showHint(game.isPlayerControlled()
+                    ? "قرارات الحاكم أصبحت بيدك — اختر من صف السكان من تريد تعيينه."
+                    : "تركت الحاكم يتخذ قراراته وحده مرة أخرى.");
             refreshUi();
         });
 
@@ -180,34 +259,58 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void setupBottomNav() {
-        navButtons[0] = findViewById(R.id.navWorldButton);
-        navButtons[1] = findViewById(R.id.navPeopleButton);
-        navButtons[2] = findViewById(R.id.navDecreesButton);
-        navButtons[3] = findViewById(R.id.navPowersButton);
-        navButtons[4] = findViewById(R.id.navEventsButton);
-        pages[0] = findViewById(R.id.worldPage);
-        pages[1] = findViewById(R.id.peoplePage);
-        pages[2] = findViewById(R.id.decreesPage);
-        pages[3] = findViewById(R.id.powersPage);
-        pages[4] = findViewById(R.id.eventsPage);
-        navButtons[3].setImageDrawable(PixelIcons.control(this, PixelIcons.Control.CONTROL));
-
-        final String[] hints = {
-                "الجزيرة: اضغط أي شخص أو قطعة أرض لتعرف ما هي.",
-                "السكان: اضغط أي وجه لتعيين صاحبه حاكمًا.",
-                "المراسيم: كل أيقونة أمر يؤثر على كل الجزيرة.",
-                "القدرات: اضغط أيقونة لتغيير العالم — اختر هدفها بالضغط على الأرض أولًا.",
-                "الأحداث: سجل ما حدث يومًا بيوم."
+    private void setupOverlayBar() {
+        int[] ids = {
+                R.id.overlayTerrainButton, R.id.overlayBiomeButton,
+                R.id.overlayKingdomButton, R.id.overlayReligionButton,
+                R.id.overlayJobButton
         };
-        for (int i = 0; i < navButtons.length; i++) {
+        for (int i = 0; i < ids.length; i++) {
             final int index = i;
-            navButtons[i].setOnClickListener(v -> {
-                selectTab(index);
-                showHint(hints[index]);
+            ImageButton button = findViewById(ids[i]);
+            overlayButtons[i] = button;
+            button.setImageDrawable(PixelIcons.overlay(this, i));
+            button.setContentDescription(OVERLAY_HINTS[i]);
+            button.setOnClickListener(v -> {
+                islandView.setOverlay(IslandView.Overlay.values()[index]);
+                for (int j = 0; j < overlayButtons.length; j++) {
+                    overlayButtons[j].setAlpha(j == index ? 1f : 0.42f);
+                }
+                showHint(OVERLAY_HINTS[index]);
             });
         }
-        selectTab(0);
+        overlayButtons[0].setAlpha(1f);
+        for (int i = 1; i < overlayButtons.length; i++) {
+            overlayButtons[i].setAlpha(0.42f);
+        }
+    }
+
+    private void setupBottomNav() {
+        int[] ids = {
+                R.id.navWorldButton, R.id.navPeopleButton, R.id.navNatureButton,
+                R.id.navCreaturesButton, R.id.navKingdomsButton,
+                R.id.navPowersButton, R.id.navEventsButton
+        };
+        int[] pageIds = {
+                R.id.worldPage, R.id.peoplePage, R.id.naturePage,
+                R.id.creaturesPage, R.id.kingdomsPage,
+                R.id.powersPage, R.id.eventsPage
+        };
+        String[] descriptions = {
+                "الجزيرة", "السكان", "الطبيعة", "المخلوقات",
+                "الممالك", "القدرات", "الأحداث"
+        };
+        for (int i = 0; i < ids.length; i++) {
+            final int index = i;
+            navButtons[i] = findViewById(ids[i]);
+            pages[i] = findViewById(pageIds[i]);
+            navButtons[i].setImageDrawable(PixelIcons.nav(this, i));
+            navButtons[i].setContentDescription(descriptions[i]);
+            navButtons[i].setOnClickListener(v -> {
+                selectTab(index);
+                showHint(TAB_HINTS[index]);
+            });
+        }
     }
 
     private void selectTab(int index) {
@@ -216,28 +319,25 @@ public class MainActivity extends Activity {
             pages[i].setVisibility(i == index ? View.VISIBLE : View.GONE);
             navButtons[i].setAlpha(i == index ? 1f : 0.45f);
         }
-        if (index == 1) {
-            peopleSignature = null;
-            refreshPeopleList();
+        // Force a rebuild on tab open; later refreshes go through signature checks.
+        signatures.remove(TAB_KEYS[index]);
+        if (index == 4) {
+            signatures.remove("techs");
         }
+        refreshCurrentTab();
     }
 
     private void setupDecreeGrid() {
-        int size = Math.round(62 * getResources().getDisplayMetrics().density);
         Decree[] decrees = Decree.values();
         for (int i = 0; i < decrees.length; i++) {
             final Decree decree = decrees[i];
             ImageButton button = new ImageButton(this);
-            GridLayout.LayoutParams params = new GridLayout.LayoutParams(
-                    GridLayout.spec(i / 4), GridLayout.spec(i % 4));
-            params.width = size;
-            params.height = size;
-            button.setLayoutParams(params);
+            button.setLayoutParams(gridCellParams(i, 4, dp(46), dp(46)));
             button.setBackground(null);
             button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
-            button.setPadding(4, 4, 4, 4);
-            button.setContentDescription(decree.getDisplayName());
-            button.setImageResource(PixelIcons.decreeImage(decree));
+            button.setPadding(3, 3, 3, 3);
+            button.setContentDescription(decree.getDisplayName() + " — " + decreeExplanation(decree));
+            button.setImageDrawable(PixelIcons.decreeImage(this, decree));
             button.setOnClickListener(v -> {
                 game.issueDecree(decree);
                 showHint(decreeExplanation(decree));
@@ -248,23 +348,39 @@ public class MainActivity extends Activity {
     }
 
     private void setupPowersGrid() {
-        int size = Math.round(56 * getResources().getDisplayMetrics().density);
         Power[] powers = Power.values();
         for (int i = 0; i < powers.length; i++) {
             final Power power = powers[i];
             ImageButton button = new ImageButton(this);
-            GridLayout.LayoutParams params = new GridLayout.LayoutParams(
-                    GridLayout.spec(i / 5), GridLayout.spec(i % 5));
-            params.width = size;
-            params.height = size;
-            button.setLayoutParams(params);
+            button.setLayoutParams(gridCellParams(i, 5, dp(42), dp(42)));
             button.setBackground(null);
             button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
-            button.setPadding(3, 3, 3, 3);
+            button.setPadding(2, 2, 2, 2);
             button.setContentDescription(arabicPower(power));
             button.setImageDrawable(PixelIcons.power(this, power));
             button.setOnClickListener(v -> castPower(power));
             powerGrid.addView(button);
+        }
+    }
+
+    private void setupDisasterGrid() {
+        DisasterType[] disasters = DisasterType.values();
+        for (int i = 0; i < disasters.length; i++) {
+            final DisasterType type = disasters[i];
+            ImageButton button = new ImageButton(this);
+            button.setLayoutParams(gridCellParams(i, 6, dp(36), dp(36)));
+            button.setBackground(null);
+            button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
+            button.setPadding(2, 2, 2, 2);
+            button.setContentDescription(type.getArabicName());
+            button.setImageDrawable(PixelIcons.disasterIcon(this, type.getColor()));
+            button.setOnClickListener(v -> {
+                game.castDisaster(type);
+                showHint("كارثة «" + type.getArabicName() + "» تضرب الجزيرة — "
+                        + type.getDisplayName() + "، راقب الأحداث.");
+                refreshUi();
+            });
+            disasterGrid.addView(button);
         }
     }
 
@@ -288,6 +404,471 @@ public class MainActivity extends Activity {
         refreshUi();
     }
 
+    // ------------------------------------------------------------------
+    // Nature page: template, mods, 23 laws, 19 biomes, 33 resources
+    // ------------------------------------------------------------------
+
+    private void setupNatureStatic() {
+        natureList.removeAllViews();
+        templateText = addLabel(natureList, "", 12f, 0xFFFFD54F);
+        StringBuilder templates = new StringBuilder("كل القوالب: ");
+        for (MapTemplate template : MapTemplate.values()) {
+            if (templates.length() > 12) {
+                templates.append(" • ");
+            }
+            templates.append(template.getArabicDisplayName());
+        }
+        addLabel(natureList, templates.toString(), 10f, 0xFFB0BEC5);
+
+        addSection(natureList, "نمط اللعبة — اختر مجموعة القواعد");
+        modPackText = addLabel(natureList, "", 11f, 0xFF90CAF9);
+        GridLayout modGrid = grid(natureList, 3);
+        int[] modColors = {0xFF66BB6A, 0xFF42A5F5, 0xFFAB47BC};
+        ModPack[] packs = ModPack.values();
+        for (int i = 0; i < packs.length; i++) {
+            final ModPack pack = packs[i];
+            ImageButton button = smallButton(PixelIcons.techIcon(this, modColors[i % modColors.length]),
+                    pack.getDisplayNameAr(), v -> {
+                        game.setModPack(pack);
+                        showHint("نمط «" + pack.getDisplayNameAr() + "»: " + pack.getDescription());
+                        refreshUi();
+                    });
+            button.setLayoutParams(gridParams(i, 3));
+            modGrid.addView(button);
+            modPackButtons[i] = button;
+        }
+
+        addSection(natureList, "قوانين العالم — مفعّل / معطّل (" + WorldLaw.values().length + ")");
+        GridLayout lawGrid = grid(natureList, 2);
+        WorldLaw[] laws = WorldLaw.values();
+        for (int i = 0; i < laws.length; i++) {
+            final WorldLaw law = laws[i];
+            LinearLayout cell = new LinearLayout(this);
+            cell.setOrientation(LinearLayout.HORIZONTAL);
+            cell.setLayoutParams(gridParams(i, 2));
+            ImageButton toggle = smallButton(PixelIcons.lawIcon(this, world().isLawEnabled(law)),
+                    law.getArabicLabel(), v -> {
+                        game.toggleLaw(law);
+                        boolean on = world().isLawEnabled(law);
+                        showHint("قانون «" + law.getArabicLabel() + "» "
+                                + (on ? "مفعّل الآن — سيؤثر على حياة الجزيرة."
+                                      : "معطّل الآن — توقفت آثاره."));
+                        refreshUi();
+                    });
+            cell.addView(toggle);
+            TextView name = new TextView(this);
+            name.setLayoutParams(new LinearLayout.LayoutParams(0, dp(30), 1f));
+            name.setText(law.getArabicLabel());
+            name.setTextColor(0xFFFFFFFF);
+            name.setTextSize(11f);
+            cell.addView(name);
+            lawGrid.addView(cell);
+            lawButtons[i] = toggle;
+        }
+
+        addSection(natureList, "الأحياء الحيوية — " + Biome.values().length + " نوعًا");
+        GridLayout biomeGrid = grid(natureList, 4);
+        Biome[] biomes = Biome.values();
+        for (int i = 0; i < biomes.length; i++) {
+            final Biome biome = biomes[i];
+            LinearLayout cell = swatchCell(PixelIcons.biomeSwatch(this, biome.getColor()),
+                    biome.getArabicDisplayName(), null);
+            cell.setLayoutParams(gridParams(i, 4));
+            cell.setOnClickListener(v -> showHint("حيوية «" + biome.getArabicDisplayName()
+                    + "» — لونها على الخريطة، وتغيّر الغذاء والنمو."));
+            biomeGrid.addView(cell);
+        }
+
+        addSection(natureList, "الموارد — " + ResourceType.values().length + " مادة");
+        GridLayout resourceGrid = grid(natureList, 3);
+        ResourceType[] resources = ResourceType.values();
+        for (int i = 0; i < resources.length; i++) {
+            final ResourceType resource = resources[i];
+            TextView amount = new TextView(this);
+            amount.setTextColor(0xFF90CAF9);
+            amount.setTextSize(9f);
+            LinearLayout cell = swatchCell(PixelIcons.resourceSwatch(this, resource.getColor()),
+                    resource.getArabicDisplayName(), amount);
+            cell.setLayoutParams(gridParams(i, 3));
+            cell.setOnClickListener(v -> showHint("مادة «" + resource.getArabicDisplayName()
+                    + "» — المخزون " + (int) world().getResource(resource) + "."));
+            resourceGrid.addView(cell);
+            resourceAmounts[i] = amount;
+        }
+    }
+
+    private void refreshNature() {
+        World world = world();
+        StringBuilder sig = new StringBuilder();
+        sig.append(world.getDay()).append('|').append(game.getModPack().name()).append('|');
+        for (WorldLaw law : WorldLaw.values()) {
+            sig.append(world.isLawEnabled(law) ? '1' : '0');
+        }
+        for (ResourceType type : ResourceType.values()) {
+            sig.append((int) world.getResource(type)).append(',');
+        }
+        if (!changed("nature", sig.toString())) {
+            return;
+        }
+        MapTemplate template = world.getMapTemplate();
+        templateText.setText("الخريطة الحالية: " + template.getArabicDisplayName()
+                + " — " + template.getDescription());
+        modPackText.setText("النمط الحالي: " + game.getModPack().getDisplayNameAr());
+        ModPack[] packs = ModPack.values();
+        for (int i = 0; i < packs.length; i++) {
+            modPackButtons[i].setAlpha(game.getModPack() == packs[i] ? 1f : 0.5f);
+        }
+        WorldLaw[] laws = WorldLaw.values();
+        for (int i = 0; i < laws.length; i++) {
+            boolean on = world.isLawEnabled(laws[i]);
+            lawButtons[i].setImageDrawable(PixelIcons.lawIcon(this, on));
+            lawButtons[i].setAlpha(on ? 1f : 0.42f);
+        }
+        ResourceType[] resources = ResourceType.values();
+        for (int i = 0; i < resources.length; i++) {
+            resourceAmounts[i].setText("×" + (int) world.getResource(resources[i]));
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Creatures page
+    // ------------------------------------------------------------------
+
+    private void setupCreaturesStatic() {
+        creatureList.removeAllViews();
+        AnimalType[] types = AnimalType.values();
+        for (int i = 0; i < types.length; i++) {
+            final AnimalType type = types[i];
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setPadding(5, 5, 5, 5);
+            ImageView icon = new ImageView(this);
+            icon.setImageDrawable(PixelIcons.biomeSwatch(this, type.getColor()));
+            icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            icon.setContentDescription(arabicAnimal(type));
+            row.addView(icon, new LinearLayout.LayoutParams(dp(30), dp(30)));
+
+            TextView name = new TextView(this);
+            name.setLayoutParams(new LinearLayout.LayoutParams(0, dp(30), 1f));
+            name.setTextColor(0xFFFFFFFF);
+            name.setTextSize(12f);
+            row.addView(name);
+
+            TextView count = new TextView(this);
+            count.setTextColor(0xFF90CAF9);
+            count.setTextSize(12f);
+            row.addView(count);
+            creatureCounts[i] = count;
+
+            ImageButton spawn = smallButton(PixelIcons.control(this, PixelIcons.Control.NEXT),
+                    "إطلاق " + arabicAnimal(type), v -> {
+                        game.spawnCreature(type);
+                        showHint("ظهر «" + arabicAnimal(type) + "» في الجزيرة — "
+                                + (type.isDangerous() ? "احذر من هجومه على السكان."
+                                   : type.isWater() ? "سيعيش في الماء القريب."
+                                   : "سيجوب الغابات والسهول."));
+                        refreshUi();
+                    });
+            row.addView(spawn);
+            name.setText(arabicAnimal(type));
+            creatureList.addView(row);
+        }
+    }
+
+    private void refreshCreatures() {
+        int[] counts = new int[AnimalType.values().length];
+        for (com.dotee313.omatydom.core.world.Animal animal : game.getAnimals()) {
+            if (animal.isAlive()) {
+                counts[animal.getType().ordinal()]++;
+            }
+        }
+        StringBuilder sig = new StringBuilder();
+        for (int count : counts) {
+            sig.append(count).append(',');
+        }
+        if (!changed("creatures", sig.toString())) {
+            return;
+        }
+        for (int i = 0; i < counts.length; i++) {
+            creatureCounts[i].setText("×" + counts[i]);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Kingdoms page
+    // ------------------------------------------------------------------
+
+    private void setupKingdomActions() {
+        ImageButton clan = findViewById(R.id.foundClanButton);
+        clan.setImageDrawable(PixelIcons.clanIcon(this));
+        clan.setContentDescription("تأسيس عشيرة");
+        clan.setOnClickListener(v -> {
+            int id = actorCitizenId();
+            if (id < 0) {
+                showHint("لا يوجد سكان بالغون لتأسيس عشيرة منهم.");
+                return;
+            }
+            game.foundClan(id);
+            showHint("تأسست عشيرة جديدة بقيادة " + citizenName(id)
+                    + " — تظهر الآن في قائمة العشائر.");
+            refreshUi();
+        });
+
+        ImageButton kingdom = findViewById(R.id.foundKingdomButton);
+        kingdom.setImageDrawable(PixelIcons.kingdomIcon(this));
+        kingdom.setContentDescription("تأسيس مملكة");
+        kingdom.setOnClickListener(v -> {
+            int id = actorCitizenId();
+            if (id < 0) {
+                showHint("لا يوجد سكان بالغون لتأسيس مملكة منهم.");
+                return;
+            }
+            game.foundKingdom(id);
+            showHint("قامت مملكة جديدة بقيادة " + citizenName(id)
+                    + " — لونها سيظهر في طبقة الممالك.");
+            refreshUi();
+        });
+
+        ImageButton research = findViewById(R.id.researchButton);
+        research.setImageDrawable(PixelIcons.techIcon(this, 0xFF26C6DA));
+        research.setContentDescription("بحث تقني");
+        research.setOnClickListener(v -> {
+            Technology next = game.getNextTechnology();
+            if (next == null) {
+                showHint("اكتشفت الجزيرة كل التقنيات السبعين.");
+                return;
+            }
+            boolean started = game.researchNextTechnology();
+            showHint(started
+                    ? "بدأ البحث في «" + next.getArabicName() + "» — التكلفة "
+                            + next.getCost() + " معرفة."
+                    : "لا ثقافة تقود البحث في الجزيرة بعد.");
+            refreshUi();
+        });
+
+        ImageButton war = findViewById(R.id.warButton);
+        war.setImageDrawable(PixelIcons.disasterIcon(this, 0xFFE53935));
+        war.setContentDescription("إعلان حرب غزو");
+        war.setOnClickListener(v -> startWar(WarType.CONQUEST));
+
+        WarType[] types = WarType.values();
+        for (int i = 0; i < types.length; i++) {
+            final WarType type = types[i];
+            ImageButton button = smallButton(PixelIcons.disasterIcon(this, warColor(i)),
+                    type.getArabicDisplayName(), v -> startWar(type));
+            button.setLayoutParams(new LinearLayout.LayoutParams(0, -1, 1f));
+            warTypeRow.addView(button);
+        }
+    }
+
+    private void startWar(WarType type) {
+        List<Kingdom> kingdoms = game.getKingdoms();
+        if (kingdoms.size() < 2) {
+            showHint("تحتاج مملكتين على الأقل لإعلان حرب «"
+                    + type.getArabicDisplayName() + "».");
+            return;
+        }
+        Kingdom attacker = kingdoms.get(0);
+        Kingdom defender = kingdoms.get(kingdoms.size() - 1);
+        game.startWar(type, attacker.getId(), defender.getId());
+        showHint("بدأت حرب «" + type.getArabicDisplayName() + "» بين "
+                + attacker.getName() + " و" + defender.getName() + ".");
+        refreshUi();
+    }
+
+    private void refreshKingdoms() {
+        List<Kingdom> kingdoms = game.getKingdoms();
+        List<Clan> clans = game.getClans();
+        List<Culture> cultures = game.getCultures();
+        List<War> wars = game.getWars();
+        World world = world();
+        StringBuilder sig = new StringBuilder();
+        sig.append(kingdoms.size()).append('/').append(clans.size()).append('/')
+                .append(cultures.size()).append('/').append(wars.size()).append('|');
+        for (Kingdom k : kingdoms) {
+            sig.append(k.getId()).append(':').append((int) k.getStability()).append(':')
+                    .append(k.getArmy()).append(':').append(k.getTreasury()).append(';');
+        }
+        for (Clan c : clans) {
+            sig.append(c.getId()).append(':').append(c.getInfluence()).append(';');
+        }
+        for (War w : wars) {
+            sig.append(w.getId()).append(':').append((int) (w.getIntensity() * 10)).append(';');
+        }
+        if (!cultures.isEmpty()) {
+            sig.append((int) cultures.get(0).getKnowledge());
+        }
+        if (!changed("kingdoms", sig.toString())) {
+            return;
+        }
+
+        kingdomList.removeAllViews();
+        for (Culture culture : cultures) {
+            addTextRow(kingdomList, PixelIcons.techIcon(this, 0xFFCE93D8),
+                    "ثقافة «" + culture.getName() + "» • معرفة " + (int) culture.getKnowledge()
+                            + " • تقنيات " + culture.getTechIds().size(),
+                    "ثقافة " + culture.getName() + " تحفظ المعرفة وتكتشف التقنيات.", 1f);
+        }
+        for (Kingdom kingdom : kingdoms) {
+            addTextRow(kingdomList, PixelIcons.kingdomIcon(this),
+                    "مملكة «" + kingdom.getName() + "» • " + kingdom.getSpecies().getArabicDisplayName()
+                            + " • استقرار " + (int) kingdom.getStability()
+                            + " • جيش " + kingdom.getArmy()
+                            + " • خزانة " + kingdom.getTreasury(),
+                    "مملكة " + kingdom.getName() + " — عاصمتها عند (" + kingdom.getCapitalX()
+                            + "," + kingdom.getCapitalY() + ") وتضم " + kingdom.getClanIds().size()
+                            + " عشيرة.", 1f);
+        }
+        for (War war : wars) {
+            addTextRow(kingdomList, PixelIcons.disasterIcon(this, 0xFFE53935),
+                    "حرب «" + war.getType().getArabicDisplayName() + "» • شدّة "
+                            + String.format(Locale.getDefault(), "%.1f", war.getIntensity())
+                            + " • منذ اليوم " + war.getStartDay(),
+                    war.getType().getDescription(), 1f);
+        }
+        if (kingdoms.isEmpty() && cultures.isEmpty() && wars.isEmpty()) {
+            addLabel(kingdomList, "لا ممالك بعد — اضغط أيقونة التأسيس في الأعلى.", 11f, 0xFFB0BEC5);
+        }
+
+        clanList.removeAllViews();
+        for (Clan clan : clans) {
+            addTextRow(clanList, PixelIcons.clanIcon(this),
+                    "عشيرة «" + clan.getName() + "» • نفوذ " + clan.getInfluence()
+                            + " • أعضاء " + clan.getMemberIds().size(),
+                    "عشيرة " + clan.getName() + " تضم " + clan.getMemberIds().size()
+                            + " عضوًا ونفوذها " + clan.getInfluence() + ".", 1f);
+        }
+        addLabel(clanList, "إحصاء: عشائر " + world.getClansFounded()
+                + " • ممالك " + world.getKingdomsFounded()
+                + " • حروب " + world.getWarsStarted(), 10f, 0xFF90CAF9);
+
+        nextTechText = addLabel(kingdomList, "", 11f, 0xFFFFD54F);
+        Technology next = game.getNextTechnology();
+        nextTechText.setText(next == null
+                ? "التقنيات: اكتملت كل الاكتشافات."
+                : "التقنية التالية: " + next.getArabicName() + " — "
+                        + next.getCategory().getArabicName() + " • تكلفة " + next.getCost());
+    }
+
+    private void refreshTechList() {
+        Set<Technology> unlocked = new HashSet<>(game.getUnlockedTechnologies());
+        Technology next = game.getNextTechnology();
+        World world = world();
+        StringBuilder sig = new StringBuilder();
+        sig.append(world.getTechsUnlocked()).append('|');
+        if (!world.getCultures().isEmpty()) {
+            sig.append((int) world.getCultures().get(0).getKnowledge());
+        }
+        sig.append('|').append(next == null ? "none" : next.name()).append('|');
+        for (Technology tech : unlocked) {
+            sig.append(tech.name()).append(',');
+        }
+        if (!changed("techs", sig.toString())) {
+            return;
+        }
+        techList.removeAllViews();
+        for (Technology tech : Technology.values()) {
+            boolean known = unlocked.contains(tech);
+            boolean upcoming = tech == next;
+            String status = known ? "مكتشفة" : upcoming ? "التالية" : "مغلقة";
+            addTextRow(techList, PixelIcons.techIcon(this, categoryColor(tech.getCategory())),
+                    tech.getArabicName() + " • " + tech.getCategory().getArabicName()
+                            + " • " + tech.getCost() + " • " + status,
+                    "تقنية «" + tech.getArabicName() + "» من فرع "
+                            + tech.getCategory().getArabicName() + " — " + status + ".",
+                    known ? 1f : upcoming ? 0.85f : 0.42f);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Powers page
+    // ------------------------------------------------------------------
+
+    private void refreshPowers() {
+        if (!changed("powers", String.valueOf(world().getDay()))) {
+            return;
+        }
+        Power[] powers = Power.values();
+        for (int i = 0; i < powerGrid.getChildCount() && i < powers.length; i++) {
+            int cooldown = game.getPowerCooldownDaysLeft(powers[i]);
+            powerGrid.getChildAt(i).setAlpha(cooldown > 0 ? 0.45f : 1f);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Events page
+    // ------------------------------------------------------------------
+
+    private void setupAchievements() {
+        achievementList.removeAllViews();
+        Achievement[] achievements = Achievement.values();
+        for (int i = 0; i < achievements.length; i++) {
+            final Achievement achievement = achievements[i];
+            ImageButton button = smallButton(PixelIcons.techIcon(this, achievementColor(i)),
+                    achievement.getDisplayNameAr(), v -> showHint("إنجاز «"
+                            + achievement.getDisplayNameAr() + "»: "
+                            + achievement.getDescription() + " (الهدف " + achievement.getTarget() + ")"));
+            button.setLayoutParams(new LinearLayout.LayoutParams(dp(44), dp(44)));
+            achievementList.addView(button);
+            achievementButtons[i] = button;
+        }
+    }
+
+    private void refreshEvents() {
+        World world = world();
+        List<GameEvent> recent = world.getRecentEvents(60);
+        StringBuilder sig = new StringBuilder();
+        sig.append(world.getDay()).append('|').append(recent.size()).append('|')
+                .append(world.getAchievements().size()).append('|');
+        if (!recent.isEmpty()) {
+            sig.append(recent.get(0).getTitle()).append(recent.get(0).getDay());
+        }
+        if (!changed("events", sig.toString())) {
+            return;
+        }
+
+        int year = world.getDay() / GameConfig.DAYS_PER_YEAR + 1;
+        int month = OmatydomGame.monthOf(world.getDay());
+        String season = SEASONS[OmatydomGame.seasonOf(world.getDay())];
+        int expecting = 0;
+        for (Citizen citizen : world.getLivingCitizens()) {
+            if (citizen.isPregnant()) {
+                expecting++;
+            }
+        }
+        statText.setText(String.format(Locale.getDefault(),
+                "يوم %d • سنة %d • شهر %d • %s • %s%n"
+                        + "سكان %d • حوامل %d • استقرار %.0f • ذهب %.0f • طعام %.0f%n"
+                        + "خشب %.0f • حجر %.0f • خام %.0f • بلور %.0f%n"
+                        + "مواليد %d • وفيات %d • مبانٍ %d • قدرات %d%n"
+                        + "حروب %d • تقنيات %d • عشائر %d • ممالك %d%n"
+                        + "قوانين %d/%d • إنجازات %d/%d • نمط %s",
+                world.getDay(), year, month, season, arabicWeather(world.getWeather()),
+                world.getPopulation(), expecting, world.getStability(), world.getGold(),
+                world.getFood(), world.getWood(), world.getStone(), world.getOre(),
+                world.getCrystal(), world.getBirths(), world.getDeaths(),
+                world.getStructuresBuilt(), world.getPowersUsed(), world.getWarsStarted(),
+                world.getTechsUnlocked(), world.getClansFounded(), world.getKingdomsFounded(),
+                world.getLaws().size(), WorldLaw.values().length,
+                world.getAchievements().size(), Achievement.values().length,
+                game.getModPack().getDisplayNameAr()));
+
+        Set<Achievement> unlocked = world.getAchievements();
+        Achievement[] achievements = Achievement.values();
+        for (int i = 0; i < achievements.length; i++) {
+            achievementButtons[i].setAlpha(unlocked.contains(achievements[i]) ? 1f : 0.3f);
+        }
+        eventAdapter.clear();
+        for (GameEvent event : recent) {
+            eventAdapter.add(event);
+        }
+        eventAdapter.notifyDataSetChanged();
+    }
+
+    // ------------------------------------------------------------------
+    // Per-tick refresh, signatures and people
+    // ------------------------------------------------------------------
+
     private void startTicking() {
         if (!ticking) {
             ticking = true;
@@ -306,17 +887,45 @@ public class MainActivity extends Activity {
         uiHandler.postDelayed(hideHint, HINT_MILLIS);
     }
 
+    /** Rebuild a list only when its state signature changes, not every 500 ms. */
+    private boolean changed(String key, String signature) {
+        String old = signatures.get(key);
+        if (signature.equals(old)) {
+            return false;
+        }
+        signatures.put(key, signature);
+        return true;
+    }
+
+    private void refreshCurrentTab() {
+        switch (currentTab) {
+            case 1: refreshPeopleList(); break;
+            case 2: refreshNature(); break;
+            case 3: refreshCreatures(); break;
+            case 4: refreshKingdoms(); refreshTechList(); break;
+            case 5: refreshPowers(); break;
+            case 6: refreshEvents(); break;
+            default: break;
+        }
+    }
+
+    private World world() {
+        return game.getWorld();
+    }
+
     private void refreshUi() {
-        World world = game.getWorld();
+        World world = world();
         int day = world.getDay();
         int year = day / GameConfig.DAYS_PER_YEAR + 1;
         int month = OmatydomGame.monthOf(day);
         String season = SEASONS[OmatydomGame.seasonOf(day)];
 
         statusView.setText(String.format(Locale.getDefault(),
-                "اليوم %d • السنة %d • الشهر %d • %s%nالسكان %d • الاستقرار %.0f/100%nذهب %.0f • طعام %.0f • خشب %.0f • حجر %.0f",
+                "اليوم %d • السنة %d • الشهر %d • %s%nالسكان %d • الاستقرار %.0f/100%n"
+                        + "ذهب %.0f • طعام %.0f • خشب %.0f • حجر %.0f • خام %.0f • بلور %.0f",
                 day, year, month, season, world.getPopulation(), world.getStability(),
-                world.getGold(), world.getFood(), world.getWood(), world.getStone()));
+                world.getGold(), world.getFood(), world.getWood(), world.getStone(),
+                world.getOre(), world.getCrystal()));
 
         int expecting = 0;
         for (Citizen citizen : world.getLivingCitizens()) {
@@ -329,82 +938,69 @@ public class MainActivity extends Activity {
         } else {
             rulerView.setText(String.format(Locale.getDefault(),
                     "الحاكم: %s • تأييد %.0f/100 • %s • حوامل: %d",
-                    world.getRuler().getCitizen().getName(),
-                    world.getRuler().getApproval(),
-                    game.isPlayerControlled() ? "تحت إدارتك" : "يتصرف وحده",
-                    expecting));
+                    world.getRuler().getCitizen().getName(), world.getRuler().getApproval(),
+                    game.isPlayerControlled() ? "تحت إدارتك" : "يتصرف وحده", expecting));
         }
 
         Age age = game.getAge();
         seasonView.setText(String.format(Locale.getDefault(),
                 "%s • %s • %s • الشهر %d/12 • يوم %d/%d%nمواليد %d • وفيات %d • مبانٍ %d • قدرات %d",
-                arabicAge(age),
-                arabicWeather(world.getWeather()),
-                season, month, day % GameConfig.DAYS_PER_YEAR == 0
+                arabicAge(age), arabicWeather(world.getWeather()), season, month,
+                day % GameConfig.DAYS_PER_YEAR == 0
                         ? GameConfig.DAYS_PER_YEAR : day % GameConfig.DAYS_PER_YEAR,
-                GameConfig.DAYS_PER_YEAR,
-                world.getBirths(), world.getDeaths(),
+                GameConfig.DAYS_PER_YEAR, world.getBirths(), world.getDeaths(),
                 world.getStructuresBuilt(), world.getPowersUsed()));
         dayProgress.setProgress((int) (game.getDayProgress() * 100));
 
-        eventAdapter.clear();
-        for (GameEvent event : world.getRecentEvents(40)) {
-            eventAdapter.add(event);
-        }
-        eventAdapter.notifyDataSetChanged();
         islandView.invalidate();
-
         candidates.clear();
         candidates.addAll(game.getRulerCandidates());
-        if (currentTab == 1) {
-            refreshPeopleList();
-        }
+        refreshCurrentTab();
     }
 
     private void refreshPeopleList() {
-        StringBuilder signature = new StringBuilder();
+        StringBuilder sig = new StringBuilder();
         for (Citizen citizen : candidates) {
-            signature.append(citizen.getId()).append(':').append(citizen.getJob())
-                    .append(':').append(citizen.isPregnant()).append(';');
+            sig.append(citizen.getId()).append(':').append(citizen.getJob()).append(':')
+                    .append(citizen.isPregnant()).append(':').append((int) citizen.getHealth())
+                    .append(';');
         }
-        String value = signature.toString();
-        if (value.equals(peopleSignature)) {
+        if (!changed("people", sig.toString())) {
             return;
         }
-        peopleSignature = value;
         peopleList.removeAllViews();
 
-        int portraitSize = Math.round(46 * getResources().getDisplayMetrics().density);
+        int portraitSize = dp(42);
         for (final Citizen citizen : candidates) {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setPadding(6, 6, 6, 6);
+            row.setPadding(5, 5, 5, 5);
             row.setBackgroundResource(android.R.drawable.list_selector_background);
 
             ImageView portrait = new ImageView(this);
-            LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
-                    portraitSize, portraitSize);
-            portrait.setLayoutParams(imageParams);
+            portrait.setLayoutParams(new LinearLayout.LayoutParams(portraitSize, portraitSize));
             portrait.setImageDrawable(PixelIcons.portrait(this, citizen));
             portrait.setAdjustViewBounds(false);
             portrait.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            portrait.setContentDescription("صورة " + citizen.getName());
             row.addView(portrait);
 
             TextView info = new TextView(this);
-            LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
-                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-            info.setLayoutParams(textParams);
+            info.setLayoutParams(new LinearLayout.LayoutParams(0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
             info.setTextColor(0xFFFFFFFF);
-            info.setTextSize(12f);
+            info.setTextSize(11f);
             String status = citizen.isPregnant()
-                    ? "حامل • يوم " + citizen.getGestationDay(game.getWorld().getDay())
+                    ? "حامل • يوم " + citizen.getGestationDay(world().getDay())
                             + "/" + GameConfig.GESTATION_DAYS
                     : arabicJob(citizen.getJob()) + " • " + citizen.getAgeYears() + " سنة";
-            status += " • " + arabicTrait(citizen.getTrait());
-            info.setText(citizen.getName() + "\n" + status);
+            info.setText(citizen.getName() + "\n" + status + " • " + arabicTrait(citizen.getTrait())
+                    + " • " + citizen.getSpecies().getArabicDisplayName());
             row.addView(info);
 
             row.setOnClickListener(v -> {
+                selectedCitizenId = citizen.getId();
+                islandView.selectAgent(citizen.getId());
                 if (game.chooseRuler(citizen.getId())) {
                     showHint("تم تعيين " + citizen.getName() + " حاكمًا للجزيرة.");
                 } else {
@@ -416,15 +1012,169 @@ public class MainActivity extends Activity {
         }
     }
 
+    private int actorCitizenId() {
+        if (selectedCitizenId >= 0 && world().findCitizen(selectedCitizenId) != null) {
+            return selectedCitizenId;
+        }
+        return candidates.isEmpty() ? -1 : candidates.get(0).getId();
+    }
+
+    private String citizenName(int id) {
+        Citizen citizen = world().findCitizen(id);
+        return citizen == null ? "أحد السكان" : citizen.getName();
+    }
+
+    // ------------------------------------------------------------------
+    // Small view factories
+    // ------------------------------------------------------------------
+
+    private int dp(float value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
+    }
+
+    private TextView addLabel(LinearLayout parent, String text, float size, int color) {
+        TextView view = new TextView(this);
+        view.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        view.setText(text);
+        view.setTextColor(color);
+        view.setTextSize(size);
+        parent.addView(view);
+        return view;
+    }
+
+    private void addSection(LinearLayout parent, String text) {
+        TextView view = addLabel(parent, text, 12f, 0xFFFFD54F);
+        view.setPadding(0, dp(6), 0, dp(2));
+    }
+
+    private GridLayout grid(LinearLayout parent, int columns) {
+        GridLayout grid = new GridLayout(this);
+        grid.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        grid.setColumnCount(columns);
+        parent.addView(grid);
+        return grid;
+    }
+
+    private GridLayout.LayoutParams gridParams(int index, int columns) {
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams(
+                GridLayout.spec(index / columns), GridLayout.spec(index % columns));
+        params.width = LinearLayout.LayoutParams.MATCH_PARENT;
+        params.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        return params;
+    }
+
+    private GridLayout.LayoutParams gridCellParams(int index, int columns, int width, int height) {
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams(
+                GridLayout.spec(index / columns), GridLayout.spec(index % columns));
+        params.width = width;
+        params.height = height;
+        return params;
+    }
+
+    private ImageButton smallButton(Drawable icon, String description,
+                                    View.OnClickListener listener) {
+        ImageButton button = new ImageButton(this);
+        button.setBackground(null);
+        button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
+        button.setPadding(2, 2, 2, 2);
+        button.setImageDrawable(icon);
+        button.setContentDescription(description);
+        button.setOnClickListener(listener);
+        return button;
+    }
+
+    private LinearLayout swatchCell(Drawable icon, String label, TextView amount) {
+        LinearLayout cell = new LinearLayout(this);
+        cell.setOrientation(LinearLayout.VERTICAL);
+        cell.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+        cell.setPadding(2, 3, 2, 3);
+        ImageView image = new ImageView(this);
+        image.setImageDrawable(icon);
+        image.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        image.setContentDescription(label + " — اضغط للشرح");
+        cell.addView(image, new LinearLayout.LayoutParams(dp(22), dp(22)));
+        TextView text = new TextView(this);
+        text.setText(label);
+        text.setTextColor(0xFFFFFFFF);
+        text.setTextSize(9f);
+        cell.addView(text);
+        if (amount != null) {
+            cell.addView(amount);
+        }
+        return cell;
+    }
+
+    private void addTextRow(LinearLayout parent, Drawable icon, String text,
+                            String hint, float alpha) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(4, 4, 4, 4);
+        row.setAlpha(alpha);
+        ImageView image = new ImageView(this);
+        image.setImageDrawable(icon);
+        image.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        image.setContentDescription("أيقونة " + text);
+        row.addView(image, new LinearLayout.LayoutParams(dp(26), dp(26)));
+        TextView label = new TextView(this);
+        label.setLayoutParams(new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        label.setText(text);
+        label.setTextColor(0xFFFFFFFF);
+        label.setTextSize(10f);
+        row.addView(label);
+        row.setOnClickListener(v -> showHint(hint));
+        parent.addView(row);
+    }
+
+    private static int achievementColor(int index) {
+        return Color.rgb(100 + (index * 47) % 150,
+                110 + (index * 71) % 140, 120 + (index * 97) % 130);
+    }
+
+    private static int warColor(int index) {
+        return Color.rgb(180 + (index * 13) % 70,
+                70 + (index * 37) % 130, 60 + (index * 53) % 110);
+    }
+
+    private static int categoryColor(TechCategory category) {
+        switch (category) {
+            case CRAFT: return 0xFFB0BEC5;
+            case BUILD: return 0xFFFFB74D;
+            case FARM: return 0xFF9CCC65;
+            case MINING: return 0xFF90A4AE;
+            case MILITARY: return 0xFFEF5350;
+            case GOVERN: return 0xFFFFD54F;
+            case CULTURE: return 0xFFCE93D8;
+            case TRADE: return 0xFF4FC3F7;
+            case LORE:
+            default: return 0xFF66BB6A;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Explanations and Arabic labels
+    // ------------------------------------------------------------------
+
     private String citizenExplanation(Citizen citizen) {
         String state = citizen.isPregnant()
-                ? "حامل في يوم " + citizen.getGestationDay(game.getWorld().getDay())
-                        + " من " + GameConfig.GESTATION_DAYS
-                        + " — ستلد بعد ثلاثة فصول."
+                ? "حامل في يوم " + citizen.getGestationDay(world().getDay())
+                        + " من " + GameConfig.GESTATION_DAYS + " — ستلد بعد ثلاثة فصول."
                 : arabicJob(citizen.getJob()) + " • " + citizen.getAgeYears() + " سنة • صحة "
                         + (int) citizen.getHealth() + " • سعادة " + (int) citizen.getHappiness();
-        return citizen.getName() + " — " + citizen.getRace().getDescription()
-                + "\n" + state + " • " + arabicTrait(citizen.getTrait())
+        StringBuilder effects = new StringBuilder();
+        for (StatusEffect effect : citizen.getActiveStatuses()) {
+            if (effects.length() > 0) {
+                effects.append("، ");
+            }
+            effects.append(effect.getDisplayNameAr()).append(' ')
+                    .append(citizen.getStatusDays(effect)).append(" يوم");
+        }
+        return citizen.getName() + " — " + citizen.getSpecies().getArabicDisplayName()
+                + " • " + citizen.getRace().getDescription() + "\n" + state + " • "
+                + arabicTrait(citizen.getTrait())
+                + (effects.length() > 0 ? "\nأحوال: " + effects : "")
                 + ". اضغط وجهه في تبويب السكان لتعيينه حاكمًا.";
     }
 
@@ -466,7 +1216,9 @@ public class MainActivity extends Activity {
                     break;
             }
         }
-        return name + " (" + x + "," + y + "): " + detail;
+        Biome biome = world().biomeAt(x, y);
+        return name + " (" + x + "," + y + "): " + detail
+                + " الحيوية: " + (biome == null ? "غير معروفة" : biome.getArabicDisplayName()) + ".";
     }
 
     private static String decreeExplanation(Decree decree) {
@@ -503,8 +1255,28 @@ public class MainActivity extends Activity {
             case HUNTER: return "صيّاد بري";
             case FISHER: return "صيّاد سمك";
             case TRADER: return "تاجر";
+            case BLACKSMITH: return "حدّاد";
+            case SETTLER: return "مستوطن";
+            case ROAD_BUILDER: return "مهندس طرق";
+            case CLEANER: return "عامل نظافة";
+            case FIREMAN: return "رجال إطفاء";
+            case ATTACKER: return "مقاتل";
             case LABORER:
             default: return "عامل";
+        }
+    }
+
+    private static String arabicAnimal(AnimalType type) {
+        switch (type) {
+            case DEER: return "أيل";
+            case BOAR: return "خنزير بري";
+            case FISH: return "سمك";
+            case WOLF: return "ذئب";
+            case WORM: return "دودة رملية";
+            case GOLEM: return "غول بلوري";
+            case ZOMBIE: return "هائم";
+            case DRAGON:
+            default: return "تنين صغير";
         }
     }
 
@@ -554,7 +1326,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private static String arabicWeather(com.dotee313.omatydom.core.world.Weather weather) {
+    private static String arabicWeather(Weather weather) {
         switch (weather) {
             case RAIN: return "مطر";
             case STORM: return "عاصفة";
@@ -596,11 +1368,26 @@ public class MainActivity extends Activity {
     private static String arabicStructure(Structure structure) {
         switch (structure) {
             case HUT: return "كوخ";
+            case HALL: return "قاعة العشيرة";
             case TEMPLE: return "معبد";
+            case LIBRARY: return "مكتبة";
             case TOWER: return "برج مراقبة";
+            case BARRACKS: return "ثكنات";
             case DOCK: return "رصيف";
+            case BRIDGE: return "جسر";
             case MINE: return "منجم";
-            default: return "مبنى";
+            case SMITHY: return "حدّاد";
+            case FARM: return "مزرعة";
+            case GRANARY: return "مخزن حبوب";
+            case WINDMILL: return "طاحونة ريح";
+            case WELL: return "بئر";
+            case MARKET: return "سوق";
+            case ROAD: return "طريق";
+            case GARDEN: return "حديقة";
+            case WAREHOUSE: return "مستودع";
+            case PALACE: return "قصر";
+            case NONE:
+            default: return "أرض فارغة";
         }
     }
 }
