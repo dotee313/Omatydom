@@ -19,10 +19,12 @@ import java.util.Locale;
  * averages at least the conservative 0.40 baseline and always leaves more than
  * 20% land; {@code buildBuilding} succeeds on free land with exact resource
  * deductions and a +1 structure counter, and refuses water, out-of-bounds and
- * insufficient resources (including a gold-shortage case); painting a coastal
- * water tile to sand converts only that tile, matches the sand biome and leaves
- * deep water untouched; the 270/360/90/720 calendar constants and short runs
- * still hold. Only public core APIs are used - no Android classes.</p>
+ * insufficient resources (including a gold-shortage case); a small catalogue
+ * table pins the exact wood/stone/gold costs of representative buildings;
+ * painting a coastal water tile to sand converts only that tile, matches the
+ * sand biome and leaves deep water untouched; the 270/360/90/720 calendar
+ * constants, the "one year = one real hour" clock and short runs still hold.
+ * Only public core APIs are used - no Android classes.</p>
  *
  * <p>The direct compile-time reference to Worker 4's {@code IslandMap.waterRatio()}
  * is intentional (as in VerifyV080): compilation is expected to fail until the
@@ -45,6 +47,7 @@ public final class VerifyV081 {
             eq(GameConfig.MAP_WIDTH, 40, "default map width");
             eq(GameConfig.MAP_HEIGHT, 24, "default map height");
             double averageWater = checkSea();
+            checkBuildingCosts();
             checkBuilding();
             checkLandExpansion();
             checkCalendarAndShortRun();
@@ -89,7 +92,23 @@ public final class VerifyV081 {
         return average;
     }
 
-    /** (b) Successful construction, exact costs, and all three refusal paths. */
+    /** (b-1) Pin literal catalogue costs, not just getters used by the build path. */
+    private static void checkBuildingCosts() {
+        cost(BuildingType.REED_SHACK, 10, 0, 0);
+        cost(BuildingType.CLAY_COTTAGE, 18, 12, 0);
+        cost(BuildingType.HALL, 90, 55, 20);
+        cost(BuildingType.FARM, 20, 0, 0);
+        cost(BuildingType.ROAD, 5, 4, 0);
+        cost(BuildingType.WATCHTOWER, 45, 50, 0);
+    }
+
+    private static void cost(BuildingType type, int wood, int stone, int gold) {
+        eq(type.getWoodCost(), wood, type + " wood cost");
+        eq(type.getStoneCost(), stone, type + " stone cost");
+        eq(type.getGoldCost(), gold, type + " gold cost");
+    }
+
+    /** (b-2) Successful construction, exact costs, and all three refusal paths. */
     private static void checkBuilding() {
         OmatydomGame game = OmatydomGame.create(SEEDS[0]);
         World world = game.getWorld();
@@ -191,8 +210,13 @@ public final class VerifyV081 {
         eq(GameConfig.GESTATION_DAYS, 270, "gestation days");
         eq(GameConfig.MIN_BIRTH_SPACING_DAYS, 360, "post-birth spacing days");
         eq(GameConfig.DAYS_PER_SEASON, 90, "days per season");
+        eq(GameConfig.DAYS_PER_MONTH, 30, "days per month");
         eq(GameConfig.DAYS_PER_AGE, 720, "days per age");
         eq(GameConfig.DAYS_PER_YEAR, 360, "days per year");
+        eq(GameConfig.YEAR_REAL_MILLIS, 3_600_000L, "one real hour per game year");
+        eq(GameConfig.MILLIS_PER_GAME_DAY, 10_000L, "real millis per game day");
+        eq((long) GameConfig.DAYS_PER_YEAR * GameConfig.MILLIS_PER_GAME_DAY,
+                GameConfig.YEAR_REAL_MILLIS, "360 game days must equal one real hour at x1");
 
         OmatydomGame daily = OmatydomGame.create(77L);
         int start = daily.getWorld().getDay();
@@ -312,6 +336,10 @@ public final class VerifyV081 {
     }
 
     private static void eq(int actual, int expected, String label) {
+        require(actual == expected, label + ": expected " + expected + " but was " + actual);
+    }
+
+    private static void eq(long actual, long expected, String label) {
         require(actual == expected, label + ": expected " + expected + " but was " + actual);
     }
 

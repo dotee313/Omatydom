@@ -20,6 +20,16 @@ final class PixelIcons {
         ZOOM_IN, ZOOM_OUT, CENTER, GRID
     }
 
+    /** Groups shown in the new bottom dock; kept separate from legacy nav art. */
+    enum DockGroup {
+        PEOPLE, BEASTS, LAWS, SETTINGS
+    }
+
+    /** Small badges for the sections of the richer citizen card. */
+    enum CardSection {
+        KINGDOM, FAITH, LANGUAGE, PARTNER, CLAN, SKILLS, TRAITS, SPECIALTY
+    }
+
     private static final String[] PAUSE = {
             ".........",
             ".KK...KK.",
@@ -230,6 +240,96 @@ final class PixelIcons {
     private static final String[] CLAN = {
             ".........", "..Y...Y..", "..NN.NN..", "NNNNNNNNN", ".NNNNNNN.",
             "..NNNNN..", "..N.N.N..", ".NN...NN.", "........."
+    };
+
+    // --- New grouped-dock art -------------------------------------------------
+    // Three citizens in burgundy / orange / brown cloaks, not the old two-head badge.
+    private static final String[] DOCK_PEOPLE = {
+            "...........",
+            "KKK.KKK.KKK",
+            "KWK.KWK.KWK",
+            "FFF.FFF.FFF",
+            "KFK.KFK.KFK",
+            "FWF.FWF.FWF",
+            "MMM.YYY.EEE",
+            "MWM.YWY.EWE",
+            "MMM.YYY.EEE",
+            "MWM.YWY.EWE",
+            "..........."
+    };
+
+    // A wise horned beast: crystal horns, glowing eyes, burgundy mane, brown muzzle.
+    private static final String[] DOCK_BEASTS = {
+            "..F......F..",
+            "..FF....FF..",
+            "...FF..FF...",
+            "KKKKKKKKKKKK",
+            "KWGGGFFGGGWK",
+            "KWGYGGGGYGWK",
+            "KWGGGGGGGGWK",
+            "MKWGGGGGGWKM",
+            "MMKEEEEEEKMM",
+            "MMKEFEEFEKMM",
+            ".MMKEEEEEKMM",
+            "..MMMMMMMM.."
+    };
+
+    // Scales of justice with a burgundy bowl and a carved wooden base.
+    private static final String[] DOCK_LAWS = {
+            ".....YY.....",
+            ".....YY.....",
+            ".....YY.....",
+            "..YYYYYYYY..",
+            "..G......G..",
+            "..G......G..",
+            "..G......G..",
+            ".MMM....MMM.",
+            ".MFM....MFM.",
+            ".....YY.....",
+            "...EEEEEE...",
+            "..EEEEEEEE.."
+    };
+
+    // Cogwheel with a burgundy hub, brighter than the monochrome zoom/grid controls.
+    private static final String[] DOCK_SETTINGS = {
+            "...YY..YY...",
+            "...YYYYYY...",
+            ".YYGGGGGGYY.",
+            ".YGGGGGGGGY.",
+            "YYGGMMMMGGYY",
+            "YYGGMFFMGGYY",
+            "YYGGMMMMGGYY",
+            ".YGGGGGGGGY.",
+            ".YYGGGGGGYY.",
+            "...YYYYYY...",
+            "...YY..YY...",
+            "............"
+    };
+
+    // --- New citizen-card section art ----------------------------------------
+    private static final String[] CARD_FAITH = {
+            "....Y....", "...YFY...", "...YYY...", "..YYFYY..", "..MMMMM..",
+            ".MMMMMMM.", "..EEEEE..", ".EEEEEEE.", "........."
+    };
+    private static final String[] CARD_LANGUAGE = {
+            "..MMMMM..", ".MWWWWWM.", "MWKWKWKWM", "MWWWWWWWM", "MWKWKWKWM",
+            ".MWWWWWM.", "..MMMMM..", "...MMM...", "....M...."
+    };
+    private static final String[] CARD_PARTNER = {
+            ".MM...YY.", "MMMM.YYYY", "MMMM.YYYY", ".MM...YY.", "..M...Y..",
+            "....F....", ".........", ".........", "........."
+    };
+    private static final String[] CARD_SKILLS = {
+            "....Y....", "....Y....", "...YYY...", "YYYYYYYYY", ".YYFYFYY.",
+            "..YYYYY..", ".YY...YY.", "Y.......Y", "........."
+    };
+    private static final String[] CARD_TRAITS = {
+            "...FFF...", "..FMMMF..", ".FMWMWMF.", "FMMMMMMMF", ".FMMMMMF.",
+            "..FMMMF..", "...FMF...", "....F....", "........."
+    };
+    private static final String[] CARD_SPECIALTY = {
+            "..MMMMM..", ".MMMMMMM.", "MMMMWMMMM", "MMMMWMMMM", ".MMMMMMM.",
+            "..MMMMM..", "...MMM...", "....M....", "........."
     };
 
     // Decree badges, generated rather than loaded from an art pack.
@@ -582,6 +682,81 @@ final class PixelIcons {
         return pattern(context, CROWN);
     }
 
+    /** New grouped-dock badge selected by {@link DockGroup}. */
+    static Drawable dockIcon(Context context, DockGroup group) {
+        if (group == null) {
+            group = DockGroup.PEOPLE;
+        }
+        switch (group) {
+            case BEASTS: return pattern(context, DOCK_BEASTS);
+            case LAWS: return pattern(context, DOCK_LAWS);
+            case SETTINGS: return pattern(context, DOCK_SETTINGS);
+            case PEOPLE:
+            default: return pattern(context, DOCK_PEOPLE);
+        }
+    }
+
+    static Drawable peopleGroupIcon(Context context) {
+        return pattern(context, DOCK_PEOPLE);
+    }
+
+    static Drawable beastsGroupIcon(Context context) {
+        return pattern(context, DOCK_BEASTS);
+    }
+
+    static Drawable lawsGroupIcon(Context context) {
+        return pattern(context, DOCK_LAWS);
+    }
+
+    static Drawable settingsGroupIcon(Context context) {
+        return pattern(context, DOCK_SETTINGS);
+    }
+
+    /**
+     * Citizen-card section badge. Kingdom and clan reuse the established
+     * {@link #kingdomIcon(Context)} and {@link #clanIcon(Context)} drawings.
+     */
+    static Drawable cardIcon(Context context, CardSection section) {
+        if (section == null) {
+            section = CardSection.KINGDOM;
+        }
+        switch (section) {
+            case FAITH: return pattern(context, CARD_FAITH);
+            case LANGUAGE: return pattern(context, CARD_LANGUAGE);
+            case PARTNER: return pattern(context, CARD_PARTNER);
+            case CLAN: return clanIcon(context);
+            case SKILLS: return pattern(context, CARD_SKILLS);
+            case TRAITS: return pattern(context, CARD_TRAITS);
+            case SPECIALTY: return pattern(context, CARD_SPECIALTY);
+            case KINGDOM:
+            default: return kingdomIcon(context);
+        }
+    }
+
+    static Drawable faithIcon(Context context) {
+        return pattern(context, CARD_FAITH);
+    }
+
+    static Drawable languageIcon(Context context) {
+        return pattern(context, CARD_LANGUAGE);
+    }
+
+    static Drawable partnerIcon(Context context) {
+        return pattern(context, CARD_PARTNER);
+    }
+
+    static Drawable skillsIcon(Context context) {
+        return pattern(context, CARD_SKILLS);
+    }
+
+    static Drawable traitsIcon(Context context) {
+        return pattern(context, CARD_TRAITS);
+    }
+
+    static Drawable specialtyIcon(Context context) {
+        return pattern(context, CARD_SPECIALTY);
+    }
+
     static Drawable power(Context context, Power power) {
         switch (power) {
             case RAIN: return pattern(context, POWER_RAIN);
@@ -704,6 +879,10 @@ final class PixelIcons {
             case 'R': return 0xFFB01527;
             case 'L': return 0xFF3E8E41;
             case 'C': return 0xFF00838F;
+            // Palette used by the new grouped-dock and citizen-card art.
+            case 'M': return 0xFF5B0A19; // burgundy
+            case 'E': return 0xFF504A3E; // warm brown
+            case 'F': return 0xFFFFFFFF; // clean white highlight
             default: return Color.TRANSPARENT;
         }
     }

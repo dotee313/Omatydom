@@ -379,11 +379,11 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Unified bottom dock: navigation, information, tools and island map tools. -->
+    <!-- Unified bottom dock: seven tabs + four compact, scrollable group cards. -->
     <LinearLayout
         android:id="@+id/bottomDock"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="220dp"
         android:background="@color/user_dark"
         android:orientation="vertical">
 
@@ -487,494 +487,642 @@
             </LinearLayout>
         </HorizontalScrollView>
 
-        <!-- Information row: status, ruler, resources, season, day progress and hint. -->
-        <LinearLayout
-            android:id="@+id/dockInfoRow"
+        <!-- Grouped cards scroll vertically so the map keeps its space. -->
+        <ScrollView
+            android:id="@+id/dockGroupsScroll"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingLeft="4dp"
-            android:paddingRight="4dp">
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true"
+            android:scrollbars="vertical">
 
-            <TextView
-                android:id="@+id/statusText"
+            <LinearLayout
+                android:id="@+id/dockGroups"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:background="@drawable/bg_panel"
-                android:ellipsize="end"
-                android:maxLines="2"
+                android:orientation="vertical"
                 android:paddingBottom="3dp"
-                android:paddingLeft="6dp"
-                android:paddingRight="6dp"
-                android:paddingTop="3dp"
-                android:textColor="#FFFFF3E0"
-                android:textSize="10sp" />
-
-            <TextView
-                android:id="@+id/rulerText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:ellipsize="end"
-                android:maxLines="1"
                 android:paddingLeft="4dp"
                 android:paddingRight="4dp"
-                android:textColor="@color/user_orange"
-                android:textSize="10sp" />
+                android:paddingTop="3dp">
 
-            <LinearLayout
-                android:id="@+id/resourceStrip"
-                android:layout_width="match_parent"
-                android:layout_height="38dp"
-                android:layout_marginTop="3dp"
-                android:background="@drawable/bg_bar"
-                android:orientation="horizontal"
-                android:weightSum="6" />
-
-            <TextView
-                android:id="@+id/seasonText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:paddingLeft="4dp"
-                android:paddingRight="4dp"
-                android:textColor="@color/user_orange"
-                android:textSize="9sp" />
-
-            <ProgressBar
-                android:id="@+id/dayProgress"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="4dp"
-                android:layout_marginTop="1dp"
-                android:max="100"
-                android:progress="0"
-                android:progressTint="@color/user_orange" />
-
-            <TextView
-                android:id="@+id/hintText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:background="@drawable/bg_panel"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:minHeight="28dp"
-                android:padding="6dp"
-                android:textColor="#FFFFFFFF"
-                android:textSize="11sp" />
-        </LinearLayout>
-
-        <!-- Tools row: title, utilities, time controls and build action; scrolls on narrow screens. -->
-        <HorizontalScrollView
-            android:id="@+id/dockToolsRow"
-            android:layout_width="match_parent"
-            android:layout_height="42dp"
-            android:layout_marginTop="3dp"
-            android:background="@drawable/bg_bar"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/titleText"
-                    android:layout_width="132dp"
+                <!-- 1: البشر / Humans — citizen information and ruler actions. -->
+                <LinearLayout
+                    android:id="@+id/humansCard"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:paddingLeft="6dp"
-                    android:paddingRight="6dp"
-                    android:text="@string/title"
-                    android:textColor="@color/user_white"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:layout_marginBottom="3dp"
+                    android:background="@drawable/bg_panel"
+                    android:orientation="vertical">
 
-                <LinearLayout
-                    android:id="@+id/utilityBar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/user_brown"
+                        android:paddingBottom="1dp"
+                        android:paddingLeft="5dp"
+                        android:paddingTop="1dp"
+                        android:text="@string/group_humans"
+                        android:textColor="@color/user_orange"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
 
-                    <ImageButton
-                        android:id="@+id/utilityInfoButton"
-                        android:layout_width="40dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="3dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="@string/utility_info"
-                        android:padding="3dp"
-                        android:scaleType="fitCenter" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:layout_marginTop="2dp"
+                        android:orientation="horizontal">
 
-                    <ImageButton
-                        android:id="@+id/utilityModsButton"
-                        android:layout_width="40dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="3dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="@string/utility_mods"
-                        android:padding="3dp"
-                        android:scaleType="fitCenter" />
+                        <ImageButton
+                            android:id="@+id/controlButton"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="3dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_button"
+                            android:contentDescription="@string/control"
+                            android:padding="2dp"
+                            android:scaleType="fitCenter" />
 
-                    <ImageButton
-                        android:id="@+id/utilitySettingsButton"
-                        android:layout_width="40dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="3dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="@string/utility_settings"
-                        android:padding="3dp"
-                        android:scaleType="fitCenter" />
+                        <ImageButton
+                            android:id="@+id/assassinateButton"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginRight="3dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_button"
+                            android:contentDescription="@string/assassinate"
+                            android:padding="2dp"
+                            android:scaleType="fitCenter" />
+
+                        <ImageButton
+                            android:id="@+id/brushHumanButton"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_button"
+                            android:contentDescription="فرشاة الإنسان"
+                            android:padding="2dp"
+                            android:scaleType="fitCenter" />
+                    </LinearLayout>
+
+                    <!-- Information row: status, ruler, resources, season, day progress and hint. -->
+                    <LinearLayout
+                        android:id="@+id/dockInfoRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingLeft="4dp"
+                        android:paddingRight="4dp">
+
+                        <TextView
+                            android:id="@+id/statusText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:background="@drawable/bg_panel"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:paddingBottom="3dp"
+                            android:paddingLeft="6dp"
+                            android:paddingRight="6dp"
+                            android:paddingTop="3dp"
+                            android:textColor="#FFFFF3E0"
+                            android:textSize="10sp" />
+
+                        <TextView
+                            android:id="@+id/rulerText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:paddingLeft="4dp"
+                            android:paddingRight="4dp"
+                            android:textColor="@color/user_orange"
+                            android:textSize="10sp" />
+
+                        <LinearLayout
+                            android:id="@+id/resourceStrip"
+                            android:layout_width="match_parent"
+                            android:layout_height="38dp"
+                            android:layout_marginTop="3dp"
+                            android:background="@drawable/bg_bar"
+                            android:orientation="horizontal"
+                            android:weightSum="6" />
+
+                        <TextView
+                            android:id="@+id/seasonText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:paddingLeft="4dp"
+                            android:paddingRight="4dp"
+                            android:textColor="@color/user_orange"
+                            android:textSize="9sp" />
+
+                        <ProgressBar
+                            android:id="@+id/dayProgress"
+                            style="?android:attr/progressBarStyleHorizontal"
+                            android:layout_width="match_parent"
+                            android:layout_height="4dp"
+                            android:layout_marginTop="1dp"
+                            android:max="100"
+                            android:progress="0"
+                            android:progressTint="@color/user_orange" />
+
+                        <TextView
+                            android:id="@+id/hintText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:background="@drawable/bg_panel"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:minHeight="28dp"
+                            android:padding="6dp"
+                            android:textColor="#FFFFFFFF"
+                            android:textSize="11sp" />
+                    </LinearLayout>
                 </LinearLayout>
 
-                <ImageButton
-                    android:id="@+id/pauseButton"
-                    android:layout_width="40dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginRight="3dp"
-                    android:background="@drawable/bg_button"
-                    android:contentDescription="@string/pause"
-                    android:padding="2dp"
-                    android:scaleType="fitCenter" />
-
-                <ImageButton
-                    android:id="@+id/speedButton"
-                    android:layout_width="40dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginRight="3dp"
-                    android:background="@drawable/bg_button"
-                    android:contentDescription="@string/speed"
-                    android:padding="2dp"
-                    android:scaleType="fitCenter" />
-
-                <ImageButton
-                    android:id="@+id/controlButton"
-                    android:layout_width="40dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginRight="3dp"
-                    android:background="@drawable/bg_button"
-                    android:contentDescription="@string/control"
-                    android:padding="2dp"
-                    android:scaleType="fitCenter" />
-
-                <ImageButton
-                    android:id="@+id/assassinateButton"
-                    android:layout_width="40dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginRight="3dp"
-                    android:background="@drawable/bg_button"
-                    android:contentDescription="@string/assassinate"
-                    android:padding="2dp"
-                    android:scaleType="fitCenter" />
-
-                <ImageButton
-                    android:id="@+id/buildButton"
-                    android:layout_width="40dp"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_button"
-                    android:contentDescription="@string/build_island"
-                    android:padding="2dp"
-                    android:scaleType="fitCenter" />
-            </LinearLayout>
-        </HorizontalScrollView>
-
-        <!-- Island-only map tools; selectTab() hides this row on other tabs. -->
-        <LinearLayout
-            android:id="@+id/dockMapToolsRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:id="@+id/overlayBar"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:background="@drawable/bg_bar"
-                android:orientation="horizontal">
-
-                <ImageButton
-                    android:id="@+id/overlayTerrainButton"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginRight="3dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button"
-                    android:contentDescription="طبقة التضاريس"
-                    android:padding="2dp"
-                    android:scaleType="fitCenter" />
-
-                <ImageButton
-                    android:id="@+id/overlayBiomeButton"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginRight="3dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button"
-                    android:contentDescription="طبقة الأحياء الحيوية"
-                    android:padding="2dp"
-                    android:scaleType="fitCenter" />
-
-                <ImageButton
-                    android:id="@+id/overlayKingdomButton"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginRight="3dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button"
-                    android:contentDescription="طبقة الممالك"
-                    android:padding="2dp"
-                    android:scaleType="fitCenter" />
-
-                <ImageButton
-                    android:id="@+id/overlayReligionButton"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginRight="3dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button"
-                    android:contentDescription="طبقة المعتقدات"
-                    android:padding="2dp"
-                    android:scaleType="fitCenter" />
-
-                <ImageButton
-                    android:id="@+id/overlayJobButton"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_button"
-                    android:contentDescription="طبقة المهن"
-                    android:padding="2dp"
-                    android:scaleType="fitCenter" />
-            </LinearLayout>
-
-            <HorizontalScrollView
-                android:id="@+id/brushBar"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="3dp"
-                android:background="@drawable/bg_bar"
-                android:scrollbars="none">
-
+                <!-- 2: البهائم / Beasts — living creatures (no invented species data). -->
                 <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                    android:id="@+id/beastsCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="3dp"
+                    android:background="@drawable/bg_panel"
+                    android:orientation="vertical">
 
-                    <ImageButton
-                        android:id="@+id/brushInspectButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة الفحص"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/user_brown"
+                        android:paddingBottom="1dp"
+                        android:paddingLeft="5dp"
+                        android:paddingTop="1dp"
+                        android:text="@string/group_beasts"
+                        android:textColor="@color/user_orange"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
 
-                    <ImageButton
-                        android:id="@+id/brushWaterButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة الماء"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="36dp"
+                        android:layout_marginTop="2dp"
+                        android:orientation="horizontal">
 
-                    <ImageButton
-                        android:id="@+id/brushSandButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة الرمل"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
+                        <ImageButton
+                            android:id="@+id/brushWolfButton"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_button"
+                            android:contentDescription="فرشاة الذئب"
+                            android:padding="2dp"
+                            android:scaleType="fitCenter" />
+                    </LinearLayout>
 
-                    <ImageButton
-                        android:id="@+id/brushGrassButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة العشب"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushForestButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة الغابة"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushOrchardButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة البستان"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushMountainButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة الجبل"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushCaveButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة الكهف"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushHouseButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة الكوخ"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushFarmButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة المزرعة"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushRoadButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة الطريق"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushHumanButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة الإنسان"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushWolfButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة الذئب"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushFireButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة النار"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushRainButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة المطر"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/brushMeteorButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="فرشاة النيزك"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginLeft="2dp"
-                        android:layout_marginRight="4dp"
-                        android:background="@color/user_brown" />
-
-                    <ImageButton
-                        android:id="@+id/zoomInButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="تكبير الخريطة"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/zoomOutButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="تصغير الخريطة"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/centerButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginRight="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="توسيط الخريطة"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
-
-                    <ImageButton
-                        android:id="@+id/gridButton"
-                        android:layout_width="44dp"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="إظهار أو إخفاء شبكة المربعات"
-                        android:padding="2dp"
-                        android:scaleType="fitCenter" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:paddingLeft="4dp"
+                        android:paddingRight="4dp"
+                        android:text="@string/beasts_hint"
+                        android:textColor="#FFFFF3E0"
+                        android:textSize="9sp" />
                 </LinearLayout>
-            </HorizontalScrollView>
-        </LinearLayout>
+
+                <!-- 3: القوانين / Laws — island law toggles live on the Nature tab. -->
+                <LinearLayout
+                    android:id="@+id/lawsCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="3dp"
+                    android:background="@drawable/bg_panel"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/user_brown"
+                        android:paddingBottom="1dp"
+                        android:paddingLeft="5dp"
+                        android:paddingTop="1dp"
+                        android:text="@string/group_laws"
+                        android:textColor="@color/user_orange"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:paddingLeft="4dp"
+                        android:paddingRight="4dp"
+                        android:text="@string/laws_hint"
+                        android:textColor="#FFFFF3E0"
+                        android:textSize="9sp" />
+                </LinearLayout>
+
+                <!-- 4: الإعدادات والخيارات / Settings & options — time, camera, overlays, brushes, build. -->
+                <LinearLayout
+                    android:id="@+id/settingsCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_panel"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/user_brown"
+                        android:paddingBottom="1dp"
+                        android:paddingLeft="5dp"
+                        android:paddingTop="1dp"
+                        android:text="@string/group_settings"
+                        android:textColor="@color/user_orange"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <!-- Tools row: title, utilities, time controls and build action; scrolls on narrow screens. -->
+                    <HorizontalScrollView
+                        android:id="@+id/dockToolsRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="42dp"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/bg_bar"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/titleText"
+                                android:layout_width="132dp"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:paddingLeft="6dp"
+                                android:paddingRight="6dp"
+                                android:text="@string/title"
+                                android:textColor="@color/user_white"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <LinearLayout
+                                android:id="@+id/utilityBar"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal">
+
+                                <ImageButton
+                                    android:id="@+id/utilityInfoButton"
+                                    android:layout_width="40dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="3dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="@string/utility_info"
+                                    android:padding="3dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/utilityModsButton"
+                                    android:layout_width="40dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="3dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="@string/utility_mods"
+                                    android:padding="3dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/utilitySettingsButton"
+                                    android:layout_width="40dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="3dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="@string/utility_settings"
+                                    android:padding="3dp"
+                                    android:scaleType="fitCenter" />
+                            </LinearLayout>
+
+                            <ImageButton
+                                android:id="@+id/pauseButton"
+                                android:layout_width="40dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginRight="3dp"
+                                android:background="@drawable/bg_button"
+                                android:contentDescription="@string/pause"
+                                android:padding="2dp"
+                                android:scaleType="fitCenter" />
+
+                            <ImageButton
+                                android:id="@+id/speedButton"
+                                android:layout_width="40dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginRight="3dp"
+                                android:background="@drawable/bg_button"
+                                android:contentDescription="@string/speed"
+                                android:padding="2dp"
+                                android:scaleType="fitCenter" />
+
+                            <ImageButton
+                                android:id="@+id/buildButton"
+                                android:layout_width="40dp"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/bg_button"
+                                android:contentDescription="@string/build_island"
+                                android:padding="2dp"
+                                android:scaleType="fitCenter" />
+                        </LinearLayout>
+                    </HorizontalScrollView>
+
+                    <!-- Island-only map tools; selectTab() hides this row on other tabs. -->
+                    <LinearLayout
+                        android:id="@+id/dockMapToolsRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:id="@+id/overlayBar"
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:background="@drawable/bg_bar"
+                            android:orientation="horizontal">
+
+                            <ImageButton
+                                android:id="@+id/overlayTerrainButton"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginRight="3dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button"
+                                android:contentDescription="طبقة التضاريس"
+                                android:padding="2dp"
+                                android:scaleType="fitCenter" />
+
+                            <ImageButton
+                                android:id="@+id/overlayBiomeButton"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginRight="3dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button"
+                                android:contentDescription="طبقة الأحياء الحيوية"
+                                android:padding="2dp"
+                                android:scaleType="fitCenter" />
+
+                            <ImageButton
+                                android:id="@+id/overlayKingdomButton"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginRight="3dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button"
+                                android:contentDescription="طبقة الممالك"
+                                android:padding="2dp"
+                                android:scaleType="fitCenter" />
+
+                            <ImageButton
+                                android:id="@+id/overlayReligionButton"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginRight="3dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button"
+                                android:contentDescription="طبقة المعتقدات"
+                                android:padding="2dp"
+                                android:scaleType="fitCenter" />
+
+                            <ImageButton
+                                android:id="@+id/overlayJobButton"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_button"
+                                android:contentDescription="طبقة المهن"
+                                android:padding="2dp"
+                                android:scaleType="fitCenter" />
+                        </LinearLayout>
+
+                        <HorizontalScrollView
+                            android:id="@+id/brushBar"
+                            android:layout_width="match_parent"
+                            android:layout_height="44dp"
+                            android:layout_marginTop="3dp"
+                            android:background="@drawable/bg_bar"
+                            android:scrollbars="none">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal">
+
+                                <ImageButton
+                                    android:id="@+id/brushInspectButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة الفحص"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushWaterButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة الماء"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushSandButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة الرمل"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushGrassButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة العشب"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushForestButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة الغابة"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushOrchardButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة البستان"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushMountainButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة الجبل"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushCaveButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة الكهف"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushHouseButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة الكوخ"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushFarmButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة المزرعة"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushRoadButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة الطريق"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushFireButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة النار"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushRainButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة المطر"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/brushMeteorButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="فرشاة النيزك"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <View
+                                    android:layout_width="1dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginLeft="2dp"
+                                    android:layout_marginRight="4dp"
+                                    android:background="@color/user_brown" />
+
+                                <ImageButton
+                                    android:id="@+id/zoomInButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="تكبير الخريطة"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/zoomOutButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="تصغير الخريطة"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/centerButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginRight="2dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="توسيط الخريطة"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/gridButton"
+                                    android:layout_width="44dp"
+                                    android:layout_height="match_parent"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="إظهار أو إخفاء شبكة المربعات"
+                                    android:padding="2dp"
+                                    android:scaleType="fitCenter" />
+                            </LinearLayout>
+                        </HorizontalScrollView>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
     </LinearLayout>
 
 </LinearLayout>

@@ -2,6 +2,7 @@ package com.dotee313.omatydom.desktop;
 
 import com.dotee313.omatydom.core.BuildingType;
 import com.dotee313.omatydom.core.Decree;
+import com.dotee313.omatydom.core.GameConfig;
 import com.dotee313.omatydom.core.DisasterType;
 import com.dotee313.omatydom.core.GameEvent;
 import com.dotee313.omatydom.core.ModPack;
@@ -12,6 +13,10 @@ import com.dotee313.omatydom.core.SimulationListener;
 import com.dotee313.omatydom.core.Technology;
 import com.dotee313.omatydom.core.World;
 import com.dotee313.omatydom.core.civ.Achievement;
+import com.dotee313.omatydom.core.civ.Clan;
+import com.dotee313.omatydom.core.civ.Culture;
+import com.dotee313.omatydom.core.civ.Kingdom;
+import com.dotee313.omatydom.core.civ.StatusEffect;
 import com.dotee313.omatydom.core.civ.TradeRoute;
 import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
@@ -63,7 +68,7 @@ public final class DesktopLauncher {
         }
 
         createGame(seed, template, modPack);
-        System.out.println("=== Omatydom v0.9.0 — Living World, Build & Wide Sea | seed " + seed + " ===");
+        System.out.println("=== Omatydom v0.9.1 — Organized Dock & Deeper People | seed " + seed + " ===");
         printHelp();
         printStatus();
 
@@ -220,6 +225,10 @@ public final class DesktopLauncher {
                 break;
             case "animals":
                 printAnimals();
+                break;
+            case "citizens":
+            case "people":
+                printCitizens(argAsInt(parts, 1, 10));
                 break;
             case "jobs":
                 printValues(Job.values());
@@ -434,6 +443,7 @@ public final class DesktopLauncher {
     private static void printHelp() {
         System.out.println("Core: help | status | stats | events [n] | step [n] | run [n] | pause | resume | speed n");
         System.out.println("People: rulers | choose <id> | assassinate | control | auto | agents | jobs | job <id> <JOB>");
+        System.out.println("        citizens [n] (or people) prints rich card data for n living citizens");
         System.out.println("World: map | sea | resources [TYPE] | animals | biome <x> <y> | build <x> <y> <STRUCTURE>");
         System.out.println("       build <BUILDING_TYPE> | building <x> <y> <BUILDING_TYPE> | decree [NAME] | power [NAME]");
         System.out.println("Deep: templates | mods | new [seed] [TEMPLATE] [MOD] | laws [KEY [on|off]]");
@@ -566,6 +576,134 @@ public final class DesktopLauncher {
                     citizen.getId(), citizen.getName(), citizen.getSpecies().getDisplayName(),
                     citizen.getRace().getDisplayName(), citizen.getLoyalty(), citizen.getWealth());
         }
+    }
+
+    /** Read-only text view of the same real fields used by the Android citizen card. */
+    private static void printCitizens(int limit) {
+        World world = game.getWorld();
+        List<Citizen> citizens = world.getLivingCitizens();
+        int shown = Math.min(Math.max(limit, 0), citizens.size());
+        Ruler ruler = world.getRuler();
+        int rulerId = ruler == null ? -1 : ruler.getCitizen().getId();
+        System.out.printf(Locale.ROOT, "Living citizens %d | showing %d | ruler id %d%n",
+                citizens.size(), shown, rulerId);
+        List<Culture> cultures = game.getCultures();
+        if (cultures.isEmpty()) {
+            System.out.println("  Island culture: none recorded yet.");
+        } else {
+            Culture culture = cultures.get(0);
+            System.out.printf(Locale.ROOT,
+                    "  Island culture (not a personal trait): %s | knowledge %.0f | techs %d%n",
+                    culture.getName(), culture.getKnowledge(), culture.getTechIds().size());
+        }
+        System.out.println("  Not stored in the model: language, spouse/family, skills, specialty.");
+        for (int i = 0; i < shown; i++) {
+            Citizen citizen = citizens.get(i);
+            System.out.printf(Locale.ROOT,
+                    "  #%d %s | %dy %s | %s%s | job %s / class %s%n",
+                    citizen.getId(), citizen.getName(), citizen.getAgeYears(),
+                    citizen.getGender().getDisplayName(),
+                    citizen.getId() == rulerId ? "CROWNED " : "",
+                    citizen.getOccupation(), citizen.getJob().getDisplayName(),
+                    citizen.getSocialClass().getDisplayName());
+            System.out.printf(Locale.ROOT,
+                    "     race %s / species %s | faith %s | ideology %s | trait %s | idea %s%n",
+                    citizen.getRace().getDisplayName(), citizen.getSpecies().getDisplayName(),
+                    citizen.getReligion().getDisplayName(), citizen.getIdeology().getDisplayName(),
+                    citizen.getTrait().getDisplayName(), citizen.getIdea().getDisplayName());
+            System.out.printf(Locale.ROOT,
+                    "     civ %s | %s | health %.0f happiness %.0f wealth %.0f education %.0f loyalty %.0f%n",
+                    civOf(citizen, world), statusOf(citizen, world),
+                    citizen.getHealth(), citizen.getHappiness(), citizen.getWealth(),
+                    citizen.getEducation(), citizen.getLoyalty());
+            Agent agent = world.findAgent(citizen);
+            String place = "off-map";
+            if (agent != null) {
+                place = "(" + agent.getX() + "," + agent.getY() + ") "
+                        + game.getMap().typeAt(agent.getX(), agent.getY()).name();
+                if (agent.hasTarget()) {
+                    place += " -> (" + agent.getTargetX() + "," + agent.getTargetY() + ")";
+                }
+            }
+            System.out.println("     position " + place);
+            System.out.println("     " + clanExtras(citizen, world, findClan(citizen, world)));
+        }
+    }
+
+    /** First clan that lists the citizen as chief or member, as on the card. */
+    private static Clan findClan(Citizen citizen, World world) {
+        for (Clan clan : world.getClans()) {
+            if (clan.getChiefId() == citizen.getId()
+                    || clan.getMemberIds().contains(citizen.getId())) {
+                return clan;
+            }
+        }
+        return null;
+    }
+
+    /** Kingdom is resolved through the citizen's clan, as on the Android card. */
+    private static String civOf(Citizen citizen, World world) {
+        Clan clan = findClan(citizen, world);
+        if (clan == null) {
+            return "no kingdom / no clan";
+        }
+        String clanText = "clan " + clan.getName() + " (#" + clan.getId() + ")";
+        for (Kingdom kingdom : world.getKingdoms()) {
+            if (kingdom.getId() == clan.getKingdomId()
+                    || kingdom.getClanIds().contains(clan.getId())) {
+                return "kingdom " + kingdom.getName() + " (#" + kingdom.getId()
+                        + ") / " + clanText;
+            }
+        }
+        return clanText + " (no kingdom)";
+    }
+
+    /** Real clan chief and member names; unresolved ids are never invented. */
+    private static String clanExtras(Citizen citizen, World world, Clan clan) {
+        if (clan == null) {
+            return "clan: none recorded";
+        }
+        Citizen chief = world.findCitizen(clan.getChiefId());
+        String chiefText = chief == null
+                ? "id " + clan.getChiefId() + " (unrecorded)" : chief.getName();
+        List<String> members = new ArrayList<>();
+        for (int id : clan.getMemberIds()) {
+            if (id == citizen.getId()) {
+                continue;
+            }
+            Citizen member = world.findCitizen(id);
+            if (member != null) {
+                members.add(member.getName());
+            }
+        }
+        return "clan influence " + clan.getInfluence() + " | chief " + chiefText
+                + " | other members " + (members.isEmpty() ? "none" : String.join(", ", members));
+    }
+
+    /** Pregnancy progress and temporary conditions read straight from Citizen state. */
+    private static String statusOf(Citizen citizen, World world) {
+        StringBuilder status = new StringBuilder();
+        if (citizen.isPregnant()) {
+            status.append("PREGNANT ").append(citizen.getGestationDay(world.getDay()))
+                    .append('/').append(GameConfig.GESTATION_DAYS).append('d');
+        } else if (citizen.getLastBirthDay() >= 0) {
+            int restLeft = GameConfig.MIN_BIRTH_SPACING_DAYS
+                    - (world.getDay() - citizen.getLastBirthDay());
+            status.append(restLeft > 0 ? "RESTING " + restLeft + "d" : "REST COMPLETE");
+        } else {
+            status.append("not pregnant");
+        }
+        List<StatusEffect> effects = citizen.getActiveStatuses();
+        status.append(" | effects: ");
+        if (effects.isEmpty()) {
+            status.append("none");
+        } else {
+            for (StatusEffect effect : effects) {
+                status.append(effect.getDisplayName()).append('(')
+                        .append(citizen.getStatusDays(effect)).append("d) ");
+            }
+        }
+        return status.toString();
     }
 
     private static void printMap() {

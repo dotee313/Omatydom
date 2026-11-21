@@ -21,4 +21,11 @@
     <string name="utility_settings">إعدادات الزمن</string>
     <string name="trade_routes_initial">طرق التجارة: —</string>
     <string name="build_island">ابنِ الجزيرة</string>
+    <!-- Bottom dock group headers and compact hints. -->
+    <string name="group_humans">البشر</string>
+    <string name="group_beasts">البهائم</string>
+    <string name="group_laws">القوانين</string>
+    <string name="group_settings">الإعدادات والخيارات</string>
+    <string name="beasts_hint">الحيوانات والمخلوقات شبه العاقلة — المزيد في تبويب المخلوقات</string>
+    <string name="laws_hint">قوانين العالم في تبويب الطبيعة — والمراسيم في الممالك</string>
 </resources>

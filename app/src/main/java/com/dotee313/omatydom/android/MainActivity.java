@@ -33,14 +33,17 @@ import com.dotee313.omatydom.core.civ.Achievement;
 import com.dotee313.omatydom.core.civ.Clan;
 import com.dotee313.omatydom.core.civ.Culture;
 import com.dotee313.omatydom.core.civ.Kingdom;
+import com.dotee313.omatydom.core.civ.Species;
 import com.dotee313.omatydom.core.civ.StatusEffect;
 import com.dotee313.omatydom.core.civ.TradeRoute;
 import com.dotee313.omatydom.core.civ.War;
 import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
 import com.dotee313.omatydom.core.model.Gender;
+import com.dotee313.omatydom.core.model.Idea;
 import com.dotee313.omatydom.core.model.Ideology;
 import com.dotee313.omatydom.core.model.Job;
+import com.dotee313.omatydom.core.model.Race;
 import com.dotee313.omatydom.core.model.Religion;
 import com.dotee313.omatydom.core.model.SocialClass;
 import com.dotee313.omatydom.core.world.Agent;
@@ -318,31 +321,207 @@ public class MainActivity extends Activity {
     // Static controls
     // ------------------------------------------------------------------
 
+    // ------------------------------------------------------------------
+    // Grouped dock wiring. Group ids are resolved by name so this compiles
+    // with the current dock as well as Worker 1's four-group layout.
+    // ------------------------------------------------------------------
+
+    /** Finds a dock view by any known XML id name; null when none exists. */
+    private View groupDockFind(String... ids) {
+        for (String id : ids) {
+            int resId = getResources().getIdentifier(id, "id", getPackageName());
+            if (resId != 0) {
+                View view = findViewById(resId);
+                if (view != null) {
+                    return view;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Describes every matching view without changing its id or listener. */
+    private void groupDockDescribe(String label, String... ids) {
+        for (String id : ids) {
+            int resId = getResources().getIdentifier(id, "id", getPackageName());
+            if (resId == 0) {
+                continue;
+            }
+            View view = findViewById(resId);
+            if (view != null) {
+                view.setContentDescription(label);
+            }
+        }
+    }
+
+    /** Finds a group title TextView by exact text; never rewrites Worker 1's strings. */
+    private TextView groupDockHeader(View view, String label) {
+        if (view instanceof TextView) {
+            CharSequence text = ((TextView) view).getText();
+            String value = text == null ? "" : text.toString().trim();
+            return value.equals(label) ? (TextView) view : null;
+        }
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup parent = (android.view.ViewGroup) view;
+            for (int i = 0; i < parent.getChildCount(); i++) {
+                TextView header = groupDockHeader(parent.getChildAt(i), label);
+                if (header != null) {
+                    return header;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Labels a group container and, when present, its header for screen readers. */
+    private void groupDockGroup(String label, String... ids) {
+        View group = groupDockFind(ids);
+        if (group == null) {
+            return;
+        }
+        group.setContentDescription(label);
+        TextView header = groupDockHeader(group, label);
+        if (header != null && header.getContentDescription() == null) {
+            header.setContentDescription(label);
+        }
+    }
+
+    /** Labels a dedicated header id directly when Worker 1's layout provides one. */
+    private void groupDockHeaderById(String label, String... ids) {
+        for (String id : ids) {
+            int resId = getResources().getIdentifier(id, "id", getPackageName());
+            if (resId == 0) {
+                continue;
+            }
+            View view = findViewById(resId);
+            if (view instanceof TextView) {
+                if (view.getContentDescription() == null) {
+                    view.setContentDescription(label);
+                }
+                return;
+            }
+        }
+    }
+
+    /** Applies the four group labels and tags the rows that hold each group today. */
+    private void groupDockWire() {
+        groupDockGroup("البشر", "humansCard", "dockHumansGroup", "groupHumans", "humansGroup",
+                "dockGroupHumans", "dockPeopleGroup", "peopleGroup");
+        groupDockGroup("البهائم", "beastsCard", "dockAnimalsGroup", "groupAnimals", "animalsGroup",
+                "dockGroupAnimals", "dockCreaturesGroup", "creaturesGroup");
+        groupDockGroup("القوانين", "lawsCard", "dockLawsGroup", "groupLaws", "lawsGroup",
+                "dockGroupLaws", "dockNatureGroup", "natureGroup");
+        groupDockGroup("الإعدادات والخيارات", "settingsCard", "dockOptionsGroup", "groupOptions",
+                "optionsGroup", "dockGroupOptions", "dockSettingsGroup", "settingsGroup");
+
+        groupDockHeaderById("البشر", "dockHumansHeader", "groupHumansHeader", "humansHeader");
+        groupDockHeaderById("البهائم", "dockAnimalsHeader", "groupAnimalsHeader", "animalsHeader");
+        groupDockHeaderById("القوانين", "dockLawsHeader", "groupLawsHeader", "lawsHeader");
+        groupDockHeaderById("الإعدادات والخيارات", "dockOptionsHeader", "groupOptionsHeader",
+                "dockSettingsHeader", "settingsHeader");
+
+        groupDockDescribe("شريط الأوامر — أربع مجموعات: البشر، البهائم، القوانين، الإعدادات والخيارات",
+                "bottomDock");
+        groupDockDescribe("التنقل بين المجموعات والتبويبات السبعة", "dockNavRow");
+        groupDockDescribe("المعلومات والموارد — ذهب، طعام، خشب، حجر، خام، بلور", "dockInfoRow");
+        groupDockDescribe("الإعدادات والخيارات — المعلومات والأنماط والسرعة والبناء",
+                "utilityBar", "dockToolsRow");
+        groupDockDescribe("القوانين — قوانين العالم والمراسيم", "decreeGrid", "natureList");
+        groupDockDescribe("البهائم — مخلوقات الجزيرة", "creatureList");
+        groupDockDescribe("أدوات الجزيرة — طبقات وفرش وتكبير، تظهر في تبويب الجزيرة فقط",
+                "dockMapToolsRow", "overlayBar", "brushBar");
+
+        View dock = groupDockFind("bottomDock");
+        if (dock != null) {
+            groupDockScan(dock);
+        }
+    }
+
+    /** Adds Worker 1's group badge to title TextViews without changing their text. */
+    private void groupDockScan(View view) {
+        if (view instanceof TextView) {
+            TextView title = (TextView) view;
+            CharSequence text = title.getText();
+            String value = text == null ? "" : text.toString().trim();
+            PixelIcons.DockGroup group;
+            if (value.equals("البشر")) {
+                group = PixelIcons.DockGroup.PEOPLE;
+            } else if (value.equals("البهائم")) {
+                group = PixelIcons.DockGroup.BEASTS;
+            } else if (value.equals("القوانين")) {
+                group = PixelIcons.DockGroup.LAWS;
+            } else if (value.equals("الإعدادات والخيارات")) {
+                group = PixelIcons.DockGroup.SETTINGS;
+            } else {
+                group = null;
+            }
+            if (group != null) {
+                if (title.getContentDescription() == null) {
+                    title.setContentDescription(value);
+                }
+                Drawable badge = PixelIcons.dockIcon(this, group);
+                if (badge != null) {
+                    int size = dp(18);
+                    android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
+                            size, size, android.graphics.Bitmap.Config.ARGB_8888);
+                    android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+                    badge.setBounds(0, 0, size, size);
+                    badge.draw(canvas);
+                    android.graphics.drawable.BitmapDrawable sized =
+                            new android.graphics.drawable.BitmapDrawable(getResources(), bitmap);
+                    sized.setBounds(0, 0, size, size);
+                    title.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                            sized, null, null, null);
+                    title.setCompoundDrawablePadding(dp(4));
+                }
+            }
+            return;
+        }
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup parent = (android.view.ViewGroup) view;
+            for (int i = 0; i < parent.getChildCount(); i++) {
+                groupDockScan(parent.getChildAt(i));
+            }
+        }
+    }
+
+    /** Very short group tag appended to tab hints; never lengthens the shared arrays. */
+    private String groupDockHint(int tab) {
+        switch (tab) {
+            case 0: return " — أدوات الجزيرة";
+            case 1: return " — البشر";
+            case 2: return " — القوانين";
+            case 3: return " — البهائم";
+            case 4: return " — القوانين";
+            case 5: return " — القدرات";
+            default: return " — الأحداث";
+        }
+    }
+
     private void setupTopControls() {
         ImageButton pause = findViewById(R.id.pauseButton);
         ImageButton speed = findViewById(R.id.speedButton);
         ImageButton control = findViewById(R.id.controlButton);
         ImageButton assassinate = findViewById(R.id.assassinateButton);
 
-        pause.setContentDescription("إيقاف الزمن أو متابعته");
-        speed.setContentDescription("تغيير سرعة الزمن");
-        control.setContentDescription("تولي قرارات الحاكم أو تركها له");
-        assassinate.setContentDescription("إزالة الحاكم الحالي");
+        pause.setContentDescription("الخيارات — الزمن");
+        speed.setContentDescription("الخيارات — السرعة");
+        control.setContentDescription("البشر — الحاكم");
+        assassinate.setContentDescription("البشر — إزالة الحاكم");
 
         pause.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.PAUSE));
         pause.setOnClickListener(v -> {
             game.togglePause();
             showHint(game.isPaused()
-                    ? "الزمن متوقف — اضغط مرة أخرى للمتابعة."
-                    : "الزمن يعمل — السنة الكاملة تساعة واحدة عند السرعة x1.");
+                    ? "الخيارات: الزمن متوقف."
+                    : "الخيارات: الزمن يعمل.");
             refreshUi();
         });
 
         speed.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.SPEED));
         speed.setOnClickListener(v -> {
             game.cycleSpeed();
-            showHint("السرعة x" + game.getSpeed()
-                    + " — عند x1 تساوي السنة ساعة واحدة، والضغطات التالية أسرع.");
+            showHint("الخيارات: السرعة x" + game.getSpeed() + ".");
             refreshUi();
         });
 
@@ -350,17 +529,17 @@ public class MainActivity extends Activity {
         control.setOnClickListener(v -> {
             game.togglePlayerControl();
             showHint(game.isPlayerControlled()
-                    ? "قرارات الحاكم أصبحت بيدك — اختر من صف السكان من تريد تعيينه."
-                    : "تركت الحاكم يتخذ قراراته وحده مرة أخرى.");
+                    ? "البشر: الحاكم بيدك."
+                    : "البشر: الحاكم وحده.");
             refreshUi();
         });
 
         assassinate.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.ASSASSINATE));
         assassinate.setOnClickListener(v -> {
             if (game.assassinateRuler()) {
-                showHint("سقط الحاكم — استقرار أقل وخلافة تنتظر الاختيار.");
+                showHint("البشر: سقط الحاكم.");
             } else {
-                showHint("لا يوجد حاكم حي يمكن إزالته الآن.");
+                showHint("البشر: لا حاكم حي.");
             }
             refreshUi();
         });
@@ -375,6 +554,10 @@ public class MainActivity extends Activity {
         info.setImageDrawable(UserArt.info(this));
         mods.setImageDrawable(UserArt.mods(this));
         settings.setImageDrawable(UserArt.settings(this));
+
+        info.setContentDescription("الخيارات — المعلومات");
+        mods.setContentDescription("القوانين — النمط");
+        settings.setContentDescription("الخيارات — الإعدادات");
 
         info.setOnClickListener(v -> {
             String about = UserArt.aboutText();
@@ -395,14 +578,14 @@ public class MainActivity extends Activity {
             ModPack[] packs = ModPack.values();
             ModPack next = packs[(game.getModPack().ordinal() + 1) % packs.length];
             game.setModPack(next);
-            showHint("نمط اللعبة الآن: «" + next.getDisplayNameAr() + "» — " + next.getDescription());
+            showHint("القوانين: «" + next.getDisplayNameAr() + "».");
             refreshUi();
         });
 
         // Reuse the existing pause/speed listeners instead of duplicating their logic.
         settings.setOnClickListener(v -> new AlertDialog.Builder(this)
-                .setTitle("إعدادات الزمن")
-                .setMessage("غيّر الزمن هنا أو من أعلى الشاشة — اللعبة مستمرة أثناء القراءة.")
+                .setTitle("الخيارات — الزمن")
+                .setMessage("غيّر الزمن من الشريط — اللعبة مستمرة أثناء القراءة.")
                 .setPositiveButton(game.isPaused() ? "متابعة الزمن" : "إيقاف الزمن",
                         (dialog, which) -> findViewById(R.id.pauseButton).performClick())
                 .setNegativeButton("تغيير السرعة",
@@ -431,7 +614,7 @@ public class MainActivity extends Activity {
             ImageView icon = new ImageView(this);
             icon.setImageDrawable(PixelIcons.resourceSwatch(this, type.getColor()));
             icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            icon.setContentDescription(STRIP_LABELS[i]);
+            icon.setContentDescription("المعلومات — " + STRIP_LABELS[i]);
             badge.addView(icon, new LinearLayout.LayoutParams(dp(14), dp(14)));
 
             TextView count = new TextView(this);
@@ -442,8 +625,8 @@ public class MainActivity extends Activity {
             badge.addView(count, new LinearLayout.LayoutParams(0, dp(18), 1f));
             resourceStripCounts[i] = count;
 
-            badge.setOnClickListener(v -> showHint(STRIP_LABELS[index] + " — المخزون "
-                    + (int) world().getResource(STRIP_RESOURCES[index]) + "."));
+            badge.setOnClickListener(v -> showHint("المعلومات: " + STRIP_LABELS[index]
+                    + " ×" + (int) world().getResource(STRIP_RESOURCES[index]) + "."));
             strip.addView(badge);
         }
     }
@@ -465,7 +648,7 @@ public class MainActivity extends Activity {
             ImageButton button = findViewById(ids[i]);
             brushButtons[i] = button;
             button.setImageDrawable(PixelIcons.brushIcon(this, brush));
-            button.setContentDescription(BRUSH_HINTS[i]);
+            button.setContentDescription("أدوات الجزيرة — " + BRUSH_HINTS[i]);
             button.setBackgroundResource(R.drawable.bg_button);
             button.setOnClickListener(v -> selectBrush(brush, true));
         }
@@ -510,7 +693,7 @@ public class MainActivity extends Activity {
         if (build == null) {
             return;
         }
-        build.setContentDescription("أدوات البناء — اختر مبنى أو توسيع اليابسة");
+        build.setContentDescription("الإعدادات والخيارات — أدوات البناء، اختر مبنى أو توسيع اليابسة");
         if (build instanceof ImageButton) {
             ((ImageButton) build).setImageDrawable(
                     PixelIcons.brushIcon(this, IslandView.Brush.HOUSE));
@@ -633,36 +816,34 @@ public class MainActivity extends Activity {
         ImageButton grid = findViewById(R.id.gridButton);
 
         zoomIn.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.ZOOM_IN));
-        zoomIn.setContentDescription("تكبير الخريطة");
+        zoomIn.setContentDescription("أدوات الجزيرة — تكبير الخريطة");
         zoomIn.setOnClickListener(v -> {
             islandView.zoomIn();
-            showHint("تكبير الخريطة — المربعات أكبر ويمكن رسم التفاصيل بدقة.");
+            showHint("أدوات: تكبير الخريطة.");
         });
 
         zoomOut.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.ZOOM_OUT));
-        zoomOut.setContentDescription("تصغير الخريطة");
+        zoomOut.setContentDescription("أدوات الجزيرة — تصغير الخريطة");
         zoomOut.setOnClickListener(v -> {
             islandView.zoomOut();
-            showHint("تصغير الخريطة — ترى جزيرة أوسع دفعة واحدة.");
+            showHint("أدوات: تصغير الخريطة.");
         });
 
         center.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.CENTER));
-        center.setContentDescription("توسيط الخريطة");
+        center.setContentDescription("أدوات الجزيرة — توسيط الخريطة");
         center.setOnClickListener(v -> {
             islandView.centerOnMap();
-            showHint("عادت الخريطة إلى مركز الجزيرة.");
+            showHint("أدوات: توسيط الخريطة.");
         });
 
         grid.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.GRID));
-        grid.setContentDescription("إظهار أو إخفاء شبكة المربعات");
+        grid.setContentDescription("أدوات الجزيرة — إظهار أو إخفاء شبكة المربعات");
         grid.setOnClickListener(v -> {
             gridVisible = !gridVisible;
             islandView.setGrid(gridVisible);
             grid.setBackgroundResource(
                     gridVisible ? R.drawable.brush_selected : R.drawable.bg_button);
-            showHint(gridVisible
-                    ? "شبكة المربعات ظاهرة — كل مربع قطعة أرض يمكن رسمها."
-                    : "أُخفيت الشبكة — الخريطة الآن بدون خطوط.");
+            showHint(gridVisible ? "أدوات: الشبكة ظاهرة." : "أدوات: الشبكة مخفية.");
         });
     }
 
@@ -770,7 +951,7 @@ public class MainActivity extends Activity {
             ImageButton button = findViewById(ids[i]);
             overlayButtons[i] = button;
             button.setImageDrawable(PixelIcons.overlay(this, i));
-            button.setContentDescription(OVERLAY_HINTS[i]);
+            button.setContentDescription("أدوات الجزيرة — " + OVERLAY_HINTS[i]);
             button.setBackgroundResource(R.drawable.bg_button);
             button.setOnClickListener(v -> selectOverlay(index, true));
         }
@@ -805,8 +986,10 @@ public class MainActivity extends Activity {
                 R.id.powersPage, R.id.eventsPage
         };
         String[] descriptions = {
-                "الجزيرة", "السكان", "الطبيعة", "المخلوقات",
-                "الممالك", "القدرات", "الأحداث"
+                "الجزيرة — أدوات الخريطة تظهر هنا فقط", "السكان — مجموعة البشر",
+                "الطبيعة — مجموعة القوانين", "المخلوقات — مجموعة البهائم",
+                "الممالك — المراسيم والتقنيات", "القدرات — القدرات والكوارث",
+                "الأحداث — الإحصاءات والإنجازات"
         };
         for (int i = 0; i < ids.length; i++) {
             final int index = i;
@@ -816,9 +999,10 @@ public class MainActivity extends Activity {
             navButtons[i].setContentDescription(descriptions[i]);
             navButtons[i].setOnClickListener(v -> {
                 selectTab(index);
-                showHint(TAB_HINTS[index]);
+                showHint(TAB_HINTS[index] + groupDockHint(index));
             });
         }
+        groupDockWire();
     }
 
     private void selectTab(int index) {
@@ -837,9 +1021,23 @@ public class MainActivity extends Activity {
                 navButtons[i].clearColorFilter();
             }
         }
-        View dockTools = findViewById(R.id.dockMapToolsRow);
+        // The grouped dock keeps layers, brushes and camera tools in one row.
+        // It belongs to the Island tab only, on every other tab it is hidden.
+        boolean islandTab = index == 0;
+        View dockTools = groupDockFind("dockMapToolsRow", "mapToolsRow", "islandToolsRow",
+                "dockIslandTools", "islandMapTools", "mapTools");
         if (dockTools != null) {
-            dockTools.setVisibility(index == 0 ? View.VISIBLE : View.GONE);
+            dockTools.setVisibility(islandTab ? View.VISIBLE : View.GONE);
+            if (islandTab) {
+                View overlays = groupDockFind("overlayBar", "dockOverlayRow", "overlayToolsRow");
+                View brushes = groupDockFind("brushBar", "dockBrushRow", "brushToolsRow");
+                if (overlays != null) {
+                    overlays.setVisibility(View.VISIBLE);
+                }
+                if (brushes != null) {
+                    brushes.setVisibility(View.VISIBLE);
+                }
+            }
         }
         // Force a rebuild on tab open; later refreshes go through signature checks.
         signatures.remove(TAB_KEYS[index]);
@@ -1786,94 +1984,304 @@ public class MainActivity extends Activity {
         }
         String subtitle = citizen.getAgeYears() + " سنة • " + arabicGender(citizen.getGender())
                 + " • " + arabicJob(citizen.getJob());
-        CitizenInfoDialog.show(this, citizen, subtitle, citizenDetails(citizen),
+        CitizenInfoDialog.show(this, citizen, subtitle, citizenCard(citizen),
                 appointed -> appointRuler(appointed));
     }
 
-    /** Real values from Citizen / Agent / civ models; no invented family data. */
-    private String citizenDetails(Citizen citizen) {
+    /**
+     * Builds the card from real core values only. Fields the model does not
+     * store (language, spouse, family, skills, specialty) are declared
+     * unrecorded with the closest truthful proxy instead of being invented.
+     */
+    private CitizenInfoDialog.Card citizenCard(Citizen citizen) {
         World world = world();
-        StringBuilder details = new StringBuilder();
-        details.append("المهنة: ").append(arabicJob(citizen.getJob()))
-                .append(" • الطبقة: ").append(arabicSocialClass(citizen.getSocialClass())).append('\n');
-        details.append("العرق: ").append(citizen.getRace().getDisplayName())
-                .append(" — ").append(citizen.getRace().getDescription()).append('\n');
-        details.append("النوع: ").append(citizen.getSpecies().getArabicDisplayName()).append('\n');
-        details.append("الديانة: ").append(arabicReligion(citizen.getReligion())).append('\n');
-        details.append("الأيديولوجيا: ").append(arabicIdeology(citizen.getIdeology())).append('\n');
-        details.append("الصحة: ").append((int) citizen.getHealth())
-                .append("/100 • السعادة: ").append((int) citizen.getHappiness())
-                .append("/100 • الثروة: ").append((int) citizen.getWealth()).append("/100\n");
-        details.append("ذهب الجزيرة: ").append((int) world.getGold()).append('\n');
+        List<CitizenInfoDialog.Section> sections = new ArrayList<>();
 
+        // الانتماء: كل القيم من Clan / Kingdom / Species.
+        List<CitizenInfoDialog.Row> belonging = new ArrayList<>();
+        Clan clan = clanOf(citizen);
         String kingdom = kingdomOf(citizen);
-        details.append("المملكة: ").append(kingdom == null ? "لا مملكة بعد" : kingdom).append('\n');
+        belonging.add(new CitizenInfoDialog.Row("المملكة",
+                kingdom == null ? "لا مملكة بعد" : kingdom));
+        if (clan == null) {
+            belonging.add(new CitizenInfoDialog.Row("العشيرة", "لا عشيرة بعد"));
+        } else {
+            belonging.add(new CitizenInfoDialog.Row("العشيرة",
+                    "«" + clan.getName() + "» • نفوذ " + clan.getInfluence()));
+            belonging.add(new CitizenInfoDialog.Row("شيخ العشيرة",
+                    chiefName(clan, citizen.getId())));
+            belonging.add(new CitizenInfoDialog.Row("أفراد العشيرة",
+                    clanMemberNames(clan, citizen.getId())));
+        }
+        belonging.add(new CitizenInfoDialog.Row("الشعب",
+                citizen.getSpecies().getArabicDisplayName() + " — "
+                        + arabicSpeciesDescription(citizen.getSpecies())));
+        boolean isRuler = world.getRuler() != null
+                && world.getRuler().getCitizen().getId() == citizen.getId();
+        belonging.add(new CitizenInfoDialog.Row("الحاكم",
+                isRuler ? "نعم — حاكم الجزيرة الحالي" : "لا — ليس الحاكم الحالي"));
+        sections.add(new CitizenInfoDialog.Section("الانتماء والشعب",
+                CitizenInfoDialog.ICON_KINGDOM, 0xFFFCA311, belonging));
 
+        // الدين والثقافة: الديانة والأيديولوجيا والعرق قيم حقيقية؛ اللغة غير مسجّلة.
+        List<CitizenInfoDialog.Row> faith = new ArrayList<>();
+        faith.add(new CitizenInfoDialog.Row("الديانة",
+                arabicReligionForCard(citizen.getReligion())));
+        faith.add(new CitizenInfoDialog.Row("الأيديولوجيا",
+                arabicIdeology(citizen.getIdeology())));
+        faith.add(new CitizenInfoDialog.Row("العرق",
+                arabicRace(citizen.getRace()) + " — " + arabicRaceDescription(citizen.getRace())));
+        List<Culture> cultures = game.getCultures();
+        if (cultures.isEmpty()) {
+            faith.add(new CitizenInfoDialog.Row("الثقافة العامة",
+                    "لا ثقافة مسجّلة في الجزيرة بعد."));
+        } else {
+            Culture culture = cultures.get(0);
+            faith.add(new CitizenInfoDialog.Row("ثقافة الجزيرة",
+                    "«" + culture.getName() + "» • معرفة " + (int) culture.getKnowledge()
+                            + " • تقنيات " + culture.getTechIds().size()
+                            + " (ثقافة عامة وليست صفة شخصية)"));
+        }
+        faith.add(new CitizenInfoDialog.Row("اللغة",
+                "غير مسجّلة في النموذج — أقرب بديل: شعب «"
+                        + citizen.getSpecies().getArabicDisplayName() + "» وعرق «"
+                        + arabicRace(citizen.getRace()) + "»."));
+        sections.add(new CitizenInfoDialog.Section("الدين والثقافة",
+                CitizenInfoDialog.ICON_CULTURE, 0xFFCE93D8, faith));
+
+        // الأسرة: لا زواج ولا قرابة في الكور — نعلن الغياب ونعرض الولادة بشروطها الحقيقية.
+        List<CitizenInfoDialog.Row> family = new ArrayList<>();
+        family.add(new CitizenInfoDialog.Row("الزوج/الشريك", "غير مسجّل في النموذج."));
+        family.add(new CitizenInfoDialog.Row("القرابة",
+                "لا توجد علاقات قرابة موثّقة في النموذج."));
+        family.add(new CitizenInfoDialog.Row("الحمل", birthNote(citizen, world.getDay())));
+        sections.add(new CitizenInfoDialog.Section("الأسرة",
+                CitizenInfoDialog.ICON_FAMILY, 0xFFE57373, family));
+
+        // المهارة والتخصص: لا حقل مستقل؛ المهنة والسمة والتعليم بدائل حقيقية.
+        List<CitizenInfoDialog.Row> skill = new ArrayList<>();
+        skill.add(new CitizenInfoDialog.Row("المهارة",
+                "لا حقل مهارات مستقل — المهنة الموثّقة: " + arabicJob(citizen.getJob())));
+        skill.add(new CitizenInfoDialog.Row("التخصص",
+                "لا حقل تخصص مستقل — السمة: " + arabicTrait(citizen.getTrait())
+                        + " • الطبقة: " + arabicSocialClass(citizen.getSocialClass())));
+        skill.add(new CitizenInfoDialog.Row("التعليم", (int) citizen.getEducation() + "/100"));
+        skill.add(new CitizenInfoDialog.Row("الفكرة", arabicIdea(citizen.getIdea())));
+        skill.add(new CitizenInfoDialog.Row("المشغول", citizen.getOccupation()));
+        sections.add(new CitizenInfoDialog.Section("المهارة والتخصص",
+                CitizenInfoDialog.ICON_SKILL, 0xFF66BB6A, skill));
+
+        // الحالة والموقع: كل رقم يأتي من Citizen / Agent / Tile / World.
+        List<CitizenInfoDialog.Row> state = new ArrayList<>();
         Agent agent = world.findAgent(citizen);
         if (agent == null) {
-            details.append("الموقع: لا يظهر في الخريطة الآن.\n");
+            state.add(new CitizenInfoDialog.Row("الموقع", "لا يظهر في الخريطة الآن."));
         } else {
             Tile tile = world.getMap().get(agent.getX(), agent.getY());
-            details.append("الموقع: (").append(agent.getX()).append(',').append(agent.getY())
-                    .append(") ").append(tile == null ? "خارج الخريطة" : arabicTile(tile.getType()));
+            String place = "(" + agent.getX() + "," + agent.getY() + ") "
+                    + (tile == null ? "خارج الخريطة" : arabicTile(tile.getType()));
             if (agent.hasTarget()) {
-                details.append(" • يتجه إلى (").append(agent.getTargetX()).append(',')
-                        .append(agent.getTargetY()).append(')');
+                place += " • يتجه إلى (" + agent.getTargetX() + "," + agent.getTargetY() + ")";
             }
-            details.append('\n');
+            state.add(new CitizenInfoDialog.Row("الموقع", place));
         }
+        state.add(new CitizenInfoDialog.Row("الصحة", (int) citizen.getHealth() + "/100"));
+        state.add(new CitizenInfoDialog.Row("السعادة", (int) citizen.getHappiness() + "/100"));
+        state.add(new CitizenInfoDialog.Row("الثروة", (int) citizen.getWealth() + "/100"));
+        state.add(new CitizenInfoDialog.Row("الولاء", (int) citizen.getLoyalty() + "/100"));
+        state.add(new CitizenInfoDialog.Row("الأحوال المؤقتة", effectsText(citizen)));
+        state.add(new CitizenInfoDialog.Row("ذهب الجزيرة", String.valueOf((int) world.getGold())));
+        sections.add(new CitizenInfoDialog.Section("الحالة والموقع",
+                CitizenInfoDialog.ICON_STATUS, 0xFF4FC3F7, state));
 
-        details.append("الحالة الاجتماعية: ").append(arabicSocialClass(citizen.getSocialClass()));
-        if (citizen.isPregnant()) {
-            details.append(" • حامل في يوم ")
-                    .append(citizen.getGestationDay(world.getDay())).append('/')
-                    .append(GameConfig.GESTATION_DAYS)
-                    .append(" • الراحة بعد الولادة ").append(GameConfig.MIN_BIRTH_SPACING_DAYS)
-                    .append(" يومًا");
-        } else {
-            details.append(" • غير حامل • فاصل الولادة ")
-                    .append(GameConfig.MIN_BIRTH_SPACING_DAYS)
-                    .append(" يومًا • الزواج غير مسجّل في هذه النسخة");
-        }
-        details.append('\n');
+        return new CitizenInfoDialog.Card(sections);
+    }
 
-        List<StatusEffect> effects = citizen.getActiveStatuses();
-        if (effects.isEmpty()) {
-            details.append("الأحوال المؤقتة: لا شيء.");
-        } else {
-            details.append("الأحوال المؤقتة: ");
-            for (int i = 0; i < effects.size(); i++) {
-                StatusEffect effect = effects.get(i);
-                if (i > 0) {
-                    details.append("، ");
-                }
-                details.append(effect.getDisplayNameAr()).append(' ')
-                        .append(citizen.getStatusDays(effect)).append(" يوم");
+    /** First clan that lists the citizen as chief or member — same rule as kingdomOf. */
+    private Clan clanOf(Citizen citizen) {
+        for (Clan clan : game.getClans()) {
+            if (clan.getChiefId() == citizen.getId()
+                    || clan.getMemberIds().contains(citizen.getId())) {
+                return clan;
             }
-            details.append('.');
         }
-        details.append("\nالسمة: ").append(arabicTrait(citizen.getTrait()));
-        return details.toString();
+        return null;
+    }
+
+    private Kingdom kingdomOfClan(Clan clan) {
+        if (clan == null) {
+            return null;
+        }
+        for (Kingdom kingdom : game.getKingdoms()) {
+            if (kingdom.getId() == clan.getKingdomId()
+                    || kingdom.getClanIds().contains(clan.getId())) {
+                return kingdom;
+            }
+        }
+        return null;
     }
 
     /** Kingdom is derived through the citizen's clan; clans may exist before kingdoms. */
     private String kingdomOf(Citizen citizen) {
-        List<Clan> clans = game.getClans();
-        List<Kingdom> kingdoms = game.getKingdoms();
-        for (Clan clan : clans) {
-            if (clan.getChiefId() != citizen.getId()
-                    && !clan.getMemberIds().contains(citizen.getId())) {
+        Clan clan = clanOf(citizen);
+        if (clan == null) {
+            return null;
+        }
+        Kingdom kingdom = kingdomOfClan(clan);
+        if (kingdom != null) {
+            return "«" + kingdom.getName() + "» • عشيرة «" + clan.getName() + "»";
+        }
+        return "عشيرة «" + clan.getName() + "» بلا مملكة";
+    }
+
+    private String chiefName(Clan clan, int selfId) {
+        if (clan.getChiefId() == selfId) {
+            return "هذا الشخص";
+        }
+        Citizen chief = world().findCitizen(clan.getChiefId());
+        return chief == null ? "غير مسجّل" : chief.getName();
+    }
+
+    /** Resolves real member ids through World.findCitizen; never claims kinship. */
+    private String clanMemberNames(Clan clan, int selfId) {
+        List<String> names = new ArrayList<>();
+        for (int id : clan.getMemberIds()) {
+            if (id == selfId) {
                 continue;
             }
-            for (Kingdom kingdom : kingdoms) {
-                if (kingdom.getId() == clan.getKingdomId()
-                        || kingdom.getClanIds().contains(clan.getId())) {
-                    return "«" + kingdom.getName() + "» • عشيرة «" + clan.getName() + "»";
-                }
+            Citizen member = world().findCitizen(id);
+            if (member != null) {
+                names.add(member.getName());
             }
-            return "عشيرة «" + clan.getName() + "» بلا مملكة";
         }
-        return null;
+        Citizen chief = world().findCitizen(clan.getChiefId());
+        if (clan.getChiefId() != selfId && chief != null && !names.contains(chief.getName())) {
+            names.add(0, chief.getName() + " (شيخ)");
+        }
+        if (names.isEmpty()) {
+            return "لا أفراد آخرون موثّقون";
+        }
+        StringBuilder joined = new StringBuilder();
+        for (int i = 0; i < names.size(); i++) {
+            if (i > 0) {
+                joined.append("، ");
+            }
+            joined.append(names.get(i));
+        }
+        return joined.toString();
+    }
+
+    private static String effectsText(Citizen citizen) {
+        List<StatusEffect> effects = citizen.getActiveStatuses();
+        if (effects.isEmpty()) {
+            return "لا شيء.";
+        }
+        StringBuilder joined = new StringBuilder();
+        for (int i = 0; i < effects.size(); i++) {
+            StatusEffect effect = effects.get(i);
+            if (i > 0) {
+                joined.append("، ");
+            }
+            joined.append(effect.getDisplayNameAr()).append(' ')
+                    .append(citizen.getStatusDays(effect)).append(" يوم");
+        }
+        return joined.append('.').toString();
+    }
+
+    /**
+     * Birth note for the card only. Uses the real day, last birth and fertility
+     * rules; males, children and women who cannot conceive get no spacing claim.
+     */
+    private static String birthNote(Citizen citizen, int day) {
+        if (citizen.isPregnant()) {
+            return "حامل، يوم " + citizen.getGestationDay(day)
+                    + "/" + GameConfig.GESTATION_DAYS;
+        }
+        if (citizen.getGender() != Gender.FEMALE || !citizen.isAdult()) {
+            return "لا ينطبق";
+        }
+        if (citizen.canConceive(day)) {
+            return "غير حامل • قابلة للحمل الآن";
+        }
+        int lastBirth = citizen.getLastBirthDay();
+        if (lastBirth >= 0) {
+            int remaining = GameConfig.MIN_BIRTH_SPACING_DAYS - (day - lastBirth);
+            if (remaining > 0) {
+                return "غير حامل • تبقّى " + remaining + " يومًا من فاصل الولادة";
+            }
+        }
+        return "غير حامل • لا ينطبق حاليًا";
+    }
+
+    /** Card-specific wording: no religion is "non-affiliated", not "no religion". */
+    private static String arabicReligionForCard(Religion religion) {
+        if (religion == null || religion == Religion.NONE) {
+            return "غير منتمٍ دينيًا";
+        }
+        return arabicReligion(religion);
+    }
+
+    /** Arabic labels for the real Idea carried by the citizen. */
+    private static String arabicIdea(Idea idea) {
+        if (idea == null) {
+            return "لا فكرة مسجّلة";
+        }
+        switch (idea) {
+            case SURVIVAL: return "البقاء";
+            case PROGRESS: return "التقدّم";
+            case MYSTICISM: return "التصوّف";
+            case REBELLION: return "التمرّد";
+            case PEACE: return "السلام";
+            case TRADE: return "التجارة";
+            case CURIOSITY: return "الفضول";
+            default: return idea.getDisplayName();
+        }
+    }
+
+    /** Arabic names for the six core races; the English original stays in the model. */
+    private static String arabicRace(Race race) {
+        if (race == null) {
+            return "غير مسجّل";
+        }
+        switch (race) {
+            case VAELI: return "فايلي";
+            case KORUN: return "كورون";
+            case SIRENI: return "سيريني";
+            case DRAVI: return "درافي";
+            case LUMIN: return "لومين";
+            case TIREN: return "تيرين";
+            default: return race.getDisplayName();
+        }
+    }
+
+    /** Faithful Arabic rendering of Race.getDescription() — no new facts. */
+    private static String arabicRaceDescription(Race race) {
+        if (race == null) {
+            return "لا وصف مسجّل";
+        }
+        switch (race) {
+            case VAELI: return "سكان غابات ببشرة ورقية يسمعون الشجر";
+            case KORUN: return "سكان مرتفعات ذوو قلوب صخرية وعروق بلورية";
+            case SIRENI: return "مواليد المدّ بخدود فضية وأصوات هادئة";
+            case DRAVI: return "عشائر كهوف ترى في الظلام وتجمع جذورًا نادرة";
+            case LUMIN: return "رحّالون ملموسون بالشمس يحفظون الأغاني القديمة";
+            case TIREN: return "صانعو طين يرفعون البيوت من التراب والخشب";
+            default: return race.getDescription();
+        }
+    }
+
+    /** Faithful Arabic rendering of Species.getDescription() — no new facts. */
+    private static String arabicSpeciesDescription(Species species) {
+        if (species == null) {
+            return "لا وصف مسجّل";
+        }
+        switch (species) {
+            case HUMAN: return "مستوطنون قابلون للتكيف، يبنون بسرعة ويتعبون ببطء";
+            case ELF: return "سكان غابات طويلو العمر، بارعون في الحرف الدقيقة";
+            case ORC: return "رجال عشائر أشدّاء يفضّلون الغارات الجريئة والقاعات المتينة";
+            case DWARF: return "بنّاؤون تحت الأرض، يقدّرون الخزائن العميقة والأحقاد القديمة";
+            default: return species.getDescription();
+        }
     }
 
     private String citizenExplanation(Citizen citizen) {

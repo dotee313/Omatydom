@@ -13,15 +13,25 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 ## Download & play right now / التنزيل والتجربة
 
 **رابط التحميل المباشر للتطبيق (APK):**  
-https://github.com/dotee313/Omatydom/releases/download/v0.9.0/omatydom-0.9.0-debug.apk
+https://github.com/dotee313/Omatydom/releases/download/v0.9.1/omatydom-0.9.1-debug.apk
 
 افتح الرابط من جوالك،حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. التصميم الآن أنظف: سبع صفحات (الجزيرة، السكان، الطبيعة، المخلوقات، الممالك، القدرات، الأحداث) تتنقل بينها بقائمة سفلية من الأيقونات، وكل ضغطة على أيقونة أو شخص أو أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ. اختر أرضًا بالضغط ثم افتح «القدرات» لتوجيه تأثيرك إلى المكان المختار. السنة الكاملة في اللعبة تساوي ساعة واحدة من الوقت الحقيقي عند السرعة x1. يعمل على Android 5.0 أو أحدث.
 
-صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.9.0
+صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.9.1
 
 > The APK is debug-signed and intended for play-testing. Your phone may ask you to allow installation from unknown sources.
 
 ---
+
+## What's new in v0.9.1 — "Organized Dock, Deeper People"
+
+This release refines the latest play-test feedback: the single dock is now sorted into four titled groups, every group and card section gets fresh pixel art, and tapping a citizen opens a richer but strictly truthful dossier.
+
+- **Four sorted dock groups** — **البشر** for people and ruler actions, **البهائم** for wildlife and semi-sapient creatures, **القوانين** for island laws and decrees, and **الإعدادات والخيارات** for speed, zoom/camera, overlays, brushes, build and game options. The seven tabs and all legacy IDs are preserved; map tools still appear only on the Island tab.
+- **New pixel icons** — a dedicated pixel artist produced distinct 9×9–12×12 badges for the four groups and eight citizen-card sections using the approved burgundy/orange/brown palette. No WorldBox assets were copied.
+- **Deeper citizen cards** — five divided Arabic sections with the portrait and new section icons: kingdom/clan/chief/members and people; faith, ideology, race and island culture; family and conditional pregnancy; skills, traits, idea and occupation; location and live status. Fields the model does not store (language, spouse, kinship, separate skills/specialty) are declared unrecorded instead of invented.
+- **Truthful fertility text** — the pregnancy day uses the real 270-day constant, and birth spacing counts down only from a real previous birth for eligible adult females. Males, children and never-pregnant citizens get "not applicable".
+- **More desktop detail** — `citizens [n]` / `people` prints the same real fields, and `qa/verify_v091.sh` runs all four verifiers plus literal building-cost and 360-days-per-hour clock checks.
 
 ## What's new in v0.9.0 — "Build Your Island"
 
@@ -240,12 +250,13 @@ gradle :desktop:run --args="42 CONTINENT TEST_MOD"       # template + ruleset
 ### Regression checks
 
 ```bash
-qa/verify_v081.sh          # VerifyV060 + VerifyV070 + VerifyV080 + VerifyV081 (sea, building, calendar)
+qa/verify_v091.sh          # VerifyV060 + VerifyV070 + VerifyV080 + VerifyV081 (sea, building, calendar)
+qa/verify_v081.sh          # Previous combined runner, still valid
 ```
 
 ### Desktop commands
 
-The CLI includes the full v0.6.0 command set plus `trade`, `sea` and `build <BUILDING_TYPE>`:
+The CLI includes the full v0.6.0 command set plus `trade`, `sea`, `citizens` and `build <BUILDING_TYPE>`:
 
 | Command | Description |
 | --- | --- |
@@ -253,6 +264,7 @@ The CLI includes the full v0.6.0 command set plus `trade`, `sea` and `build <BUI
 | `status` / `stats` | Current world / deep simulation counters. |
 | `map` | ASCII island: terrain, buildings, animals and working islanders. |
 | `agents` | List living islanders with job, class, idea and position. |
+| `citizens [n]` / `people` | Print richer truthful citizen data: kingdom/clan, faith, ideology, race/species, fertility, status and culture. |
 | `resources [TYPE]` / `animals` / `biome <x> <y>` | Inspect stockpiles, wildlife and tiles. |
 | `jobs` / `job <id> <JOB>` | List or assign jobs, including the six new ones. |
 | `build <BUILDING_TYPE>` / `build <x> <y> <STRUCTURE>` / `building <x> <y> <BUILDING_TYPE>` | Build a catalogued type on free land, a simple structure at a tile, or any of the 134 types. |
@@ -276,7 +288,7 @@ The CLI includes the full v0.6.0 command set plus `trade`, `sea` and `build <BUI
 - [ ] Save/load (serialize `World` to JSON).
 - [x] Zoom/pan on the Android island view (v0.7.0, enhanced in v0.8.0).
 - [ ] Fully data-driven events and jobs instead of hard-coded ones.
-- [x] Character screens with portraits and needs (v0.9.0: Arabic citizen card on tap).
+- [x] Character screens with portraits and needs (v0.9.0: Arabic citizen card; v0.9.1: grouped sections, truthful fields and new icons).
 - [ ] Android UI with fragments and Material 3.
 - [ ] Scenario/challenge modes ("keep the island stable for 10 years").
 
@@ -287,6 +299,8 @@ The CLI includes the full v0.6.0 command set plus `trade`, `sea` and `build <BUI
 **أوماتيدوم** لعبة محاكاة حياة على جزيرة، حيث تراقب مجتمعًا حيًا وتشكّله. الزمن يمضي تلقائيًا، ولك أن تتدخل أو تترك الأحداث تجري من نفسها.
 
 الجزيرة ليست دائرية بل مربع مدوّر فيه خلجان ورؤوس عشوائية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، وكل واحد منهم الآن **شخصية بكسلية أوضح وأكثر واقعية** (١٠×١٤ بكسل): شعر، وجه مضلّل، عينان، أنف، فم، ذراعان، حزام، حذاء، وأداة تختلف حسب المهنة (فأس، معول، صنارة، قوس، عصا، سلة، عملة). الحاكم يرتدي تاجًا ذهبيًا، والمرأة الحامل يظهر بطنها. أكثر أيقونات اللعبة مرسومة داخل التطبيق بالكود، ومعها الآن شعارك وأيقونات المعلومات والأنماط والإعدادات وخلفية قائمتك الأصلية من الملف الذي أرسلته، مُبسّطة لتناسب واجهة الجوال. الرسم مستطيلات مسطّحة خفيفة على الهاتف مع حواف وتظليل ووميض أقوى. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال.
+
+في الإصدار ٠٫٩٫١ رُتّب الشريط السفلي في أربع مجموعات واضحة: **البشر** لكل ما يخص السكان والحاكم، **البهائم** للحيوانات والمخلوقات شبه العاقلة، **القوانين** لقوانين الجزيرة والمراسيم، و**الإعدادات والخيارات** للسرعة والعدسة والطبقات والفرش والبناء. ولكل مجموعة ولكل قسم في بطاقة الشخصية أيقونة بكسلية جديدة رسمها فنان مخصص بالألوان نفسها. بطاقة الشخصية صارت خمسة أقسام مرتبة تعرض المملكة والعشيرة والشعب والدين والأيديولوجيا والفكرة والمهنة والحالة والموقع، وتقول بصدق إن اللغة والزواج والقرابة والمهارات المنفصلة غير مسجلة في النموذج بدل اختراعها. نص الحمل صار محكومًا بالبيانات الحقيقية: يوم الحمل من ٢٧٠، والفاصل يُحسب فقط بعد ولادة حقيقية وللإناث البالغات القابلات للحمل. الاختبارات الأربعة تنجح، وأُضيف فحص تكاليف المباني وثوابت الساعة.
 
 في الإصدار ٠٫٩٫٠ تحققت ملاحظاتك: الشعار صار أيقونة حقيقية للتطبيق، وكل الأشرطة صاروا شريطًا سفليًا موحدًا يترك مساحة أكبر للخريطة. الضغط على أي شخص يفتح بطاقة عربية بصورته ومعلوماته الحقيقية وزر تعيين الحاكم. الأحياء صارت تمشي بسلاسة بدل التنقل المفاجئ، والبحر كبر من نحو ٢٦٫٨٪ إلى ٤٢٫٧٪ بالمتوسط. وأضفت أداة بناء تختار ١٥ مبنى حقيقيًا أو توسّع اليابسة، مع معاينة قبل اللمس وخصم دقيق للخشب والحجر والذهب. الاختبارات الأربعة `VerifyV060/070/080/081` تنجح، والحمل ما زال ٢٧٠ يومًا ثم راحة سنة كاملة.
 
