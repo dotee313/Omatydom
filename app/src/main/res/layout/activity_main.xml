@@ -3,126 +3,156 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="10dp">
 
     <TextView
         android:id="@+id/titleText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/title"
-        android:textSize="19sp"
+        android:textSize="17sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/statusText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:maxLines="4"
-        android:textSize="13sp" />
+        android:textSize="12sp" />
 
     <TextView
         android:id="@+id/rulerText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:maxLines="3"
-        android:textSize="13sp" />
+        android:layout_marginTop="3dp"
+        android:maxLines="2"
+        android:textSize="12sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="8dp"
         android:orientation="horizontal">
 
-        <Button
+        <ImageButton
             android:id="@+id/pauseButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="44dp"
             android:layout_weight="1"
-            android:text="@string/pause" />
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/pause"
+            android:padding="2dp"
+            android:scaleType="fitCenter" />
 
-        <Button
+        <ImageButton
             android:id="@+id/speedButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="44dp"
             android:layout_weight="1"
-            android:text="@string/speed" />
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/speed"
+            android:padding="2dp"
+            android:scaleType="fitCenter" />
 
-        <Button
+        <ImageButton
             android:id="@+id/controlButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="44dp"
             android:layout_weight="1"
-            android:text="@string/control" />
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/control"
+            android:padding="2dp"
+            android:scaleType="fitCenter" />
 
-        <Button
+        <ImageButton
             android:id="@+id/assassinateButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="44dp"
             android:layout_weight="1"
-            android:text="@string/assassinate" />
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/assassinate"
+            android:padding="2dp"
+            android:scaleType="fitCenter" />
     </LinearLayout>
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/decreeRow"
+            android:layout_width="wrap_content"
+            android:layout_height="46dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="2dp"
         android:orientation="horizontal">
 
-        <Spinner
-            android:id="@+id/decreeSpinner"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2" />
-
-        <Button
-            android:id="@+id/decreeButton"
+        <HorizontalScrollView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/decree" />
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/candidateRow"
+                android:layout_width="wrap_content"
+                android:layout_height="46dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <ImageButton
+            android:id="@+id/nextCandidateButton"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/choose"
+            android:padding="2dp"
+            android:scaleType="fitCenter" />
     </LinearLayout>
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/hintText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:orientation="horizontal">
-
-        <Spinner
-            android:id="@+id/rulerSpinner"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2" />
-
-        <Button
-            android:id="@+id/chooseButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/choose" />
-    </LinearLayout>
+        android:background="#DD263238"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:minHeight="40dp"
+        android:padding="8dp"
+        android:textColor="#FFFFFFFF"
+        android:textSize="12sp" />
 
     <com.dotee313.omatydom.android.IslandView
         android:id="@+id/islandView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="6dp"
         android:layout_weight="1"
-        android:layout_marginTop="8dp" />
+        android:minHeight="140dp" />
 
     <TextView
         android:id="@+id/eventsHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="6dp"
         android:text="@string/events_header"
         android:textStyle="bold" />
 
     <ListView
         android:id="@+id/eventsList"
         android:layout_width="match_parent"
-        android:layout_height="140dp"
+        android:layout_height="120dp"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp" />
 

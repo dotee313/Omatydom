@@ -13,35 +13,35 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 ## Download & play right now / التنزيل والتجربة
 
 **رابط التحميل المباشر للتطبيق (APK):**  
-https://github.com/dotee313/Omatydom/releases/download/v0.2.0/omatydom-0.2.0-debug.apk
+https://github.com/dotee313/Omatydom/releases/download/v0.3.0/omatydom-0.3.0-debug.apk
 
-افتح الرابط من جوالك، حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. يمكنك الإيقاف وتغيير السرعة واختيار الحاكم من أعلى الشاشة، ومتابعة الأحداث أسفلها. يعمل على Android 5.0 أو أحدث.
+افتح الرابط من جوالك، حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. الشاشة الآن كلها أيقونات: اضغط أي أيقونة لتنفيذ أمرها، واضغط أي شخص أو قطعة أرض في الجزيرة لتظهر لك معلومات بسيطة عنها لمدة ٣ ثوانٍ. يعمل على Android 5.0 أو أحدث.
 
-صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.2.0
+صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.3.0
 
 > The APK is debug-signed and intended for play-testing. Your phone may ask you to allow installation from unknown sources.
 
 ---
 
-## What's new in v0.2.0 — "The Living Island"
+## What's new in v0.3.0 — "Pixel Island"
 
-This update turns the abstract population into an actual **place**:
+A full visual and interaction redesign, built for cheap phone rendering:
 
-- **A real island map** — 40×24 tiles of water, sand, grass, forest, orchards, mountains and caves. Resources regenerate slowly.
-- **Six original races** — Vaeli, Korun, Sireni, Dravi, Lumin and Tiren. None of them exist in our world; each has a colour, a story and a natural trade.
-- **Tiny simple bodies** — islanders are drawn as a coloured dot with a short body line, like compact stick figures. No sprites, no textures, no heavy rendering: cheap enough for a phone.
-- **Working citizens** — each person walks the map and performs a real job:
-  - Woodcutters harvest forests → **wood**
-  - Gatherers pick fruit in orchards → **food**
-  - Fishers work from the shore → **food**
-  - Hunters track deer and boar → **food**
-  - Miners dig stone, ore and rare crystal in mountains and caves
-  - Builders spend wood and stone to raise **huts, docks, towers, temples and mines**
-  - Priests calm and convert nearby people; rulers inspire loyalty; traders earn gold
-- **Social classes** — Child, Laborer, Artisan, Clergy and Noble, coloured and driven by wealth and occupation.
-- **Spreading ideas** — Survival, Progress, Mysticism, Rebellion, Peace, Trade and Curiosity jump between neighbours and nudge happiness and loyalty.
-- **Wildlife** — deer, boar and fish wander the island; hunters deplete them and new animals arrive over time.
-- **ASCII map on desktop** — the full simulation is playable and debuggable without Android.
+- **Real pixel people** — citizens are now tiny 6×7 pixel characters: hair, face, eyes, coloured clothes and legs. Rulers get a gold crown; race colour paints the skin and job colour paints the clothes. No sprites, no textures, no anti-aliasing.
+- **Non-circular island** — the coastline is a rounded square warped by smooth noise, so it has coves, headlands and soft corners instead of being a disc.
+- **Pixel terrain and buildings** — water ripples, grass tufts, trees, fruit, mountain peaks, cave mouths, huts, temples, towers, docks and mines are all drawn from a few flat rectangles.
+- **Icons instead of text** — pause, speed, control, assassination, all eight decrees and ruler candidates are hand-made pixel icons generated in code (`PixelIcons.java`).
+- **3-second explanations** — tap any icon, person or tile and a short Arabic explanation appears for exactly 3 seconds, then disappears by itself.
+- **Candidate portraits** — the ruler candidates row shows small pixel faces you can tap to appoint, with an arrow to browse more candidates.
+- **Same living simulation underneath** — jobs, classes, races, religions, ideologies, ideas, wildlife, politics, successions, coups and random events are unchanged.
+
+## Earlier: v0.2.0 — "The Living Island"
+
+- 40×24 tile island with water, sand, grass, forest, orchards, mountains and caves; resources regenerate slowly.
+- Six original races — Vaeli, Korun, Sireni, Dravi, Lumin and Tiren — each with a colour, a story and a natural trade.
+- Working citizens: woodcutters, gatherers, fishers, hunters, miners, builders, priests, rulers and traders.
+- Social classes and seven spreading ideas that change happiness and loyalty.
+- Wildlife and an ASCII map on desktop for play-testing.
 
 ## Earlier foundation (v0.1.0)
 
@@ -89,7 +89,7 @@ The front-ends never contain game rules. They only call `OmatydomGame` and rende
 
 ---
 
-## Project layout (v0.2.0)
+## Project layout (v0.3.0)
 
 ```
 Omatydom/
@@ -127,6 +127,7 @@ Omatydom/
         ├── java/com/dotee313/omatydom/android/
         │   ├── MainActivity.java
         │   ├── IslandView.java
+        │   ├── PixelIcons.java
         │   └── EventAdapter.java
         └── res/layout/activity_main.xml, event_item.xml
 ```
@@ -195,9 +196,11 @@ gradle :desktop:run --args="42"     # reproducible island
 
 **أوماتيدوم** لعبة محاكاة حياة على جزيرة، حيث تراقب مجتمعًا حيًا وتشكّله. الزمن يمضي تلقائيًا، ولك أن تتدخل أو تترك الأحداث تجري من نفسها.
 
-في التحديث الجديد الجزيرة أصبحت خريطة حقيقية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، لكل منهم لون ومهنة طبيعية. الناس أجسام صغيرة جدًا (نقطة بلون العرق + خط قصير بلون المهنة) حتى لا يثقلوا الهاتف. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال. هناك أيضًا طبقات اجتماعية وأفكار تنتقل بين الجيران.
+في التحديث الجديد الجزيرة ليست دائرية بل شكلها مربع مدوّر فيه خلجان ورؤوس عشوائية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، وكل واحد منهم الآن **شخصية بكسلية صغيرة** لها شعر وعينان وملابس بلون المهنة، والحاكم يرتدي تاجًا ذهبيًا. الرسم كله مستطيلات مسطّحة بلا صور ولا تأثيرات ثقيلة حتى لا يثقل الهاتف. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال. هناك أيضًا طبقات اجتماعية وأفكار تنتقل بين الجيران.
 
-التحكم: افتح المشروع في Android وشغّل `app`، أو جرّب `gradle :desktop:run --args="42"` ثم اكتب `map` لرؤية الجزيرة و`agents` لرؤية العمال.
+التحكم صار بالأيقونات فقط: اضغط أيقونة الإيقاف أو السرعة أو التولّي أو الاغتيال، واضغط أي مرسوم من الصف الأول، واضغط وجهًا من صف المرشحين لتعيينه حاكمًا. وأي ضغطة على أيقونة أو شخص أو قطعة أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ ثم يختفي تلقائيًا.
+
+التحكم التجريبي: افتح المشروع في Android وشغّل `app`، أو جرّب `gradle :desktop:run --args="42"` ثم اكتب `map` لرؤية الجزيرة و`agents` لرؤية العمال.
 
 ---
 

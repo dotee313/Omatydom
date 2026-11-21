@@ -21,7 +21,10 @@ public final class IslandMap {
         }
     }
 
-    /** Build a deterministic island shape around the centre of the grid. */
+    /**
+     * Build a deterministic island. The outline is a rounded square distorted by
+     * smooth noise: less circular than a disc, less rigid than a rectangle.
+     */
     public static IslandMap generate(int width, int height, Random random) {
         IslandMap map = new IslandMap(width, height);
         long seed = random.nextLong();
@@ -30,24 +33,34 @@ public final class IslandMap {
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                double nx = (x - cx) / (width * 0.48);
-                double ny = (y - cy) / (height * 0.46);
-                double radius = nx * nx + ny * ny;
-                double noise = noise(x, y, seed);
+                double nx = (x - cx) / (width * 0.46);
+                double ny = (y - cy) / (height * 0.44);
+
+                // Warp the rounded-square coordinates so coves and headlands appear.
+                nx += (smoothNoise(x * 0.17, y * 0.17, seed) - 0.5) * 0.26;
+                ny += (smoothNoise(x * 0.17 + 41.3, y * 0.17 + 19.7, seed + 17) - 0.5) * 0.26;
+
+                // Power 3.2 gives a square with soft corners, not a circle.
+                double roundedSquare = Math.pow(Math.abs(nx), 3.2) + Math.pow(Math.abs(ny), 3.2);
+                double edgeNoise = (smoothNoise(x * 0.34 + 7.1, y * 0.34 + 3.9, seed + 91) - 0.5) * 0.16;
+                double edge = 1.0 + edgeNoise;
+
+                double detail = smoothNoise(x * 0.31 + 53.0, y * 0.31 + 27.0, seed + 7);
+                double ridge = smoothNoise(x * 0.55 + 11.0, y * 0.55 + 5.0, seed + 31);
 
                 TileType type;
-                if (radius > 1.02) {
+                if (roundedSquare > edge) {
                     type = TileType.WATER;
-                } else if (radius > 0.82) {
+                } else if (roundedSquare > edge - 0.22) {
                     type = TileType.SAND;
-                } else if (noise > 0.80 && radius < 0.70) {
+                } else if (detail > 0.69 && roundedSquare < edge - 0.30) {
                     type = TileType.MOUNTAIN;
-                    if (noise(x + 31, y + 17, seed) > 0.84) {
+                    if (ridge > 0.72) {
                         type = TileType.CAVE;
                     }
-                } else if (noise > 0.66) {
+                } else if (detail > 0.60) {
                     type = TileType.FOREST;
-                } else if (noise > 0.58) {
+                } else if (detail > 0.53) {
                     type = TileType.ORCHARD;
                 } else {
                     type = TileType.GRASS;
@@ -64,9 +77,26 @@ public final class IslandMap {
         return map;
     }
 
-    private static double noise(int x, int y, long seed) {
-        double value = Math.sin(x * 12.9898 + y * 78.233 + seed * 0.00001) * 43758.5453;
-        return value - Math.floor(value);
+    /** Smooth value noise: coherent patches instead of single-pixel speckles. */
+    private static double smoothNoise(double x, double y, long seed) {
+        int x0 = (int) Math.floor(x);
+        int y0 = (int) Math.floor(y);
+        double tx = x - x0;
+        double ty = y - y0;
+        tx = tx * tx * (3.0 - 2.0 * tx);
+        ty = ty * ty * (3.0 - 2.0 * ty);
+
+        double top = hash(x0, y0, seed) * (1.0 - tx) + hash(x0 + 1, y0, seed) * tx;
+        double bottom = hash(x0, y0 + 1, seed) * (1.0 - tx)
+                + hash(x0 + 1, y0 + 1, seed) * tx;
+        return top * (1.0 - ty) + bottom * ty;
+    }
+
+    private static double hash(int x, int y, long seed) {
+        long value = seed + x * 374761393L + y * 668265263L;
+        value = (value ^ (value >>> 13)) * 1274126177L;
+        value ^= value >>> 16;
+        return (value & 0xFFFFFFFFL) / 4294967295.0;
     }
 
     private static int startingResource(TileType type) {

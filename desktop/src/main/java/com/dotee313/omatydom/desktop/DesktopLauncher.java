@@ -44,7 +44,7 @@ public final class DesktopLauncher {
             }
         });
 
-        System.out.println("=== Omatydom v0.2.0 — The Living Island | seed " + seed + " ===");
+        System.out.println("=== Omatydom v0.3.0 — Pixel Island | seed " + seed + " ===");
         printHelp();
         printStatus();
 
