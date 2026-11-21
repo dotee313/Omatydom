@@ -1,5 +1,7 @@
 package com.dotee313.omatydom.core.model;
 
+import com.dotee313.omatydom.core.GameConfig;
+
 /** A single inhabitant of the island. Pure data plus clamped setters. */
 public final class Citizen {
     private final int id;
@@ -20,6 +22,10 @@ public final class Citizen {
     private double loyalty;
     private String occupation;
     private boolean alive;
+
+    private boolean pregnant;
+    private int pregnancyStartDay = -1;
+    private int lastBirthDay = -1;
 
     public Citizen(int id, String name, Gender gender, Race race,
                    Religion religion, Ideology ideology, int ageDays) {
@@ -107,7 +113,7 @@ public final class Citizen {
     }
 
     public int getAgeYears() {
-        return ageDays / 365;
+        return ageDays / GameConfig.DAYS_PER_YEAR;
     }
 
     public boolean isAdult() {
@@ -167,8 +173,61 @@ public final class Citizen {
         return alive;
     }
 
+    /** True while this citizen is carrying a child. Only adult women can conceive. */
+    public boolean isPregnant() {
+        return pregnant;
+    }
+
+    public int getPregnancyStartDay() {
+        return pregnancyStartDay;
+    }
+
+    public int getLastBirthDay() {
+        return lastBirthDay;
+    }
+
+    /** One pregnancy at a time, with a full year of rest afterwards. */
+    public boolean canConceive(int day) {
+        return alive
+                && gender == Gender.FEMALE
+                && isAdult()
+                && getAgeYears() < 45
+                && !pregnant
+                && (lastBirthDay < 0 || day - lastBirthDay >= GameConfig.MIN_BIRTH_SPACING_DAYS);
+    }
+
+    public void conceive(int day) {
+        if (canConceive(day)) {
+            pregnant = true;
+            pregnancyStartDay = day;
+        }
+    }
+
+    public boolean isDue(int day) {
+        return pregnant && pregnancyStartDay >= 0
+                && day - pregnancyStartDay >= GameConfig.GESTATION_DAYS;
+    }
+
+    public int getGestationDay(int day) {
+        if (!pregnant || pregnancyStartDay < 0) {
+            return 0;
+        }
+        return Math.min(GameConfig.GESTATION_DAYS, Math.max(0, day - pregnancyStartDay));
+    }
+
+    /** Complete a pregnancy and start the rest period. */
+    public void deliver(int day) {
+        pregnant = false;
+        pregnancyStartDay = -1;
+        lastBirthDay = day;
+    }
+
     public void setAlive(boolean alive) {
         this.alive = alive;
+        if (!alive) {
+            pregnant = false;
+            pregnancyStartDay = -1;
+        }
     }
 
     private static double clamp(double value) {

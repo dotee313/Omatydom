@@ -634,50 +634,71 @@ public final class SimulationEngine {
         }
     }
 
+    /**
+     * Births now take time: one woman carries one child for three seasons,
+     * then rests for a full year. No instant population spikes.
+     */
     private void stepBirths(int day, double mood) {
-        double expected = world.getPopulation()
-                * GameConfig.BIRTH_RATE_PER_CITIZEN
-                * (0.3 + mood / 100.0);
-
-        while (expected >= 1.0 || random.nextDouble() < expected) {
-            if (expected >= 1.0) {
-                expected -= 1.0;
-            } else {
-                expected = 0;
-            }
-            if (world.getPopulation() >= GameConfig.MAX_POPULATION) {
-                break;
-            }
-            List<Citizen> adults = world.getLivingAdults();
-            if (adults.isEmpty()) {
-                break;
-            }
-            Citizen parent = adults.get(random.nextInt(adults.size()));
-            Citizen child = new Citizen(
-                    world.nextId(),
-                    NameGenerator.fullName(random),
-                    random.nextBoolean() ? Gender.MALE : Gender.FEMALE,
-                    parent.getRace(),
-                    parent.getReligion(),
-                    pick(Ideology.values()),
-                    0
-            );
-            child.setJob(Job.LABORER);
-            child.setOccupation(Job.LABORER.getDisplayName());
-            child.setSocialClass(SocialClass.CHILD);
-            child.setIdea(parent.getIdea());
-            child.setHappiness(60);
-            child.setHealth(70);
-            child.setLoyalty(parent.getLoyalty());
-            world.addCitizen(child);
-
-            Agent parentAgent = world.findAgent(parent);
-            int x = parentAgent == null ? world.getMap().getWidth() / 2 : parentAgent.getX();
-            int y = parentAgent == null ? world.getMap().getHeight() / 2 : parentAgent.getY();
-            world.addAgent(new Agent(child, x, y, Job.LABORER));
-            postEvent(new GameEvent(day, EventType.BIRTH, "New life",
-                    "A child named " + child.getName() + " was born to " + parent.getName() + ".", 1));
+        if (world.getPopulation() >= GameConfig.MAX_POPULATION) {
+            return;
         }
+
+        // First, anybody whose nine months are over gives birth.
+        for (Citizen mother : new ArrayList<>(world.getLivingCitizens())) {
+            if (!mother.isAlive() || !mother.isPregnant() || !mother.isDue(day)) {
+                continue;
+            }
+            deliverChild(day, mother);
+            if (world.getPopulation() >= GameConfig.MAX_POPULATION) {
+                return;
+            }
+        }
+
+        // Then a small number of eligible women can begin a new pregnancy.
+        double fertility = 0.35 + mood / 100.0;
+        for (Citizen woman : new ArrayList<>(world.getLivingCitizens())) {
+            if (!woman.canConceive(day)) {
+                continue;
+            }
+            double chance = GameConfig.CONCEPTION_CHANCE_PER_DAY
+                    * fertility
+                    * (0.5 + woman.getHealth() / 200.0)
+                    * (woman.getWealth() < 15 ? 0.5 : 1.0);
+            if (random.nextDouble() < chance) {
+                woman.conceive(day);
+                postEvent(new GameEvent(day, EventType.BIRTH, "Expecting",
+                        woman.getName() + " is expecting. The child will arrive after three seasons.", 2));
+            }
+        }
+    }
+
+    private void deliverChild(int day, Citizen mother) {
+        mother.deliver(day);
+        Citizen child = new Citizen(
+                world.nextId(),
+                NameGenerator.fullName(random),
+                random.nextBoolean() ? Gender.MALE : Gender.FEMALE,
+                mother.getRace(),
+                mother.getReligion(),
+                pick(Ideology.values()),
+                0
+        );
+        child.setJob(Job.LABORER);
+        child.setOccupation(Job.LABORER.getDisplayName());
+        child.setSocialClass(SocialClass.CHILD);
+        child.setIdea(mother.getIdea());
+        child.setHappiness(60);
+        child.setHealth(70);
+        child.setLoyalty(mother.getLoyalty());
+        world.addCitizen(child);
+
+        Agent motherAgent = world.findAgent(mother);
+        int x = motherAgent == null ? world.getMap().getWidth() / 2 : motherAgent.getX();
+        int y = motherAgent == null ? world.getMap().getHeight() / 2 : motherAgent.getY();
+        world.addAgent(new Agent(child, x, y, Job.LABORER));
+        postEvent(new GameEvent(day, EventType.BIRTH, "New life",
+                child.getName() + " was born to " + mother.getName()
+                        + " after three seasons.", 2));
     }
 
     private void stepPolitics(int day, double mood) {
@@ -813,7 +834,7 @@ public final class SimulationEngine {
                             race,
                             pick(Religion.values()),
                             pick(Ideology.values()),
-                            (18 + random.nextInt(25)) * 365
+                            (18 + random.nextInt(25)) * GameConfig.DAYS_PER_YEAR
                     );
                     newcomer.setJob(job);
                     newcomer.setOccupation(job.getDisplayName());

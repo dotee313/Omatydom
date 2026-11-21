@@ -44,7 +44,7 @@ public final class DesktopLauncher {
             }
         });
 
-        System.out.println("=== Omatydom v0.3.0 — Pixel Island | seed " + seed + " ===");
+        System.out.println("=== Omatydom v0.4.0 — Realistic Island | seed " + seed + " ===");
         printHelp();
         printStatus();
 
@@ -87,9 +87,7 @@ public final class DesktopLauncher {
             case "step":
             case "run": {
                 int days = argAsInt(parts, 1, 1);
-                for (int i = 0; i < days; i++) {
-                    game.tick();
-                }
+                game.advanceDays(days);
                 printStatus();
                 break;
             }

@@ -5,12 +5,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.widget.GridLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.dotee313.omatydom.core.Decree;
+import com.dotee313.omatydom.core.GameConfig;
 import com.dotee313.omatydom.core.GameEvent;
 import com.dotee313.omatydom.core.OmatydomGame;
 import com.dotee313.omatydom.core.World;
@@ -24,11 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** Native Android front-end: pixel icons, pixel island, 3-second tap explanations. */
+/** Native Android front-end with four tabs, a bottom bar and 3-second hints. */
 public class MainActivity extends Activity {
 
-    private static final int CANDIDATES_PER_PAGE = 5;
     private static final int HINT_MILLIS = 3000;
+    private static final String[] SEASONS = {"ربيع", "صيف", "خريف", "شتاء"};
 
     private OmatydomGame game;
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
@@ -36,25 +40,22 @@ public class MainActivity extends Activity {
 
     private TextView statusView;
     private TextView rulerView;
+    private TextView seasonView;
     private TextView hintView;
+    private ProgressBar dayProgress;
     private ListView eventsView;
     private IslandView islandView;
     private EventAdapter eventAdapter;
 
-    private ImageButton pauseButton;
-    private ImageButton speedButton;
-    private ImageButton controlButton;
-    private ImageButton assassinateButton;
-    private ImageButton nextCandidateButton;
-    private LinearLayout decreeRow;
-    private LinearLayout candidateRow;
+    private LinearLayout peopleList;
+    private GridLayout decreeGrid;
 
-    private final List<ImageButton> decreeButtons = new ArrayList<>();
-    private final List<ImageButton> candidateButtons = new ArrayList<>();
-    private final Decree[] decrees = Decree.values();
-    private List<Citizen> candidates = new ArrayList<>();
-    private int candidatePage;
-    private String candidateSignature;
+    private final ImageButton[] navButtons = new ImageButton[4];
+    private final View[] pages = new View[4];
+    private int currentTab;
+
+    private final List<Citizen> candidates = new ArrayList<>();
+    private String peopleSignature;
 
     private final Runnable hideHint = () -> hintView.setText("");
 
@@ -66,7 +67,7 @@ public class MainActivity extends Activity {
             }
             game.tick();
             refreshUi();
-            uiHandler.postDelayed(this, 500);
+            uiHandler.postDelayed(this, GameConfig.UI_TICK_MILLIS);
         }
     };
 
@@ -79,15 +80,12 @@ public class MainActivity extends Activity {
 
         statusView = findViewById(R.id.statusText);
         rulerView = findViewById(R.id.rulerText);
+        seasonView = findViewById(R.id.seasonText);
         hintView = findViewById(R.id.hintText);
+        dayProgress = findViewById(R.id.dayProgress);
         eventsView = findViewById(R.id.eventsList);
-        pauseButton = findViewById(R.id.pauseButton);
-        speedButton = findViewById(R.id.speedButton);
-        controlButton = findViewById(R.id.controlButton);
-        assassinateButton = findViewById(R.id.assassinateButton);
-        nextCandidateButton = findViewById(R.id.nextCandidateButton);
-        decreeRow = findViewById(R.id.decreeRow);
-        candidateRow = findViewById(R.id.candidateRow);
+        peopleList = findViewById(R.id.peopleList);
+        decreeGrid = findViewById(R.id.decreeGrid);
 
         eventAdapter = new EventAdapter(this);
         eventsView.setAdapter(eventAdapter);
@@ -107,9 +105,9 @@ public class MainActivity extends Activity {
             }
         });
 
-        setupControlButtons();
-        setupDecreeButtons();
-        setupCandidateButtons();
+        setupTopControls();
+        setupBottomNav();
+        setupDecreeGrid();
 
         refreshUi();
     }
@@ -127,38 +125,43 @@ public class MainActivity extends Activity {
         super.onPause();
     }
 
-    private void setupControlButtons() {
-        pauseButton.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.PAUSE));
-        pauseButton.setOnClickListener(v -> {
+    private void setupTopControls() {
+        ImageButton pause = findViewById(R.id.pauseButton);
+        ImageButton speed = findViewById(R.id.speedButton);
+        ImageButton control = findViewById(R.id.controlButton);
+        ImageButton assassinate = findViewById(R.id.assassinateButton);
+
+        pause.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.PAUSE));
+        pause.setOnClickListener(v -> {
             game.togglePause();
             showHint(game.isPaused()
-                    ? "الزمن متوقف مؤقتًا — اضغط مرة أخرى للمتابعة."
-                    : "الزمن يعمل الآن — الأيام تمر تلقائيًا.");
+                    ? "الزمن متوقف — اضغط مرة أخرى للمتابعة."
+                    : "الزمن يعمل — السنة الكاملة تساعة واحدة عند السرعة x1.");
             refreshUi();
         });
 
-        speedButton.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.SPEED));
-        speedButton.setOnClickListener(v -> {
+        speed.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.SPEED));
+        speed.setOnClickListener(v -> {
             game.cycleSpeed();
-            showHint("سرعة المحاكاة الآن x" + game.getSpeed()
-                    + " — كل ضغطة تنتقل بين السرعات المتاحة.");
+            showHint("السرعة x" + game.getSpeed()
+                    + " — عند x1 تساوي السنة ساعة واحدة، والضغطات التالية أسرع.");
             refreshUi();
         });
 
-        controlButton.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.CONTROL));
-        controlButton.setOnClickListener(v -> {
+        control.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.CONTROL));
+        control.setOnClickListener(v -> {
             if (game.isPlayerControlled()) {
                 game.releaseControl();
                 showHint("تركت الحاكم يتخذ قراراته وحده مرة أخرى.");
             } else {
                 game.takeControl();
-                showHint("أصبحت قرارات الحاكم بيدك — اختياراتك ومراسيمك تؤثر على الجزيرة.");
+                showHint("قرارات الحاكم أصبحت بيدك — اختر من صف السكان من تريد تعيينه.");
             }
             refreshUi();
         });
 
-        assassinateButton.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.ASSASSINATE));
-        assassinateButton.setOnClickListener(v -> {
+        assassinate.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.ASSASSINATE));
+        assassinate.setOnClickListener(v -> {
             if (game.assassinateRuler()) {
                 showHint("سقط الحاكم — استقرار أقل وخلافة تنتظر الاختيار.");
             } else {
@@ -166,52 +169,68 @@ public class MainActivity extends Activity {
             }
             refreshUi();
         });
-
-        nextCandidateButton.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.NEXT));
-        nextCandidateButton.setOnClickListener(v -> {
-            int pages = Math.max(1, (candidates.size() + CANDIDATES_PER_PAGE - 1)
-                    / CANDIDATES_PER_PAGE);
-            candidatePage = (candidatePage + 1) % pages;
-            showHint("صفحة أخرى من المرشحين — اضغط على الوجه لتعيينه حاكمًا.");
-            refreshUi();
-        });
     }
 
-    private void setupDecreeButtons() {
-        int size = Math.round(44 * getResources().getDisplayMetrics().density);
-        for (Decree decree : decrees) {
+    private void setupBottomNav() {
+        navButtons[0] = findViewById(R.id.navWorldButton);
+        navButtons[1] = findViewById(R.id.navPeopleButton);
+        navButtons[2] = findViewById(R.id.navDecreesButton);
+        navButtons[3] = findViewById(R.id.navEventsButton);
+        pages[0] = findViewById(R.id.worldPage);
+        pages[1] = findViewById(R.id.peoplePage);
+        pages[2] = findViewById(R.id.decreesPage);
+        pages[3] = findViewById(R.id.eventsPage);
+
+        final String[] hints = {
+                "الجزيرة: اضغط أي شخص أو قطعة أرض لتعرف ما هي.",
+                "السكان: اضغط أي وجه لتعيين صاحبه حاكمًا.",
+                "المراسيم: كل أيقونة أمر يؤثر على كل الجزيرة.",
+                "الأحداث: سجل ما حدث يومًا بيوم."
+        };
+        for (int i = 0; i < navButtons.length; i++) {
+            final int index = i;
+            navButtons[i].setOnClickListener(v -> {
+                selectTab(index);
+                showHint(hints[index]);
+            });
+        }
+        selectTab(0);
+    }
+
+    private void selectTab(int index) {
+        currentTab = index;
+        for (int i = 0; i < pages.length; i++) {
+            pages[i].setVisibility(i == index ? View.VISIBLE : View.GONE);
+            navButtons[i].setAlpha(i == index ? 1f : 0.45f);
+        }
+        if (index == 1) {
+            peopleSignature = null;
+            refreshPeopleList();
+        }
+    }
+
+    private void setupDecreeGrid() {
+        int size = Math.round(62 * getResources().getDisplayMetrics().density);
+        Decree[] decrees = Decree.values();
+        for (int i = 0; i < decrees.length; i++) {
+            final Decree decree = decrees[i];
             ImageButton button = new ImageButton(this);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
-            params.setMargins(2, 0, 2, 0);
+            GridLayout.LayoutParams params = new GridLayout.LayoutParams(
+                    GridLayout.spec(i / 4), GridLayout.spec(i % 4));
+            params.width = size;
+            params.height = size;
             button.setLayoutParams(params);
             button.setBackground(null);
             button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
-            button.setPadding(2, 2, 2, 2);
+            button.setPadding(4, 4, 4, 4);
             button.setContentDescription(decree.getDisplayName());
-            button.setImageDrawable(PixelIcons.decree(this, decree));
+            button.setImageResource(PixelIcons.decreeImage(decree));
             button.setOnClickListener(v -> {
                 game.issueDecree(decree);
                 showHint(decreeExplanation(decree));
                 refreshUi();
             });
-            decreeRow.addView(button);
-            decreeButtons.add(button);
-        }
-    }
-
-    private void setupCandidateButtons() {
-        int size = Math.round(44 * getResources().getDisplayMetrics().density);
-        for (int i = 0; i < CANDIDATES_PER_PAGE; i++) {
-            ImageButton button = new ImageButton(this);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
-            params.setMargins(2, 0, 2, 0);
-            button.setLayoutParams(params);
-            button.setBackground(null);
-            button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
-            button.setPadding(2, 2, 2, 2);
-            button.setVisibility(View.INVISIBLE);
-            candidateRow.addView(button);
-            candidateButtons.add(button);
+            decreeGrid.addView(button);
         }
     }
 
@@ -235,24 +254,39 @@ public class MainActivity extends Activity {
 
     private void refreshUi() {
         World world = game.getWorld();
+        int day = world.getDay();
+        int year = day / GameConfig.DAYS_PER_YEAR + 1;
+        int month = OmatydomGame.monthOf(day);
+        String season = SEASONS[OmatydomGame.seasonOf(day)];
 
         statusView.setText(String.format(Locale.getDefault(),
-                "اليوم %d  •  السكان %d  •  الاستقرار %.0f/100%nذهب %.0f  •  طعام %.0f  •  خشب %.0f%nحجر %.0f  •  خام %.0f  •  مبانٍ %d  •  سرعة x%d  •  %s",
-                world.getDay(), world.getPopulation(), world.getStability(),
-                world.getGold(), world.getFood(), world.getWood(),
-                world.getStone(), world.getOre(), world.getMap().countStructures(),
-                game.getSpeed(), game.isPaused() ? "متوقف" : "يعمل"));
+                "اليوم %d • السنة %d • الشهر %d • %s%nالسكان %d • الاستقرار %.0f/100%nذهب %.0f • طعام %.0f • خشب %.0f • حجر %.0f",
+                day, year, month, season, world.getPopulation(), world.getStability(),
+                world.getGold(), world.getFood(), world.getWood(), world.getStone()));
 
+        int expecting = 0;
+        for (Citizen citizen : world.getLivingCitizens()) {
+            if (citizen.isPregnant()) {
+                expecting++;
+            }
+        }
         if (world.getRuler() == null) {
-            rulerView.setText("لا يوجد حاكم — الجزيرة تنتظر قائدًا.");
+            rulerView.setText("لا يوجد حاكم — الجزيرة تنتظر قائدًا • حوامل: " + expecting);
         } else {
             rulerView.setText(String.format(Locale.getDefault(),
-                    "الحاكم: %s • تأييد %.0f/100 • %d يومًا • %s",
+                    "الحاكم: %s • تأييد %.0f/100 • %s • حوامل: %d",
                     world.getRuler().getCitizen().getName(),
                     world.getRuler().getApproval(),
-                    world.getRuler().getReignDays(world.getDay()),
-                    game.isPlayerControlled() ? "تحت إدارتك" : "يتصرف وحده"));
+                    game.isPlayerControlled() ? "تحت إدارتك" : "يتصرف وحده",
+                    expecting));
         }
+
+        seasonView.setText(String.format(Locale.getDefault(),
+                "الفصل %s • الشهر %d/12 • يوم %d/%d • سنة كاملة = ساعة واحدة",
+                season, month, day % GameConfig.DAYS_PER_YEAR == 0
+                        ? GameConfig.DAYS_PER_YEAR : day % GameConfig.DAYS_PER_YEAR,
+                GameConfig.DAYS_PER_YEAR));
+        dayProgress.setProgress((int) (game.getDayProgress() * 100));
 
         eventAdapter.clear();
         for (GameEvent event : world.getRecentEvents(40)) {
@@ -261,47 +295,56 @@ public class MainActivity extends Activity {
         eventAdapter.notifyDataSetChanged();
         islandView.invalidate();
 
-        candidates = game.getRulerCandidates();
-        int pages = Math.max(1, (candidates.size() + CANDIDATES_PER_PAGE - 1)
-                / CANDIDATES_PER_PAGE);
-        if (candidatePage >= pages) {
-            candidatePage = 0;
+        candidates.clear();
+        candidates.addAll(game.getRulerCandidates());
+        if (currentTab == 1) {
+            refreshPeopleList();
         }
-        refreshCandidateButtons();
     }
 
-    private void refreshCandidateButtons() {
+    private void refreshPeopleList() {
         StringBuilder signature = new StringBuilder();
-        int start = candidatePage * CANDIDATES_PER_PAGE;
-        for (int i = 0; i < CANDIDATES_PER_PAGE; i++) {
-            int index = start + i;
-            if (index < candidates.size()) {
-                Citizen citizen = candidates.get(index);
-                signature.append(citizen.getId()).append(':')
-                        .append(citizen.getJob()).append(':')
-                        .append(citizen.getGender()).append(';');
-            } else {
-                signature.append("-;");
-            }
+        for (Citizen citizen : candidates) {
+            signature.append(citizen.getId()).append(':').append(citizen.getJob())
+                    .append(':').append(citizen.isPregnant()).append(';');
         }
         String value = signature.toString();
-        if (value.equals(candidateSignature)) {
+        if (value.equals(peopleSignature)) {
             return;
         }
-        candidateSignature = value;
+        peopleSignature = value;
+        peopleList.removeAllViews();
 
-        for (int i = 0; i < CANDIDATES_PER_PAGE; i++) {
-            ImageButton button = candidateButtons.get(i);
-            int index = start + i;
-            if (index >= candidates.size()) {
-                button.setVisibility(View.INVISIBLE);
-                continue;
-            }
-            final Citizen citizen = candidates.get(index);
-            button.setVisibility(View.VISIBLE);
-            button.setContentDescription(citizen.getName());
-            button.setImageDrawable(PixelIcons.portrait(this, citizen));
-            button.setOnClickListener(v -> {
+        int portraitSize = Math.round(46 * getResources().getDisplayMetrics().density);
+        for (final Citizen citizen : candidates) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setPadding(6, 6, 6, 6);
+            row.setBackgroundResource(android.R.drawable.list_selector_background);
+
+            ImageView portrait = new ImageView(this);
+            LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
+                    portraitSize, portraitSize);
+            portrait.setLayoutParams(imageParams);
+            portrait.setImageDrawable(PixelIcons.portrait(this, citizen));
+            portrait.setAdjustViewBounds(false);
+            portrait.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            row.addView(portrait);
+
+            TextView info = new TextView(this);
+            LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(
+                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            info.setLayoutParams(textParams);
+            info.setTextColor(0xFFFFFFFF);
+            info.setTextSize(12f);
+            String status = citizen.isPregnant()
+                    ? "حامل • يوم " + citizen.getGestationDay(game.getWorld().getDay())
+                            + "/" + GameConfig.GESTATION_DAYS
+                    : arabicJob(citizen.getJob()) + " • " + citizen.getAgeYears() + " سنة";
+            info.setText(citizen.getName() + "\n" + status);
+            row.addView(info);
+
+            row.setOnClickListener(v -> {
                 if (game.chooseRuler(citizen.getId())) {
                     showHint("تم تعيين " + citizen.getName() + " حاكمًا للجزيرة.");
                 } else {
@@ -309,19 +352,19 @@ public class MainActivity extends Activity {
                 }
                 refreshUi();
             });
+            peopleList.addView(row);
         }
     }
 
     private String citizenExplanation(Citizen citizen) {
-        return String.format(Locale.getDefault(),
-                "%s — %s • %s • %d سنة • صحة %.0f • سعادة %.0f • فكرة: %s.%nاضغط على وجهه في الأعلى لتعيينه حاكمًا.",
-                citizen.getName(),
-                citizen.getRace().getDescription(),
-                arabicJob(citizen.getJob()),
-                citizen.getAgeYears(),
-                citizen.getHealth(),
-                citizen.getHappiness(),
-                citizen.getIdea().getDisplayName());
+        String state = citizen.isPregnant()
+                ? "حامل في يوم " + citizen.getGestationDay(game.getWorld().getDay())
+                        + " من " + GameConfig.GESTATION_DAYS
+                        + " — ستلد بعد ثلاثة فصول."
+                : arabicJob(citizen.getJob()) + " • " + citizen.getAgeYears() + " سنة • صحة "
+                        + (int) citizen.getHealth() + " • سعادة " + (int) citizen.getHappiness();
+        return citizen.getName() + " — " + citizen.getRace().getDescription()
+                + "\n" + state + ". اضغط وجهه في تبويب السكان لتعيينه حاكمًا.";
     }
 
     private String tileExplanation(int x, int y) {
@@ -346,20 +389,16 @@ public class MainActivity extends Activity {
                     detail = "أرض عشبية صالحة للمشي والبناء.";
                     break;
                 case FOREST:
-                    detail = "غابة — الحطّابون يقطعون هنا الخشب. المخزون: "
-                            + tile.getResource() + ".";
+                    detail = "غابة — الحطّابون يقطعون هنا الخشب. المخزون: " + tile.getResource() + ".";
                     break;
                 case ORCHARD:
-                    detail = "بستان — جامعو الفواكه يأخذون هنا الطعام. المخزون: "
-                            + tile.getResource() + ".";
+                    detail = "بستان — جامعو الفواكه يأخذون هنا الطعام. المخزون: " + tile.getResource() + ".";
                     break;
                 case MOUNTAIN:
-                    detail = "جبل — المنقّبون يستخرجون الحجر والخام. المخزون: "
-                            + tile.getResource() + ".";
+                    detail = "جبل — المنقّبون يستخرجون الحجر والخام. المخزون: " + tile.getResource() + ".";
                     break;
                 case CAVE:
-                    detail = "كهف — هنا تُوجد معادن نادرة وجذور قديمة. المخزون: "
-                            + tile.getResource() + ".";
+                    detail = "كهف — هنا تُوجد معادن نادرة وجذور قديمة. المخزون: " + tile.getResource() + ".";
                     break;
                 default:
                     detail = "أرض عادية.";

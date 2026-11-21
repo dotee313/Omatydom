@@ -75,7 +75,7 @@ public final class World {
                     race,
                     pick(Religion.values(), random),
                     pick(Ideology.values(), random),
-                    ageYears * 365
+                    ageYears * GameConfig.DAYS_PER_YEAR
             );
             citizen.setJob(job);
             citizen.setOccupation(job.getDisplayName());

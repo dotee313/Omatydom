@@ -28,7 +28,21 @@ public final class GameConfig {
     public static final double TAX_PER_CITIZEN = 0.12;
     /** Cost of roads, guards and clerks per citizen, per day. */
     public static final double ADMIN_COST_PER_CITIZEN = 0.08;
-    public static final double BIRTH_RATE_PER_CITIZEN = 0.003;
+
+    // Calendar: 12 months of 30 days, four seasons of 90 days.
+    // One full game year takes exactly one real hour at speed x1.
+    public static final int DAYS_PER_YEAR = 360;
+    public static final int DAYS_PER_SEASON = 90;
+    public static final int DAYS_PER_MONTH = 30;
+    public static final long YEAR_REAL_MILLIS = 3_600_000L;
+    public static final long MILLIS_PER_GAME_DAY = YEAR_REAL_MILLIS / DAYS_PER_YEAR;
+    public static final int UI_TICK_MILLIS = 500;
+
+    // Pregnancy: a woman carries one child for three seasons (270 days),
+    // then rests for a full year before she can conceive again.
+    public static final int GESTATION_DAYS = 3 * DAYS_PER_SEASON;
+    public static final int MIN_BIRTH_SPACING_DAYS = DAYS_PER_YEAR;
+    public static final double CONCEPTION_CHANCE_PER_DAY = 0.0014;
 
     public static final String RULER_TITLE = "Leader of Omatydom";
 

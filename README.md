@@ -13,27 +13,32 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 ## Download & play right now / التنزيل والتجربة
 
 **رابط التحميل المباشر للتطبيق (APK):**  
-https://github.com/dotee313/Omatydom/releases/download/v0.3.0/omatydom-0.3.0-debug.apk
+https://github.com/dotee313/Omatydom/releases/download/v0.4.0/omatydom-0.4.0-debug.apk
 
-افتح الرابط من جوالك، حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. الشاشة الآن كلها أيقونات: اضغط أي أيقونة لتنفيذ أمرها، واضغط أي شخص أو قطعة أرض في الجزيرة لتظهر لك معلومات بسيطة عنها لمدة ٣ ثوانٍ. يعمل على Android 5.0 أو أحدث.
+افتح الرابط من جوالك، حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. التصميم الآن أنظف: أربع صفحات (الجزيرة، السكان، المراسيم، الأحداث) تتنقل بينها بقائمة سفلية من الأيقونات، وكل ضغطة على أيقونة أو شخص أو أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ. السنة الكاملة في اللعبة تساوي ساعة واحدة من الوقت الحقيقي عند السرعة x1. يعمل على Android 5.0 أو أحدث.
 
-صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.3.0
+صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.4.0
 
 > The APK is debug-signed and intended for play-testing. Your phone may ask you to allow installation from unknown sources.
 
 ---
 
-## What's new in v0.3.0 — "Pixel Island"
+## What's new in v0.4.0 — "Realistic Island"
 
-A full visual and interaction redesign, built for cheap phone rendering:
+A cleaner, deeper update built on top of v0.3.0:
 
-- **Real pixel people** — citizens are now tiny 6×7 pixel characters: hair, face, eyes, coloured clothes and legs. Rulers get a gold crown; race colour paints the skin and job colour paints the clothes. No sprites, no textures, no anti-aliasing.
-- **Non-circular island** — the coastline is a rounded square warped by smooth noise, so it has coves, headlands and soft corners instead of being a disc.
-- **Pixel terrain and buildings** — water ripples, grass tufts, trees, fruit, mountain peaks, cave mouths, huts, temples, towers, docks and mines are all drawn from a few flat rectangles.
-- **Icons instead of text** — pause, speed, control, assassination, all eight decrees and ruler candidates are hand-made pixel icons generated in code (`PixelIcons.java`).
-- **3-second explanations** — tap any icon, person or tile and a short Arabic explanation appears for exactly 3 seconds, then disappears by itself.
-- **Candidate portraits** — the ruler candidates row shows small pixel faces you can tap to appoint, with an arrow to browse more candidates.
+- **Cleaner layout with a bottom navigation bar** — four icon tabs: island, people, decrees and chronicle. Top status, season bar and 3-second hint stay visible while the pages swap underneath.
+- **Icons from the supplied art pack** — the bottom bar and all eight decree icons are real PNGs taken from `worldbox-diplomacy-overhaul-0.14.0` and shipped as tiny `drawable-nodpi` assets; no runtime downloads.
+- **More believable pixel people** — characters are now 10×14 shaded sprites with hair, face highlights, eyes, nose, mouth, boots, arms, belts and a different tool for every job (axe, pick, rod, bow, staff, basket, coins). Rulers wear a gold crown; pregnant women have a rounded belly.
+- **Portraits in the people tab** — every candidate gets a 12×12 shaded face generated in `PixelIcons.java`, tappable to appoint as ruler.
+- **Real-time calendar** — 12 months of 30 days and four seasons of 90 days. One full game year = exactly one real hour at speed x1 (10 seconds per day); `x2`/`x3` are faster.
+- **Nine-month pregnancy** — a woman can carry only one child at a time. Conception takes 270 game days (three seasons / nine months), then she rests a full year before conceiving again. The people tab and tap hints show the exact day of pregnancy.
 - **Same living simulation underneath** — jobs, classes, races, religions, ideologies, ideas, wildlife, politics, successions, coups and random events are unchanged.
+
+## Earlier: v0.3.0 — "Pixel Island"
+
+- First pixel-art redesign: shaded 6×7 citizens, rounded-square noise-warped island, pixel terrain and code-generated icons.
+- All choices became icons and any tap showed a 3-second Arabic explanation.
 
 ## Earlier: v0.2.0 — "The Living Island"
 
@@ -89,7 +94,7 @@ The front-ends never contain game rules. They only call `OmatydomGame` and rende
 
 ---
 
-## Project layout (v0.3.0)
+## Project layout (v0.4.0)
 
 ```
 Omatydom/
@@ -129,7 +134,8 @@ Omatydom/
         │   ├── IslandView.java
         │   ├── PixelIcons.java
         │   └── EventAdapter.java
-        └── res/layout/activity_main.xml, event_item.xml
+        ├── res/layout/activity_main.xml, event_item.xml
+        └── res/drawable-nodpi/*.png   (icons from the supplied art pack)
 ```
 
 ---
@@ -196,9 +202,11 @@ gradle :desktop:run --args="42"     # reproducible island
 
 **أوماتيدوم** لعبة محاكاة حياة على جزيرة، حيث تراقب مجتمعًا حيًا وتشكّله. الزمن يمضي تلقائيًا، ولك أن تتدخل أو تترك الأحداث تجري من نفسها.
 
-في التحديث الجديد الجزيرة ليست دائرية بل شكلها مربع مدوّر فيه خلجان ورؤوس عشوائية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، وكل واحد منهم الآن **شخصية بكسلية صغيرة** لها شعر وعينان وملابس بلون المهنة، والحاكم يرتدي تاجًا ذهبيًا. الرسم كله مستطيلات مسطّحة بلا صور ولا تأثيرات ثقيلة حتى لا يثقل الهاتف. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال. هناك أيضًا طبقات اجتماعية وأفكار تنتقل بين الجيران.
+الجزيرة ليست دائرية بل مربع مدوّر فيه خلجان ورؤوس عشوائية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، وكل واحد منهم الآن **شخصية بكسلية أوضح وأكثر واقعية** (١٠×١٤ بكسل): شعر، وجه مضلّل، عينان، أنف، فم، ذراعان، حزام، حذاء، وأداة تختلف حسب المهنة (فأس، معول، صنارة، قوس، عصا، سلة، عملة). الحاكم يرتدي تاجًا ذهبيًا، والمرأة الحامل يظهر بطنها. الأيقونات مأخوذة من الملف الذي أرسلته ومحفوظة داخل التطبيق. الرسم مستطيلات مسطّحة خفيفة على الهاتف. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال.
 
-التحكم صار بالأيقونات فقط: اضغط أيقونة الإيقاف أو السرعة أو التولّي أو الاغتيال، واضغط أي مرسوم من الصف الأول، واضغط وجهًا من صف المرشحين لتعيينه حاكمًا. وأي ضغطة على أيقونة أو شخص أو قطعة أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ ثم يختفي تلقائيًا.
+الواجهة صارت أنظف: شريط علوي للمعلومات والفصل، وأربع صفحات تتنقل بينها **قائمة سفلية بالأيقونات**: الجزيرة، السكان، المراسيم، الأحداث. اضغط أي وجه في صفحة السكان لتعيينه حاكمًا. وأي ضغطة على أيقونة أو شخص أو قطعة أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ ثم يختفي تلقائيًا.
+
+**الزمن والحمل:** السنة في اللعبة = ٤ فصول × ٩٠ يومًا = ٣٦٠ يومًا، وتستغرق **ساعة واحدة** من الوقت الحقيقي عند السرعة x1 (كل يوم = ١٠ ثوانٍ). المرأة تحمل مرة واحدة فقط، ويستغرق الحمل **٣ فصول = ٩ أشهر = ٢٧٠ يومًا**، ثم ترتاح سنة كاملة قبل حمل جديد. تجد اليوم الحالي للمرة الحامل في صفحة السكان وفي شرح الضغط عليها.
 
 التحكم التجريبي: افتح المشروع في Android وشغّل `app`، أو جرّب `gradle :desktop:run --args="42"` ثم اكتب `map` لرؤية الجزيرة و`agents` لرؤية العمال.
 

@@ -31,6 +31,7 @@ public final class OmatydomGame {
     private boolean paused;
     private int speed = 1;
     private boolean playerControlsRuler;
+    private double dayAccumulator;
 
     private OmatydomGame(World world, Random random) {
         this.world = world;
@@ -74,14 +75,40 @@ public final class OmatydomGame {
     // Time control
     // ------------------------------------------------------------------
 
-    /** Advance the clock by one tick (which may be several days). */
+    /**
+     * Advance real time. At speed x1 one full game year takes exactly one hour:
+     * 360 days × 10 seconds. The Android UI calls this every 500 ms.
+     */
     public void tick() {
         if (paused) {
             return;
         }
-        for (int i = 0; i < speed; i++) {
+        dayAccumulator += (GameConfig.UI_TICK_MILLIS * (double) speed)
+                / GameConfig.MILLIS_PER_GAME_DAY;
+        while (dayAccumulator >= 1.0) {
+            engine.advanceDay();
+            dayAccumulator -= 1.0;
+        }
+    }
+
+    /** Advance the simulation by an exact number of game days (CLI / tests). */
+    public void advanceDays(int days) {
+        for (int i = 0; i < days; i++) {
             engine.advanceDay();
         }
+    }
+
+    /** 0..1 progress towards the next game day, for the UI clock bar. */
+    public double getDayProgress() {
+        return Math.max(0.0, Math.min(1.0, dayAccumulator));
+    }
+
+    public static int seasonOf(int day) {
+        return ((Math.max(1, day) - 1) / GameConfig.DAYS_PER_SEASON) % 4;
+    }
+
+    public static int monthOf(int day) {
+        return ((Math.max(1, day) - 1) / GameConfig.DAYS_PER_MONTH) % 12 + 1;
     }
 
     public boolean isPaused() {

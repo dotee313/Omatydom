@@ -11,7 +11,7 @@ import com.dotee313.omatydom.core.model.Citizen;
 import com.dotee313.omatydom.core.model.Gender;
 import com.dotee313.omatydom.core.model.Job;
 
-/** Tiny hand-made pixel icons. No image assets, no anti-aliasing, almost no memory. */
+/** Top-bar pixel controls plus detailed little portraits. */
 final class PixelIcons {
 
     enum Control { PAUSE, SPEED, CONTROL, ASSASSINATE, NEXT }
@@ -76,110 +76,12 @@ final class PixelIcons {
             "........."
     };
 
-    private static final String[] FESTIVAL = {
-            "....K....",
-            "...YKY...",
-            "..YYYYY..",
-            "..YWWWY..",
-            "..YWWWY..",
-            "..YYYYY..",
-            "...YYY...",
-            "....Y....",
-            "........."
-    };
-
-    private static final String[] TAX_CUT = {
-            ".........",
-            "..YYYYY..",
-            ".YWWWWWY.",
-            ".YWKKKWY.",
-            ".YWKKKWY.",
-            ".YWWWWWY.",
-            "..YYYYY..",
-            ".........",
-            "........."
-    };
-
-    private static final String[] TAX_RAISE = {
-            ".........",
-            "..YYYYY..",
-            ".YWWWWWY.",
-            ".YWKWKWY.",
-            ".YWKKKWY.",
-            ".YWKWKWY.",
-            ".YWWWWWY.",
-            "..YYYYY..",
-            "........."
-    };
-
-    private static final String[] TEMPLE = {
-            "....Y....",
-            "...YYY...",
-            "..YYYYY..",
-            ".WWWWWWW.",
-            ".WKWWWKW.",
-            ".WWWWWWW.",
-            ".NNNNNNN.",
-            ".NNNNNNN.",
-            "........."
-    };
-
-    private static final String[] AMNESTY = {
-            ".........",
-            ".PP...PP.",
-            "PPPPP.PPP",
-            "PPPPPPPPP",
-            ".PPPPPPP.",
-            "..PPPPP..",
-            "...PPP...",
-            "....P....",
-            "........."
-    };
-
-    private static final String[] CONSCRIPTION = {
-            ".........",
-            "..GGGGG..",
-            ".GGWWWGG.",
-            ".GGWWWGG.",
-            "..GGGGG..",
-            "...GGG...",
-            "....K....",
-            "...KKK...",
-            "........."
-    };
-
-    private static final String[] FREE_TRADE = {
-            ".........",
-            "....N....",
-            "...NNN...",
-            "..NNNNN..",
-            ".NNNNNNN.",
-            "NNNNNNNNN",
-            "..BBBBB..",
-            "...BBB...",
-            "........."
-    };
-
-    private static final String[] CRACKDOWN = {
-            "...GGG...",
-            "..GKKKG..",
-            ".GKKKKKG.",
-            ".GKWWWKG.",
-            ".GKKKKKG.",
-            "..GKKKG..",
-            "...GGG...",
-            "...GGG...",
-            "........."
-    };
-
     private PixelIcons() {
         // utility class
     }
 
     static Drawable control(Context context, Control control) {
         switch (control) {
-            case PAUSE:
-                return pattern(context, PAUSE);
             case SPEED:
                 return pattern(context, SPEED);
             case CONTROL:
@@ -188,59 +90,92 @@ final class PixelIcons {
                 return pattern(context, DAGGER);
             case NEXT:
                 return pattern(context, NEXT);
+            case PAUSE:
             default:
                 return pattern(context, PAUSE);
         }
     }
 
-    static Drawable decree(Context context, Decree decree) {
+    /** Decree icons come from the supplied WorldBox diplomacy art pack. */
+    static int decreeImage(Decree decree) {
         switch (decree) {
             case FESTIVAL:
-                return pattern(context, FESTIVAL);
+                return R.drawable.decree_festival;
             case TAX_CUT:
-                return pattern(context, TAX_CUT);
+                return R.drawable.decree_tax_cut;
             case TAX_RAISE:
-                return pattern(context, TAX_RAISE);
+                return R.drawable.decree_tax_raise;
             case BUILD_TEMPLE:
-                return pattern(context, TEMPLE);
+                return R.drawable.decree_temple;
             case AMNESTY:
-                return pattern(context, AMNESTY);
+                return R.drawable.decree_amnesty;
             case CONSCRIPTION:
-                return pattern(context, CONSCRIPTION);
+                return R.drawable.decree_conscription;
             case FREE_TRADE:
-                return pattern(context, FREE_TRADE);
+                return R.drawable.decree_free_trade;
             case CRACKDOWN:
-                return pattern(context, CRACKDOWN);
+                return R.drawable.decree_crackdown;
             default:
-                return pattern(context, FESTIVAL);
+                return R.drawable.decree_festival;
         }
     }
 
-    /** A 9×9 face built from race, gender and job colours. */
+    /** A 12×12 shaded bust: skin tone, hair, eyes, clothing and crown. */
     static Drawable portrait(Context context, Citizen citizen) {
-        int size = 9;
+        int size = 12;
         int[] pixels = new int[size * size];
-        int dark = 0xFF212121;
-        int hair = citizen.getGender() == Gender.FEMALE ? 0xFF6D4C41 : 0xFF3E2723;
-        int skin = citizen.getRace().getColor();
+        int skin = mix(citizen.getRace().getColor(), 0xFFD8A47C, 0.48f);
+        int skinDark = shade(skin, 0.72f);
+        int skinLight = mix(skin, 0xFFFFFFFF, 0.22f);
+        int hair = citizen.getAgeYears() > 55 ? 0xFF9E9E9E
+                : (citizen.getGender() == Gender.FEMALE ? 0xFF5D4037 : 0xFF3E2723);
+        int hairLight = mix(hair, 0xFFFFFFFF, 0.18f);
         int cloth = citizen.getJob().getColor();
+        int clothDark = shade(cloth, 0.68f);
+        int eye = 0xFF202124;
 
-        rect(pixels, size, 2, 2, 6, 5, skin);
-        rect(pixels, size, 1, 1, 7, 2, hair);
-        rect(pixels, size, 2, 3, 2, 4, hair);
-        rect(pixels, size, 6, 3, 6, 4, hair);
+        fill(pixels, 0x00000000);
+
+        // Hair mass and ears.
+        rect(pixels, size, 2, 1, 9, 2, hair);
+        rect(pixels, size, 3, 0, 8, 0, hairLight);
+        rect(pixels, size, 1, 4, 1, 6, skinDark);
+        rect(pixels, size, 10, 4, 10, 6, skinDark);
+
+        // Face with a light side and a shaded side.
+        rect(pixels, size, 2, 3, 9, 7, skin);
+        rect(pixels, size, 2, 3, 3, 7, skinDark);
+        rect(pixels, size, 8, 3, 9, 7, skinDark);
+        rect(pixels, size, 4, 4, 7, 6, skinLight);
+
+        // Eyes, nose and mouth.
+        set(pixels, size, 4, 4, eye);
+        set(pixels, size, 7, 4, eye);
+        set(pixels, size, 4, 5, 0xFFFFFFFF);
+        set(pixels, size, 7, 5, 0xFFFFFFFF);
+        set(pixels, size, 6, 5, skinDark);
+        rect(pixels, size, 5, 6, 6, 6, shade(skinDark, 0.8f));
+
+        // Longer hair for women.
         if (citizen.getGender() == Gender.FEMALE) {
-            rect(pixels, size, 1, 2, 1, 5, hair);
-            rect(pixels, size, 7, 2, 7, 5, hair);
+            rect(pixels, size, 1, 3, 1, 8, hair);
+            rect(pixels, size, 10, 3, 10, 8, hair);
         }
-        rect(pixels, size, 3, 4, 3, 4, dark);
-        rect(pixels, size, 5, 4, 5, 4, dark);
-        rect(pixels, size, 2, 6, 6, 7, cloth);
-        rect(pixels, size, 3, 8, 3, 8, dark);
-        rect(pixels, size, 5, 8, 5, 8, dark);
+
+        // Neck and shoulders.
+        rect(pixels, size, 5, 8, 6, 8, skinDark);
+        rect(pixels, size, 2, 9, 9, 11, cloth);
+        rect(pixels, size, 2, 9, 3, 11, clothDark);
+        rect(pixels, size, 8, 9, 9, 11, clothDark);
+        rect(pixels, size, 5, 10, 6, 10, shade(cloth, 1.25f));
+
         if (citizen.getJob() == Job.RULER) {
-            rect(pixels, size, 2, 0, 6, 0, 0xFFFFD54F);
+            rect(pixels, size, 2, 0, 9, 0, 0xFFFFD54F);
             rect(pixels, size, 4, 1, 4, 1, 0xFFFFD54F);
+            rect(pixels, size, 7, 1, 7, 1, 0xFFFFD54F);
+        }
+        if (citizen.isPregnant()) {
+            rect(pixels, size, 4, 10, 7, 11, mix(cloth, 0xFFE57373, 0.35f));
         }
         return fromPixels(context, size, size, pixels);
     }
@@ -266,24 +201,46 @@ final class PixelIcons {
             case 'W': return 0xFFFFFFFF;
             case 'Y': return 0xFFFFD54F;
             case 'G': return 0xFF9E9E9E;
-            case 'R': return 0xFFE53935;
             case 'B': return 0xFF42A5F5;
-            case 'O': return 0xFFFB8C00;
             case 'P': return 0xFFAB47BC;
             case 'N': return 0xFF8D6E63;
-            case 'L': return 0xFF66BB6A;
             default: return Color.TRANSPARENT;
+        }
+    }
+
+    private static void fill(int[] pixels, int color) {
+        for (int i = 0; i < pixels.length; i++) {
+            pixels[i] = color;
         }
     }
 
     private static void rect(int[] pixels, int width, int x0, int y0, int x1, int y1, int color) {
         for (int y = y0; y <= y1; y++) {
             for (int x = x0; x <= x1; x++) {
-                if (x >= 0 && y >= 0 && x < width && y * width + x < pixels.length) {
-                    pixels[y * width + x] = color;
-                }
+                set(pixels, width, x, y, color);
             }
         }
+    }
+
+    private static void set(int[] pixels, int width, int x, int y, int color) {
+        if (x >= 0 && y >= 0 && x < width && y * width + x < pixels.length) {
+            pixels[y * width + x] = color;
+        }
+    }
+
+    private static int shade(int color, float factor) {
+        int r = Math.min(255, Math.round(Color.red(color) * factor));
+        int g = Math.min(255, Math.round(Color.green(color) * factor));
+        int b = Math.min(255, Math.round(Color.blue(color) * factor));
+        return Color.argb(Color.alpha(color), r, g, b);
+    }
+
+    private static int mix(int a, int b, float weightOfB) {
+        float w = Math.max(0f, Math.min(1f, weightOfB));
+        int r = Math.round(Color.red(a) * (1 - w) + Color.red(b) * w);
+        int g = Math.round(Color.green(a) * (1 - w) + Color.green(b) * w);
+        int bl = Math.round(Color.blue(a) * (1 - w) + Color.blue(b) * w);
+        return Color.argb(255, r, g, bl);
     }
 
     private static Drawable fromPixels(Context context, int width, int height, int[] pixels) {

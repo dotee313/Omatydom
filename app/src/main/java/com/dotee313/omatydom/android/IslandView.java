@@ -2,6 +2,7 @@ package com.dotee313.omatydom.android;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -19,7 +20,7 @@ import com.dotee313.omatydom.core.world.Structure;
 import com.dotee313.omatydom.core.world.Tile;
 import com.dotee313.omatydom.core.world.TileType;
 
-/** Cheap pixel-art renderer: flat tiles, tiny pixel people, no textures or sprites. */
+/** Cheap detailed sprite renderer: shaded low-res people drawn from rectangles. */
 public class IslandView extends View {
 
     public interface OnThingTappedListener {
@@ -232,37 +233,164 @@ public class IslandView extends View {
         Citizen citizen = agent.getCitizen();
         float cx = offsetX + agent.getX() * cell + cell / 2f;
         float cy = offsetY + agent.getY() * cell + cell / 2f;
-        float unit = Math.max(1f, cell / 8f);
-        int px = Math.round(cx - 3 * unit);
-        int py = Math.round(cy - 3.5f * unit);
-        int u = Math.max(1, Math.round(unit));
-        int skin = citizen.getRace().getColor();
-        int cloth = citizen.getJob().getColor();
-        int hair = citizen.getGender() == Gender.FEMALE ? 0xFF6D4C41 : 0xFF3E2723;
+        int u = Math.max(1, Math.round(Math.max(1f, cell / 13f)));
+        int px = Math.round(cx - 5 * u);
+        int py = Math.round(cy - 7 * u);
 
-        // Crown for the ruler, otherwise a simple hair row.
-        paint.setColor(citizen.getJob() == Job.RULER ? 0xFFFFD54F : hair);
-        pixelRect(canvas, px, py, u, 1, 4, 0, 1);
-        paint.setColor(skin);
-        pixelRect(canvas, px, py, u, 1, 4, 1, 4);
-        paint.setColor(0xFF212121);
-        pixelRect(canvas, px, py, u, 1, 1, 2, 3);
-        pixelRect(canvas, px, py, u, 3, 3, 2, 3);
-        paint.setColor(cloth);
-        pixelRect(canvas, px, py, u, 1, 4, 4, 6);
-        pixelRect(canvas, px, py, u, 0, 0, 4, 5);
-        pixelRect(canvas, px, py, u, 5, 5, 4, 5);
+        int age = citizen.getAgeYears();
+        int skin = mix(citizen.getRace().getColor(), 0xFFD8A47C, 0.48f);
+        int skinDark = shade(skin, 0.72f);
+        int skinLight = mix(skin, 0xFFFFFFFF, 0.22f);
+        int cloth = citizen.getJob().getColor();
+        int clothDark = shade(cloth, 0.68f);
+        int hair = age > 55 ? 0xFF9E9E9E
+                : (citizen.getGender() == Gender.FEMALE ? 0xFF5D4037 : 0xFF3E2723);
+
+        // Soft ground shadow.
+        paint.setColor(0x44202A30);
+        canvas.drawRect(px + 2 * u, py + 13 * u, px + 8 * u, py + 14 * u, paint);
+
+        // Boots and legs.
+        paint.setColor(0xFF37474F);
+        pixelRect(canvas, px, py, u, 3, 4, 11, 12);
+        pixelRect(canvas, px, py, u, 6, 7, 11, 12);
         paint.setColor(0xFF263238);
-        pixelRect(canvas, px, py, u, 1, 1, 6, 7);
-        pixelRect(canvas, px, py, u, 3, 3, 6, 7);
+        pixelRect(canvas, px, py, u, 2, 4, 13, 13);
+        pixelRect(canvas, px, py, u, 6, 8, 13, 13);
+
+        // Torso with a shaded side and belt.
+        paint.setColor(cloth);
+        pixelRect(canvas, px, py, u, 2, 7, 7, 10);
+        paint.setColor(clothDark);
+        pixelRect(canvas, px, py, u, 2, 3, 7, 10);
+        pixelRect(canvas, px, py, u, 7, 8, 7, 10);
+        paint.setColor(0xFF4E342E);
+        pixelRect(canvas, px, py, u, 2, 7, 9, 9);
+
+        // Neck, head and face shading.
+        paint.setColor(skinDark);
+        pixelRect(canvas, px, py, u, 5, 6, 6, 6);
+        paint.setColor(skin);
+        pixelRect(canvas, px, py, u, 3, 8, 2, 6);
+        paint.setColor(skinDark);
+        pixelRect(canvas, px, py, u, 1, 2, 4, 5);
+        pixelRect(canvas, px, py, u, 9, 9, 4, 5);
+        pixelRect(canvas, px, py, u, 8, 8, 2, 6);
+        paint.setColor(skinLight);
+        pixelRect(canvas, px, py, u, 4, 6, 3, 5);
+
+        // Hair, eyes and mouth.
+        paint.setColor(hair);
+        pixelRect(canvas, px, py, u, 3, 8, 0, 1);
+        pixelRect(canvas, px, py, u, 2, 2, 1, 3);
+        if (citizen.getGender() == Gender.FEMALE) {
+            pixelRect(canvas, px, py, u, 1, 1, 2, 7);
+            pixelRect(canvas, px, py, u, 9, 9, 2, 7);
+        }
+        paint.setColor(0xFF202124);
+        pixelRect(canvas, px, py, u, 4, 4, 3, 3);
+        pixelRect(canvas, px, py, u, 7, 7, 3, 3);
+        paint.setColor(shade(skinDark, 0.8f));
+        pixelRect(canvas, px, py, u, 5, 6, 5, 5);
+
+        // Arms, with a slight bend to avoid a stiff stick look.
+        paint.setColor(skin);
+        pixelRect(canvas, px, py, u, 1, 2, 7, 9);
+        pixelRect(canvas, px, py, u, 8, 9, 7, 9);
+        paint.setColor(skinDark);
+        pixelRect(canvas, px, py, u, 1, 1, 9, 10);
+        pixelRect(canvas, px, py, u, 9, 9, 9, 10);
+
+        // A pregnant woman has a visibly rounded belly.
+        if (citizen.isPregnant()) {
+            paint.setColor(mix(cloth, 0xFFE57373, 0.32f));
+            pixelRect(canvas, px, py, u, 3, 6, 8, 10);
+        }
+
+        drawJobTool(canvas, px, py, u, citizen.getJob());
 
         if (citizen.getId() == selectedCitizenId) {
             paint.setColor(0xFFFFFFFF);
-            canvas.drawRect(px - u, py - u, px + 6 * u + u, py - u + u, paint);
-            canvas.drawRect(px - u, py + 8 * u, px + 6 * u + u, py + 8 * u + u, paint);
-            canvas.drawRect(px - u, py, px, py + 8 * u, paint);
-            canvas.drawRect(px + 6 * u, py, px + 6 * u + u, py + 8 * u, paint);
+            canvas.drawRect(px - u, py - u, px + 10 * u + u, py - u + u, paint);
+            canvas.drawRect(px - u, py + 14 * u, px + 10 * u + u, py + 14 * u + u, paint);
+            canvas.drawRect(px - u, py, px, py + 14 * u, paint);
+            canvas.drawRect(px + 10 * u, py, px + 10 * u + u, py + 14 * u, paint);
         }
+    }
+
+    private void drawJobTool(Canvas canvas, int px, int py, int u, Job job) {
+        switch (job) {
+            case RULER:
+                paint.setColor(0xFFFFD54F);
+                pixelRect(canvas, px, py, u, 3, 7, 0, 0);
+                pixelRect(canvas, px, py, u, 4, 4, 1, 1);
+                pixelRect(canvas, px, py, u, 6, 6, 1, 1);
+                break;
+            case WOODCUTTER:
+                paint.setColor(0xFF8D6E63);
+                pixelRect(canvas, px, py, u, 0, 0, 6, 11);
+                paint.setColor(0xFFB0BEC5);
+                pixelRect(canvas, px, py, u, 0, 2, 6, 7);
+                break;
+            case MINER:
+                paint.setColor(0xFF8D6E63);
+                pixelRect(canvas, px, py, u, 0, 0, 5, 11);
+                paint.setColor(0xFF9E9E9E);
+                pixelRect(canvas, px, py, u, 0, 3, 4, 5);
+                break;
+            case FISHER:
+                paint.setColor(0xFF90A4AE);
+                pixelRect(canvas, px, py, u, 0, 0, 2, 11);
+                paint.setColor(0xFF4FC3F7);
+                pixelRect(canvas, px, py, u, 0, 1, 12, 12);
+                break;
+            case HUNTER:
+                paint.setColor(0xFF6D4C41);
+                pixelRect(canvas, px, py, u, 9, 9, 2, 12);
+                paint.setColor(0xFFD7CCC8);
+                pixelRect(canvas, px, py, u, 8, 10, 1, 2);
+                break;
+            case PRIEST:
+                paint.setColor(0xFFD7CCC8);
+                pixelRect(canvas, px, py, u, 0, 0, 2, 12);
+                paint.setColor(0xFFFFF59D);
+                pixelRect(canvas, px, py, u, 0, 1, 1, 2);
+                break;
+            case BUILDER:
+                paint.setColor(0xFF8D6E63);
+                pixelRect(canvas, px, py, u, 0, 0, 5, 11);
+                paint.setColor(0xFF9E9E9E);
+                pixelRect(canvas, px, py, u, 0, 2, 4, 5);
+                break;
+            case GATHERER:
+                paint.setColor(0xFFA1887F);
+                pixelRect(canvas, px, py, u, 8, 10, 10, 12);
+                paint.setColor(0xFF66BB6A);
+                pixelRect(canvas, px, py, u, 9, 9, 9, 9);
+                break;
+            case TRADER:
+                paint.setColor(0xFFFFD54F);
+                pixelRect(canvas, px, py, u, 0, 1, 9, 10);
+                break;
+            case LABORER:
+            default:
+                break;
+        }
+    }
+
+    private static int shade(int color, float factor) {
+        int r = Math.min(255, Math.round(Color.red(color) * factor));
+        int g = Math.min(255, Math.round(Color.green(color) * factor));
+        int b = Math.min(255, Math.round(Color.blue(color) * factor));
+        return Color.argb(Color.alpha(color), r, g, b);
+    }
+
+    private static int mix(int a, int b, float weightOfB) {
+        float w = Math.max(0f, Math.min(1f, weightOfB));
+        int r = Math.round(Color.red(a) * (1 - w) + Color.red(b) * w);
+        int g = Math.round(Color.green(a) * (1 - w) + Color.green(b) * w);
+        int bl = Math.round(Color.blue(a) * (1 - w) + Color.blue(b) * w);
+        return Color.argb(255, r, g, bl);
     }
 
     private void pixelRect(Canvas canvas, int px, int py, int u,
