@@ -14,4 +14,9 @@
     <color name="user_bar_start">#FF5A5450</color>
     <color name="user_bar_end">#FF373330</color>
     <color name="user_header_bg">#FF2E2A27</color>
+    <!-- Slate card surface and accents for the citizen dialog on light themes. -->
+    <color name="dialog_slate">#FF2F3A43</color>
+    <color name="dialog_slate_stroke">#FF65727B</color>
+    <color name="dialog_gold">#FFFFCA28</color>
+    <color name="dialog_red">#FFFF8A80</color>
 </resources>

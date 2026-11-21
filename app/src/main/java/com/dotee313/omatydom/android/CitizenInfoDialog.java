@@ -10,6 +10,8 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -48,10 +50,17 @@ public final class CitizenInfoDialog {
     public static final class Row {
         public final String label;
         public final String value;
+        public final int valueColor;
 
+        /** Backward-compatible constructor: values stay bright white. */
         public Row(String label, String value) {
+            this(label, value, 0);
+        }
+
+        public Row(String label, String value, int valueColor) {
             this.label = label == null ? "" : label;
             this.value = value == null ? "" : value;
+            this.valueColor = valueColor;
         }
     }
 
@@ -112,13 +121,13 @@ public final class CitizenInfoDialog {
         identity.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         TextView name = new TextView(activity);
         name.setText(citizen.getName());
-        name.setTextColor(0xFFFFF3E0);
+        name.setTextColor(0xFFFFFFFF);
         name.setTextSize(19f);
         name.setTypeface(null, Typeface.BOLD);
         identity.addView(name);
         TextView subtitleView = new TextView(activity);
         subtitleView.setText(subtitle);
-        subtitleView.setTextColor(0xFFB0BEC5);
+        subtitleView.setTextColor(0xFFD9CDBE);
         subtitleView.setTextSize(12f);
         subtitleView.setLineSpacing(1f, 1.12f);
         identity.addView(subtitleView);
@@ -169,8 +178,11 @@ public final class CitizenInfoDialog {
                 FrameLayout.LayoutParams.WRAP_CONTENT));
         root.addView(scroll);
 
+        SpannableString dialogTitle = new SpannableString("بطاقة السكان");
+        dialogTitle.setSpan(new ForegroundColorSpan(0xFFFFCA28), 0, dialogTitle.length(),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         AlertDialog dialog = new AlertDialog.Builder(activity)
-                .setTitle("بطاقة السكان")
+                .setTitle(dialogTitle)
                 .setView(root)
                 .setPositiveButton("تعيين حاكم", (d, which) -> {
                     d.dismiss();
@@ -181,6 +193,21 @@ public final class CitizenInfoDialog {
                 .setNegativeButton("إغلاق", null)
                 .create();
         dialog.show();
+
+        // The light application theme paints an opaque white window background;
+        // replace only that window background, leaving root transparent.
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawableResource(R.drawable.bg_dialog_slate);
+        }
+        Button appoint = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        if (appoint != null) {
+            appoint.setTextColor(0xFFFFCA28);
+        }
+        Button close = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        if (close != null) {
+            close.setTextColor(0xFFFFFFFF);
+        }
         return dialog;
     }
 
@@ -202,7 +229,8 @@ public final class CitizenInfoDialog {
         title.setTextColor(0xFFFFCA28);
         title.setTextSize(13f);
         title.setTypeface(null, Typeface.BOLD);
-        title.setPadding(dp(6f, density), 0, 0, 0);
+        title.setGravity(Gravity.START);
+        title.setPadding(dp(6f, density), 0, dp(6f, density), 0);
         heading.addView(title, new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         return heading;
@@ -211,9 +239,9 @@ public final class CitizenInfoDialog {
     private static View rowView(Activity activity, Row row, Section section, float density) {
         LinearLayout line = new LinearLayout(activity);
         line.setOrientation(LinearLayout.HORIZONTAL);
-        line.setGravity(Gravity.TOP);
+        line.setGravity(Gravity.TOP | Gravity.START);
         line.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        line.setPadding(dp(3f, density), dp(2f, density), 0, dp(2f, density));
+        line.setPadding(dp(3f, density), dp(2f, density), dp(3f, density), dp(2f, density));
 
         // Section accent stays as a slim bar; the badge itself is the new card art.
         View accent = new View(activity);
@@ -236,19 +264,21 @@ public final class CitizenInfoDialog {
         SpannableString text = new SpannableString(label + row.value);
         int labelEnd = label.length();
         if (labelEnd > 0) {
-            text.setSpan(new ForegroundColorSpan(0xFFB0BEC5), 0, labelEnd,
+            text.setSpan(new ForegroundColorSpan(0xFFD9CDBE), 0, labelEnd,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             text.setSpan(new StyleSpan(Typeface.BOLD), 0, labelEnd,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        text.setSpan(new ForegroundColorSpan(0xFFFFFFFF), labelEnd, text.length(),
+        int valueColor = row.valueColor != 0 ? row.valueColor : 0xFFFFFFFF;
+        text.setSpan(new ForegroundColorSpan(valueColor), labelEnd, text.length(),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         TextView value = new TextView(activity);
         value.setText(text);
+        value.setGravity(Gravity.START);
         value.setTextSize(11.5f);
         value.setLineSpacing(0f, 1.12f);
-        value.setPadding(dp(5f, density), 0, 0, 0);
+        value.setPadding(dp(5f, density), 0, dp(5f, density), 0);
         line.addView(value, new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         return line;

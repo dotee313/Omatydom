@@ -33,356 +33,649 @@ final class PixelIcons {
 
     private static final String[] PAUSE = {
             ".........",
-            ".KK...KK.",
-            ".KK...KK.",
-            ".KK...KK.",
-            ".KK...KK.",
-            ".KK...KK.",
-            ".KK...KK.",
-            ".KK...KK.",
+            "..WW.WW..",
+            "..WW.WW..",
+            "..WW.WW..",
+            "..WW.WW..",
+            "..WW.WW..",
+            "..WW.WW..",
+            "..WW.WW..",
             "........."
     };
 
     private static final String[] SPEED = {
             ".........",
-            "K....K...",
-            "KK...KK..",
-            "KKK..KKK.",
-            "KK...KK..",
-            "K....K...",
-            ".........",
-            ".........",
+            "W....W...",
+            "WW...WW..",
+            "WWW..WWW.",
+            "WWWW.WWWW",
+            "WWW..WWW.",
+            "WW...WW..",
+            "W....W...",
             "........."
     };
 
     private static final String[] CROWN = {
             ".........",
             "Y...Y...Y",
-            "YY..Y..YY",
+            "YY.YYY.YY",
             "YYYYYYYYY",
-            "YWYYYYYWY",
+            "YYRYBYRYY",
             "YYYYYYYYY",
-            ".YYYYYYY.",
-            ".YYYYYYY.",
+            "NNNNNNNNN",
+            ".........",
             "........."
     };
 
     private static final String[] DAGGER = {
-            ".........",
-            ".......K.",
-            "......KW.",
-            ".....KW..",
-            "....KW...",
-            "...KW....",
-            "..KK.....",
-            ".K.......",
-            "........."
+            "....F....",
+            "...WFW...",
+            "...WFW...",
+            "...WFW...",
+            "...WFW...",
+            ".YYYYYYY.",
+            "....N....",
+            "....N....",
+            "....Y...."
     };
 
     private static final String[] POWER_RAIN = {
-            "...WWW...", "..WWWWW..", ".WWWWWWW.", "WWWWWWWWW", ".........",
-            "..B.B.B..", ".B.B.B.B.", "..B.B.B..", "........."
+            ".........",
+            "...WWW...",
+            ".WWWWWWW.",
+            "WWWWWWWWW",
+            ".........",
+            ".B..B..B.",
+            ".B..B..B.",
+            "..B..B...",
+            "........."
     };
     private static final String[] POWER_BLOOM = {
-            "....G....", "...GGG...", "..GGGGG..", ".GGYGGGG.", "GGGYYGGG.",
-            ".GGYGGGG.", "..GGGGG..", "...GGG...", "....G...."
+            "..RR.RR..",
+            ".RRRRRRR.",
+            ".RRYYYRR.",
+            ".RRYYYRR.",
+            ".RRRRRRR.",
+            "..RR.RR..",
+            "....L....",
+            "..LLL.LL.",
+            "....L...."
     };
     private static final String[] POWER_HEAL = {
-            "....W....", "...WWW...", "....W....", ".WWWWWWW.", "..WWWWW..",
-            ".WWWWWWW.", "....W....", "...WWW...", "....W...."
+            ".........",
+            "...LLL...",
+            "...LLL...",
+            ".LLLLLLL.",
+            ".LLLFLLL.",
+            ".LLLLLLL.",
+            "...LLL...",
+            "...LLL...",
+            "........."
     };
     private static final String[] POWER_BLESS = {
-            "....Y....", "..Y.Y.Y..", "...YYY...", ".YYYYYYY.", "..YYYYY..",
-            "...YYY...", "..Y.Y.Y..", ".Y..Y..Y.", "........."
+            "..YYYYY..",
+            ".Y.....Y.",
+            "..YYYYY..",
+            "....F....",
+            "...FFF...",
+            "..FFFFF..",
+            ".FFFFFFF.",
+            "FFFFFFFFF",
+            "........."
     };
     private static final String[] POWER_LIGHTNING = {
-            "......Y..", ".....YY..", "....YY...", "...YYY...", "..YYY....",
-            "...YY....", "..YY.....", ".YY......", "Y........"
+            "....YYY..",
+            "...YYY...",
+            "..YYY....",
+            "..YYYYYY.",
+            ".....YY..",
+            "....YY...",
+            "...YY....",
+            "..Y......",
+            "........."
     };
     private static final String[] POWER_PLAGUE = {
-            "..KKKKK..", ".KKKKKKK.", "KKWKKKWKK", "KKWKKKWKK", "KKKKKKKKK",
-            ".KWWWWWK.", "KKKKKKKKK", ".K.K.K.K.", "..K...K.."
+            "....L....",
+            ".L.LLL.L.",
+            "..LLLLL..",
+            ".LLKLLLL.",
+            "LLLLLLLLL",
+            ".LLLLKLL.",
+            "..LLLLL..",
+            ".L.LLL.L.",
+            "....L...."
     };
     private static final String[] POWER_EARTHQUAKE = {
-            "K...K...K", ".K.K.K.K.", "..KKKKK..", "KKKKKKKKK", "..K.K.K..",
-            ".K.K.K.K.", "K...K...K", "..K...K..", ".K.....K."
+            ".........",
+            "K.......K",
+            ".K.....K.",
+            "WWWW.WWWW",
+            "WWW.K.WWW",
+            "WWWK..WWW",
+            "WWW..KWWW",
+            "WWWW.WWWW",
+            "........."
     };
     private static final String[] POWER_METEOR = {
-            "........Y", ".......YY", "......YY.", "....YYYY.", "...YYYYY.",
-            "..YYYYYY.", ".YYYYYYY.", "YYYYYYYY.", "........."
+            "Y........",
+            ".Y.......",
+            ".RYY.....",
+            "..RYY....",
+            "...RYKK..",
+            "....KWKK.",
+            "....KKKK.",
+            ".....KK..",
+            "........."
     };
     private static final String[] POWER_PEACE = {
-            "..WW...WW", ".WWWW.WWW", "WWWWWWWWW", ".WWWWWWW.", "..WWWWW..",
-            "...WWW...", "....W....", "...WWW...", "..W...W.."
+            "..FFFFF..",
+            ".F..F..F.",
+            "F...F...F",
+            "F...F...F",
+            "F...F...F",
+            "F..FFF..F",
+            ".FF.F.FF.",
+            "..FFFFF..",
+            "........."
     };
     private static final String[] POWER_PROSPERITY = {
-            "..YYYYY..", ".YYYWYYY.", "YYYYYYYYY", "YYYWYYYYY", "YYYYYYYYY",
-            ".YYYWYYY.", "..YYYYY..", "...YYY...", "....Y...."
+            ".........",
+            "..YYYYY..",
+            ".YYFYYYY.",
+            ".YYYYYYY.",
+            ".NNNNNNN.",
+            ".YYYYYYY.",
+            ".NNNNNNN.",
+            ".YYYYYYY.",
+            "..NNNNN.."
     };
 
     private static final String[] NEXT = {
             ".........",
-            "..B......",
-            "..BB.....",
-            "..BBB....",
-            "..BBBB...",
-            "..BBBBB..",
-            "..BBBB...",
-            "..BBB....",
+            ".B....BB.",
+            ".BB...BB.",
+            ".BBB..BB.",
+            ".BBBB.BB.",
+            ".BBB..BB.",
+            ".BB...BB.",
+            ".B....BB.",
             "........."
     };
 
-    // One shared lens colour (G) and dark K ink for both zoom tools;
-    // only the + / - shape differs.
+    // Shared grey lens, white +/- glyph and brown handle on both zoom tools;
+    // only the centre glyph differs.
     private static final String[] ZOOM_IN = {
-            ".........",
-            "..GGG....",
-            ".G...G...",
-            "G..K..G..",
-            "G.KKK.G..",
-            "G..K..G..",
-            ".G...G...",
-            "..GGK....",
-            "....KK..."
+            "..WWW....",
+            ".W...W...",
+            "W..F..W..",
+            "W.FFF.W..",
+            "W..F..W..",
+            ".W...W...",
+            "..WWW.N..",
+            ".......N.",
+            "........N"
     };
     private static final String[] ZOOM_OUT = {
-            ".........",
-            "..GGG....",
-            ".G...G...",
-            "G.....G..",
-            "G.KKK.G..",
-            "G.....G..",
-            ".G...G...",
-            "..GGK....",
-            "....KK..."
+            "..WWW....",
+            ".W...W...",
+            "W.....W..",
+            "W.FFF.W..",
+            "W.....W..",
+            ".W...W...",
+            "..WWW.N..",
+            ".......N.",
+            "........N"
     };
     private static final String[] CENTER = {
-            ".........",
-            "...WWW...",
-            "..W...W..",
-            ".W..C..W.",
-            "W..CCC..W",
-            ".W..C..W.",
-            "..W...W..",
-            "...WWW...",
-            "........."
+            "....W....",
+            "..WWWWW..",
+            ".W.....W.",
+            ".W.....W.",
+            "WW..C..WW",
+            ".W.....W.",
+            ".W.....W.",
+            "..WWWWW..",
+            "....W...."
     };
     private static final String[] GRID = {
+            "..N...N..",
+            "..N...N..",
             "NNNNNNNNN",
-            "NWNWNWNWN",
+            "..N...N..",
+            "..N...N..",
+            "..N...N..",
             "NNNNNNNNN",
-            "NWNWNWNWN",
-            "NNNNNNNNN",
-            "NWNWNWNWN",
-            "NNNNNNNNN",
-            "NWNWNWNWN",
-            "NNNNNNNNN"
+            "..N...N..",
+            "..N...N.."
     };
 
     // Seven distinct bottom-tab badges.
     private static final String[] NAV_WORLD = {
-            ".........", "..GGGGG..", ".GGLLLGG.", "GLLYYYLGG", "GLLYYYLGG",
-            ".GLLLLLG.", "..BBBBB..", ".B.B.B.B.", "........."
+            "..BBBBB..",
+            ".BBLLBBB.",
+            "BBLLLBBBB",
+            "BBLLBBBLB",
+            "BBBLBBLLB",
+            "BBBBBBBBB",
+            ".BBBLBBB.",
+            "..BBBBB..",
+            "........."
     };
     private static final String[] NAV_PEOPLE = {
-            ".........", "..KK.KK..", ".KKK.KKK.", "..KK.KK..", "...KKK...",
-            "..WWWWW..", ".WWWWWWW.", "WWWWWWWWW", "........."
+            ".........",
+            ".YY...WW.",
+            ".YY...WW.",
+            "YYYY.WWWW",
+            "YYYY.WWWW",
+            "YYYY.WWWW",
+            "YYYY.WWWW",
+            ".........",
+            "........."
     };
     private static final String[] NAV_NATURE = {
-            ".........", "......LL.", "....LLLL.", "...LLLL..", "..LLLLL..",
-            ".LLLKK...", "LLK......", "K........", "........."
+            "....L....",
+            "...LLL...",
+            "..LLLLL..",
+            "...LLL...",
+            "..LLLLL..",
+            ".LLLLLLL.",
+            "....N....",
+            "....N....",
+            "........."
     };
     private static final String[] NAV_CREATURES = {
-            "..R...R..", "..RR.RR..", "RRRRRRRRR", ".RRRRRRR.", "..RWKWR..",
-            "..RRRRR..", "...R.R...", "..R...R..", "........."
+            "..NN.NN..",
+            "..NN.NN..",
+            "NN.....NN",
+            "NN.NNN.NN",
+            "..NNNNN..",
+            ".NNNNNNN.",
+            "..NN.NN..",
+            ".........",
+            "........."
     };
     private static final String[] NAV_KINGDOMS = {
-            "Y...Y...Y", "YY..Y..YY", "YYYYYYYYY", "YWYYYYYWY", "YYYYYYYYY",
-            ".NNNNNNN.", ".N.N.N.N.", ".NNNNNNN.", "........."
+            "....Y....",
+            "W.W.W.W.W",
+            "WWWWWWWWW",
+            "WWWWWWWWW",
+            "WWWKKKWWW",
+            "WWWKKKWWW",
+            "WWWKKKWWW",
+            "WWWWWWWWW",
+            "........."
     };
     private static final String[] NAV_POWERS = {
-            "....Y....", "...YYY...", "..YYYYY..", ".YYYYYYY.", "YYYYYYYYY",
-            ".YYYYYYY.", "..YYYYY..", "...YYY...", "....Y...."
+            "......Y..",
+            ".....YYY.",
+            "......Y..",
+            ".....N...",
+            "....N....",
+            "...N.....",
+            "..N......",
+            ".N.......",
+            "........."
     };
     private static final String[] NAV_EVENTS = {
-            ".........", ".WWWWWWW.", ".WKKKKKW.", ".WWWWWWW.", ".WKKKKKW.",
-            ".WWWWWWW.", ".WKKKKKW.", ".WWWWWWW.", "........."
+            "NNNNNNNNN",
+            ".WYYYYYW.",
+            "..WYYYW..",
+            "...WYW...",
+            "....W....",
+            "...WYW...",
+            "..WYYYW..",
+            ".WYYYYYW.",
+            "NNNNNNNNN"
     };
 
     // Five map-overlay badges.
     private static final String[] OVER_TERRAIN = {
-            ".........", "G..G..G..", "GG.GG.GG.", "GGGGGGGGG", ".GGGGGGG.",
-            "..GGGGG..", "...GGG...", "....G....", "........."
+            ".........",
+            "...F.....",
+            "..FFF....",
+            "..WWW.F..",
+            ".WWWWFFF.",
+            "WWWWWWWWW",
+            "GGGGGGGGG",
+            ".........",
+            "........."
     };
     private static final String[] OVER_BIOME = {
-            ".........", "..LL.LL..", ".LLLLLLL.", "LLLLLLLLL", "LLLLLLLLL",
-            ".LLLLLLL.", "..L...L..", ".L.....L.", "........."
+            "..YYYYY..",
+            ".YYYYYYY.",
+            "YYYYYYYYY",
+            "YYYYYYYYY",
+            "LLLLLLLLL",
+            "LLLLLLLLL",
+            "BBBBBBBBB",
+            ".BBBBBBB.",
+            "..BBBBB.."
     };
     private static final String[] OVER_KINGDOM = {
-            ".Y.......", ".YY......", ".YYY.....", ".YYYY....", ".YYYYY...",
-            ".NYYYYY..", ".NNYYYY..", ".NNNYY...", ".NNNN...."
+            ".........",
+            ".NRRRRRR.",
+            ".NRRYYRR.",
+            ".NRRYYRR.",
+            ".NRRRRRR.",
+            ".NRR..RR.",
+            ".N.......",
+            ".N.......",
+            ".N......."
     };
-    // A slim minaret on a broad N plinth: deliberately not POWER_BLESS,
-    // DECREE_TEMPLE or CARD_FAITH.
+    // A gold-domed temple facade with grey columns on a broad brown plinth.
     private static final String[] OVER_RELIGION = {
-            "....Y....", "...YYY...", "...YNY...", "...YNY...", "...YNY...",
-            "..YYYYY..", ".YYYYYYY.", ".NNNNNNN.", "NNNNNNNNN"
+            ".........",
+            "....Y....",
+            "...YYY...",
+            ".YYYYYYY.",
+            ".W.W.W.W.",
+            ".W.W.W.W.",
+            ".W.W.W.W.",
+            "NNNNNNNNN",
+            "........."
     };
     private static final String[] OVER_JOB = {
-            ".........", ".....NN..", "....NNN..", "...NNN...", "..NNN....",
-            ".KKK.....", "KK.......", "K........", "........."
+            ".........",
+            "..WWWWW..",
+            ".WW.N.WW.",
+            "W...N...W",
+            "....N....",
+            "....N....",
+            "....N....",
+            "....N....",
+            "........."
     };
 
     private static final String[] LAW_ON = {
-            ".........", "...GGG...", "..GGGGG..", ".GGWWWGG.", "GGGGGGGGG",
-            "..W...W..", ".WW...WW.", "WW.....WW", "........."
+            ".WWWWWWW.",
+            "WFFFFFFFW",
+            "WFFFFFLFW",
+            "WFFFFLFFW",
+            "WFLFLFFFW",
+            "WFFLFFFFW",
+            "WFFFFFFFW",
+            ".WWWWWWW.",
+            "........."
     };
     private static final String[] LAW_OFF = {
-            ".........", "...KKK...", "..KKKKK..", ".KKRRRKK.", "KKKKKKKKK",
-            "..R...R..", ".RR...RR.", "RR.....RR", "........."
+            ".GGGGGGG.",
+            "GKKKKKKKG",
+            "GKRKKKRKG",
+            "GKKRKRKKG",
+            "GKKKRKKKG",
+            "GKKRKRKKG",
+            "GKRKKKRKG",
+            ".GGGGGGG.",
+            "........."
     };
 
     private static final String[] CLAN = {
-            ".........", "..Y...Y..", "..NN.NN..", "NNNNNNNNN", ".NNNNNNN.",
-            "..NNNNN..", "..N.N.N..", ".NN...NN.", "........."
+            "NNNNNNNNN",
+            "NNNNYNNNN",
+            "NNNYYYNNN",
+            "NNYYYYYNN",
+            ".NNNYNNN.",
+            ".NNNYNNN.",
+            "..NNYNN..",
+            "...NYN...",
+            "....N...."
     };
 
-    // --- New grouped-dock art -------------------------------------------------
-    // Three citizens in burgundy / orange / brown cloaks, not the old two-head badge.
+    // --- Redrawn grouped-dock art ---------------------------------------------
+    // Three side-by-side figures in grey, gold and grey cloaks.
     private static final String[] DOCK_PEOPLE = {
             "............",
-            "KKK.KKK.KKK.",
-            "KWK.KWK.KWK.",
-            "FFF.FFF.FFF.",
-            "KFK.KFK.KFK.",
-            "FWF.FWF.FWF.",
-            "MMM.YYY.EEE.",
-            "MWM.YWY.EWE.",
-            "MMM.YYY.EEE.",
-            "MWM.YWY.EWE.",
+            ".....YY.....",
+            "....YYYY....",
+            "....YYYY....",
+            ".GG..YY..WW.",
+            ".GG.YYYY.WW.",
+            "GGGYYYYYYWWW",
+            "GGYYYYYYYYWW",
+            "GGYYYYYYYYWW",
+            "GGYYYYYYYYWW",
             "............",
             "............"
     };
 
-    // A wise horned beast: crystal horns, glowing eyes, burgundy mane, brown muzzle.
+    // A horned beast head with gold ear patches, dark eyes and a tapering muzzle.
     private static final String[] DOCK_BEASTS = {
-            "..F......F..",
-            "..FF....FF..",
-            "...FF..FF...",
-            "KKKKKKKKKKKK",
-            "KWGGGFFGGGWK",
-            "KWGYGGGGYGWK",
-            "KWGGGGGGGGWK",
-            "MKWGGGGGGWKM",
-            "MMKEEEEEEKMM",
-            "MMKEFEEFEKMM",
-            ".MMKEEEEEKMM",
-            "..MMMMMMMM.."
+            "WW........WW",
+            "WWW......WWW",
+            "WWWWWWWWWWWW",
+            "WWWWWWWWWWWW",
+            "WWYYWWWWYYWW",
+            "WWYYWWWWYYWW",
+            "WWWWWKKWWWWW",
+            "WWWWKWWKWWWW",
+            ".WWWWWWWWWW.",
+            "..WWWWWWWW..",
+            "...WWWWWW...",
+            "............"
     };
 
-    // Scales of justice with a burgundy bowl and a carved wooden base.
+    // Golden scales of justice on a dark carved base.
     private static final String[] DOCK_LAWS = {
             ".....YY.....",
             ".....YY.....",
+            "YYYYYYYYYYYY",
+            "Y....YY....Y",
+            "Y....YY....Y",
+            "Y....YY....Y",
+            "YYYY.YY.YYYY",
+            ".YY..YY..YY.",
             ".....YY.....",
-            "..YYYYYYYY..",
-            "..G......G..",
-            "..G......G..",
-            "..G......G..",
-            ".MMM....MMM.",
-            ".MFM....MFM.",
             ".....YY.....",
-            "...EEEEEE...",
-            "..EEEEEEEE.."
+            "...YYYYYY...",
+            "...NNNNNN..."
     };
 
-    // Cogwheel with a burgundy hub, brighter than the monochrome zoom/grid controls.
+    // Open-centred gold cogwheel, brighter than the monochrome zoom/grid controls.
     private static final String[] DOCK_SETTINGS = {
-            "...YY..YY...",
-            "...YYYYYY...",
-            ".YYGGGGGGYY.",
-            ".YGGGGGGGGY.",
-            "YYGGMMMMGGYY",
-            "YYGGMFFMGGYY",
-            "YYGGMMMMGGYY",
-            ".YGGGGGGGGY.",
-            ".YYGGGGGGYY.",
-            "...YYYYYY...",
-            "...YY..YY...",
-            "............"
+            ".....YY.....",
+            "..Y..YY..Y..",
+            ".YYYYYYYYYY.",
+            "..YYYYYYYY..",
+            "..YYY..YYY..",
+            "YYYYY..YYYYY",
+            "YYYYY..YYYYY",
+            "..YYY..YYY..",
+            "..YYYYYYYY..",
+            ".YYYYYYYYYY.",
+            "..Y..YY..Y..",
+            ".....YY....."
     };
 
     // --- New citizen-card section art ----------------------------------------
     private static final String[] CARD_FAITH = {
-            "....Y....", "...YFY...", "...YYY...", "..YYFYY..", "..MMMMM..",
-            ".MMMMMMM.", "..EEEEE..", ".EEEEEEE.", "........."
+            "...YYYY..",
+            "..YYY....",
+            ".YYY..F..",
+            ".YYY.FFF.",
+            ".YYY..F..",
+            "..YYY....",
+            "...YYYY..",
+            ".........",
+            "........."
     };
     private static final String[] CARD_LANGUAGE = {
-            "..MMMMM..", ".MWWWWWM.", "MWKWKWKWM", "MWWWWWWWM", "MWKWKWKWM",
-            ".MWWWWWM.", "..MMMMM..", "...MMM...", "....M...."
+            ".BBBBBBB.",
+            "BBBBBBBBB",
+            "BFFFBFFBB",
+            "BBBBBBBBB",
+            "BFFBFFFBB",
+            ".BBBBBBB.",
+            "...BB....",
+            "...B.....",
+            "........."
     };
     private static final String[] CARD_PARTNER = {
-            ".MM...YY.", "MMMM.YYYY", "MMMM.YYYY", ".MM...YY.", "..M...Y..",
-            "....F....", ".........", ".........", "........."
+            ".........",
+            ".........",
+            ".YYY.YYY.",
+            "Y...Y...Y",
+            "Y...Y...Y",
+            "Y...Y...Y",
+            ".YYY.YYY.",
+            ".........",
+            "........."
     };
     private static final String[] CARD_SKILLS = {
-            "....Y....", "....Y....", "...YYY...", "YYYYYYYYY", ".YYFYFYY.",
-            "..YYYYY..", ".YY...YY.", "Y.......Y", "........."
+            "....Y....",
+            "....Y....",
+            "...YYY...",
+            "YYYYYYYYY",
+            ".YYYYYYY.",
+            "..YYYYY..",
+            "..YYYYY..",
+            ".YYY.YYY.",
+            ".YY...YY."
     };
-    // Traits = dark K shield; Specialty = Y tool/star over a solid M field.
+    // Traits = crossed blue/gold ribbons; Specialty = a red crest over a gold star.
     private static final String[] CARD_TRAITS = {
-            "...KKK...", "..KWWWK..", ".KWWWWWK.", "KWWWWWWWK", "KWWWWWWWK",
-            ".KWWWWWK.", "..KWWWK..", "...KFK...", "....K...."
+            "BB.....YY",
+            ".BB...YY.",
+            "..BB.YY..",
+            "...BYY...",
+            "...YBB...",
+            "..YY.BB..",
+            ".YY...BB.",
+            "YY.....BB",
+            "........."
     };
     private static final String[] CARD_SPECIALTY = {
-            "MMMMYMMMM", "MMMYYYMMM", "MYYYYYYYM", "MMYYYYYMM", "MYYYYYYYM",
-            "MMMYYYMMM", "MMMMYMMMM", "MMM.Y.MMM", "MMM.Y.MMM"
+            "..RR.RR..",
+            "..RR.RR..",
+            "...RRR...",
+            "..YYYYY..",
+            ".YYFYYYY.",
+            ".YYYYYYY.",
+            ".YYYYYYY.",
+            "..YYYYY..",
+            "........."
     };
     private static final String[] CARD_CULTURE = {
-            ".........", ".KKKKKKK.", ".KWWWWWK.", ".KWKKWWK.", ".KWWWWWK.",
-            ".KWKKWWK.", ".KWWWYYK.", ".MMMMMMM.", "........."
+            ".........",
+            "...YYYYY.",
+            "...Y...Y.",
+            "...Y...Y.",
+            "...Y...Y.",
+            "...Y...Y.",
+            ".YYY.YYY.",
+            ".YY..YY..",
+            "........."
     };
     private static final String[] CARD_STATUS = {
-            "....Y....", "..YYYYY..", ".YYWWWYY.", "YYWWKWWYY", "YYWWKWWYY",
-            ".YYWWWYY.", "..YYYYY..", "...MMM...", "..MMMMM.."
+            "....Y....",
+            "...YYY...",
+            "..YY.YY..",
+            ".YY...YY.",
+            "....Y....",
+            "...YYY...",
+            "..YY.YY..",
+            ".YY...YY.",
+            "........."
     };
     private static final String[] CARD_PREGNANCY = {
-            ".........", "..MMMMM..", ".MWWWWWM.", ".MWFFFWM.", ".MWFFFWM.",
-            ".MWWWWWM.", "..MMMMM..", "...MMM...", "........."
+            "..FF.....",
+            "..FF.....",
+            "..FFF....",
+            "..FFFF...",
+            "..FFFFF..",
+            "..FFFFRF.",
+            "..FFFFF..",
+            "..FF.FF..",
+            "..FF.FF.."
     };
 
     // Decree badges, generated rather than loaded from an art pack.
     private static final String[] DECREE_FESTIVAL = {
-            "...YYY...", "..YYYYY..", ".YYYYYYY.", "YYYWYYYYY", "YYYYYYYYY",
-            "..YWWWY..", ".WWY.WWW.", "..W...W..", "........."
+            ".R..Y..B.",
+            "RRRYYYBBB",
+            "RRRYYYBBB",
+            ".R..Y..B.",
+            ".N..N..N.",
+            "..N.N.N..",
+            "...NNN...",
+            "....N....",
+            "........."
     };
     private static final String[] DECREE_TAX_CUT = {
-            "..YYYYY..", ".YYYYYYY.", "YYYYYYYYY", "YYYYY....", "YYYY.....",
-            "YYY......", "YY.......", "Y........", "........."
+            ".........",
+            "......L..",
+            "......L..",
+            ".YY...L..",
+            "YYYY..L..",
+            "YNNYLLLLL",
+            "YYYY.LLL.",
+            ".YY...L..",
+            "........."
     };
     private static final String[] DECREE_TAX_RAISE = {
-            "Y........", "YY.......", "YYY......", "YYYY.....", "YYYYY....",
-            "YYYYYYYYY", ".YYYYYYY.", "..YYYYY..", "........."
+            ".........",
+            "......R..",
+            ".....RRR.",
+            ".YY.RRRRR",
+            "YYYY..R..",
+            "YNNY..R..",
+            "YYYY..R..",
+            ".YY...R..",
+            "........."
     };
     private static final String[] DECREE_TEMPLE = {
-            "..YYYYY..", ".YYYYYYY.", "YYYYYYYYY", "..YNYNY..", "..YYYYY..",
-            "..YYYYY..", "..NNNNN..", ".NNNNNNN.", "........."
+            "....R....",
+            "...RYR...",
+            "...RYR...",
+            "..RYYYR..",
+            ".NNNNNNN.",
+            "..NNNNN..",
+            "...NNN...",
+            "..NNNNN..",
+            "........."
     };
     private static final String[] DECREE_AMNESTY = {
-            ".........", "....WWW..", "..WWWWWW.", ".WWWWWWWW", "WWWWWWWWW",
-            ".WWWWWWW.", "..WWWWW..", "...WWW...", "........."
+            "..WWW....",
+            ".W...W...",
+            ".W.......",
+            ".YYYYYYY.",
+            ".YYYNYYY.",
+            ".YYYNYYY.",
+            ".YYYYYYY.",
+            ".YYYYYYY.",
+            "........."
     };
     private static final String[] DECREE_CONSCRIPTION = {
-            ".......K.", "......KK.", ".....KK..", "....KK...", "...KK....",
-            "..KK.....", ".KK......", "K........", "........."
+            "....R....",
+            "...RRR...",
+            "..WWWWW..",
+            ".WWWWWWW.",
+            ".WWWWWWW.",
+            ".WKKKKKW.",
+            ".WW...WW.",
+            ".W.....W.",
+            "........."
     };
     private static final String[] DECREE_FREE_TRADE = {
-            ".....W...", "....WW...", "WWWWWWWW.", ".NNNNNNN.", "..NNNNN..",
-            "...NNN...", "..BBBBB..", ".B.B.B.B.", "........."
+            "....N....",
+            "....NFF..",
+            "....NFFF.",
+            "....NFFF.",
+            "....NFF..",
+            ".NNNNNNN.",
+            "..NNNNN..",
+            "BBBBBBBBB",
+            "........."
     };
     private static final String[] DECREE_CRACKDOWN = {
-            "..KKKKK..", ".KKKKKKK.", "KKKKKKKKK", "KKKWWWKKK", "KKKWWWKKK",
-            ".KKWWWKK.", "..KKKKK..", "...KKK...", "....K...."
+            ".........",
+            ".WWWWWWW.",
+            ".WRRRRRW.",
+            ".WWWWWWW.",
+            "....N....",
+            "....N....",
+            "....N....",
+            ".KKKKKKK.",
+            ".KKKKKKK."
     };
 
     private PixelIcons() {
@@ -898,8 +1191,8 @@ final class PixelIcons {
     }
 
     /**
-     * Icon ink is tuned for the light icon tiles: charcoal outlines, mid-grey
-     * fills and burgundy/orange accents instead of the old blue-on-blue set.
+     * Icon ink for the redrawn patterns: charcoal outlines, mid-grey fills,
+     * gold/blue accents and pure white highlights.
      */
     private static int colorOf(char symbol) {
         switch (symbol) {
@@ -913,10 +1206,11 @@ final class PixelIcons {
             case 'R': return 0xFFB01527;
             case 'L': return 0xFF3E8E41;
             case 'C': return 0xFF00838F;
-            // Palette used by the new grouped-dock and citizen-card art.
+            // Legacy accent symbols; unused by the redrawn patterns.
             case 'M': return 0xFF5B0A19; // burgundy
             case 'E': return 0xFF504A3E; // warm brown
-            case 'F': return 0xFFCFC9C4; // warm light highlight, visible on light tiles
+            // Pure white highlight used by the redrawn patterns.
+            case 'F': return 0xFFFFFFFF;
             default: return Color.TRANSPARENT;
         }
     }

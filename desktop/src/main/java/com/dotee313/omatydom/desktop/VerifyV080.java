@@ -165,37 +165,51 @@ public final class VerifyV080 {
         return new RunResult(previous - start, peakRoutes, observedRoutes, sawRoute, sawProgress);
     }
 
-    /** Public-API setup: spawn settlers and found another kingdom of a new species. */
+    /** Public-API setup: spawn distant settlers, then try every adult until a second kingdom rises. */
     private static int ensureTwoKingdoms(OmatydomGame game, World world) {
         if (game.getKingdoms().size() >= 2) {
             return game.getKingdoms().size();
         }
         Random random = new Random(80_080L);
         for (int attempt = 0; attempt < 60 && game.getKingdoms().size() < 2; attempt++) {
-            int[] spot = game.getMap().randomWalkable(random);
+            int[] spot = distantWalkableSpot(game, random);
             if (spot != null) {
                 game.spawnSettlerAt(spot[0], spot[1]);
             }
         }
         for (Citizen citizen : new ArrayList<>(world.getCitizens())) {
-            if (!citizen.isAlive() || !citizen.isAdult()) {
-                continue;
-            }
-            boolean speciesAlreadyRules = false;
-            for (Kingdom kingdom : game.getKingdoms()) {
-                if (kingdom.getSpecies() == citizen.getSpecies()) {
-                    speciesAlreadyRules = true;
-                    break;
-                }
-            }
-            if (!speciesAlreadyRules) {
-                game.foundKingdom(citizen.getId());
-            }
             if (game.getKingdoms().size() >= 2) {
                 break;
             }
+            if (!citizen.isAlive() || !citizen.isAdult()) {
+                continue;
+            }
+            game.foundKingdom(citizen.getId());
         }
         return game.getKingdoms().size();
+    }
+
+    /** Prefer a walkable tile at least ten tiles from every existing capital. */
+    private static int[] distantWalkableSpot(OmatydomGame game, Random random) {
+        for (int attempt = 0; attempt < 200; attempt++) {
+            int[] spot = game.getMap().randomWalkable(random);
+            if (spot == null) {
+                return null;
+            }
+            boolean distant = true;
+            for (Kingdom kingdom : game.getKingdoms()) {
+                int dx = kingdom.getCapitalX() - spot[0];
+                int dy = kingdom.getCapitalY() - spot[1];
+                if (dx * dx + dy * dy < 100) {
+                    distant = false;
+                    break;
+                }
+            }
+            if (distant) {
+                return spot;
+            }
+        }
+        return game.getMap().randomWalkable(random);
     }
 
     private static final class RunResult {

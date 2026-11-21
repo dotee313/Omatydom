@@ -50,6 +50,10 @@ public final class SimulationEngine {
     private static final String[] TRADE_GOODS = {
             "Grain", "Spice", "Iron", "Crystal", "Timber", "Salt", "Silk", "Wine", "Leather", "Herbs"
     };
+    private static final int[] KINGDOM_COLORS = {
+            0xFFFCA311, 0xFF4FC3F7, 0xFFFF8A80, 0xFF66BB6A, 0xFFCE93D8, 0xFF8D8884
+    };
+    private static final int MIN_CAPITAL_DISTANCE = 8;
 
     private final World world;
     private final Random random;
@@ -1194,10 +1198,13 @@ public final class SimulationEngine {
         }
         if (day % 240 == 0 && world.getKingdoms().size() < 6
                 && world.getPopulation() >= 24 && world.isLawEnabled(WorldLaw.KINGDOM_EXPANSION)) {
+            int before = world.getKingdoms().size();
             for (Citizen citizen : world.getLivingAdults()) {
                 if (citizen.getJob() == Job.SETTLER || citizen.getJob() == Job.RULER) {
                     foundKingdom(citizen, day);
-                    break;
+                    if (world.getKingdoms().size() > before) {
+                        break;
+                    }
                 }
             }
         }
@@ -1314,9 +1321,16 @@ public final class SimulationEngine {
     }
 
     private void maybeFoundKingdom(Citizen citizen, int day) {
-        if (world.getKingdoms().size() < 6 && world.getPopulation() >= 24
-                && world.isLawEnabled(WorldLaw.KINGDOM_EXPANSION)) {
-            foundKingdom(citizen, day);
+        if (world.getKingdoms().size() >= 6 || world.getPopulation() < 24
+                || !world.isLawEnabled(WorldLaw.KINGDOM_EXPANSION)) {
+            return;
+        }
+        int before = world.getKingdoms().size();
+        for (Citizen candidate : world.getLivingAdults()) {
+            foundKingdom(candidate, day);
+            if (world.getKingdoms().size() > before) {
+                break;
+            }
         }
     }
 
@@ -1332,25 +1346,30 @@ public final class SimulationEngine {
     }
 
     public void foundKingdom(Citizen founder, int day) {
-        Species species = founder.getSpecies();
-        for (Kingdom existing : world.getKingdoms()) {
-            if (existing.getSpecies() == species) {
-                return;
-            }
+        if (founder == null || world.getKingdoms().size() >= KINGDOM_COLORS.length) {
+            return;
         }
-        int id = world.getKingdoms().size() + 1;
         Agent seat = world.findAgent(founder);
         int x = seat == null ? world.getMap().getWidth() / 2 : seat.getX();
         int y = seat == null ? world.getMap().getHeight() / 2 : seat.getY();
+        for (Kingdom existing : world.getKingdoms()) {
+            int dx = existing.getCapitalX() - x;
+            int dy = existing.getCapitalY() - y;
+            if (dx * dx + dy * dy < MIN_CAPITAL_DISTANCE * MIN_CAPITAL_DISTANCE) {
+                return;
+            }
+        }
+        Species species = founder.getSpecies();
+        int id = world.getKingdoms().size() + 1;
         Kingdom kingdom = new Kingdom(id, NameGenerator.kingdomName(random), species,
-                species.getColor(), x, y);
+                KINGDOM_COLORS[(id - 1) % KINGDOM_COLORS.length], x, y);
         kingdom.setStability(60);
         kingdom.setArmy(4);
         kingdom.setTreasury(50);
         world.getKingdoms().add(kingdom);
         world.incrementKingdomsFounded();
         postEvent(new GameEvent(day, EventType.KINGDOM, "A kingdom rises",
-                species.getDisplayName() + "-speaking settlers found " + kingdom.getName() + ".", 4));
+                "Settlers found " + kingdom.getName() + ".", 4));
     }
 
     private boolean belongsToClan(Citizen citizen) {

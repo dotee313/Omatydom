@@ -534,7 +534,8 @@
                         android:layout_height="wrap_content"
                         android:background="@color/user_header_bg"
                         android:paddingBottom="1dp"
-                        android:paddingLeft="5dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
                         android:paddingTop="1dp"
                         android:text="@string/group_humans"
                         android:textColor="@color/user_orange"
@@ -542,9 +543,107 @@
                         android:textStyle="bold" />
 
                     <LinearLayout
+                        android:id="@+id/dockInfoRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp">
+
+                        <TextView
+                            android:id="@+id/statusText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:background="@drawable/bg_panel"
+                            android:maxLines="2"
+                            android:paddingBottom="3dp"
+                            android:paddingStart="6dp"
+                            android:paddingEnd="6dp"
+                            android:paddingTop="3dp"
+                            android:textColor="#FFFFF3E0"
+                            android:textSize="10sp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/rulerText"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:paddingStart="4dp"
+                                android:paddingEnd="4dp"
+                                android:textColor="@color/user_orange"
+                                android:textSize="10sp" />
+
+                            <LinearLayout
+                                android:id="@+id/resourceStrip"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="2"
+                                android:background="@drawable/bg_bar"
+                                android:orientation="horizontal"
+                                android:weightSum="6" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/seasonText"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:paddingStart="4dp"
+                                android:paddingEnd="4dp"
+                                android:textColor="@color/user_orange"
+                                android:textSize="9sp" />
+
+                            <ProgressBar
+                                android:id="@+id/dayProgress"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:layout_width="0dp"
+                                android:layout_height="4dp"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                android:max="100"
+                                android:progress="0"
+                                android:progressTint="@color/user_orange" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/hintText"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:background="@drawable/bg_panel"
+                            android:maxLines="2"
+                            android:minHeight="24dp"
+                            android:padding="6dp"
+                            android:textColor="#FFFFFFFF"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <!-- Bottom action row for citizen powers and selection. -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="3dp"
                         android:orientation="horizontal">
 
                         <ImageButton
@@ -585,88 +684,10 @@
                             android:padding="2dp"
                             android:scaleType="fitCenter" />
                     </LinearLayout>
-
-                    <!-- Information row: status, ruler, resources, season, day progress and hint. -->
-                    <LinearLayout
-                        android:id="@+id/dockInfoRow"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingLeft="4dp"
-                        android:paddingRight="4dp">
-
-                        <TextView
-                            android:id="@+id/statusText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:background="@drawable/bg_panel"
-                            android:maxLines="3"
-                            android:paddingBottom="3dp"
-                            android:paddingLeft="6dp"
-                            android:paddingRight="6dp"
-                            android:paddingTop="3dp"
-                            android:textColor="#FFFFF3E0"
-                            android:textSize="10sp" />
-
-                        <TextView
-                            android:id="@+id/rulerText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:maxLines="3"
-                            android:paddingLeft="4dp"
-                            android:paddingRight="4dp"
-                            android:textColor="@color/user_orange"
-                            android:textSize="10sp" />
-
-                        <LinearLayout
-                            android:id="@+id/resourceStrip"
-                            android:layout_width="match_parent"
-                            android:layout_height="38dp"
-                            android:layout_marginTop="3dp"
-                            android:background="@drawable/bg_bar"
-                            android:orientation="horizontal"
-                            android:weightSum="6" />
-
-                        <TextView
-                            android:id="@+id/seasonText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:maxLines="3"
-                            android:paddingLeft="4dp"
-                            android:paddingRight="4dp"
-                            android:textColor="@color/user_orange"
-                            android:textSize="9sp" />
-
-                        <ProgressBar
-                            android:id="@+id/dayProgress"
-                            style="?android:attr/progressBarStyleHorizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="4dp"
-                            android:layout_marginTop="1dp"
-                            android:max="100"
-                            android:progress="0"
-                            android:progressTint="@color/user_orange" />
-
-                        <TextView
-                            android:id="@+id/hintText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:background="@drawable/bg_panel"
-                            android:maxLines="4"
-                            android:minHeight="28dp"
-                            android:padding="6dp"
-                            android:textColor="#FFFFFFFF"
-                            android:textSize="11sp" />
-                    </LinearLayout>
                 </LinearLayout>
-
-                <!-- 2: البهائم / Beasts — living creatures (no invented species data). -->
+                <!-- 2: أدوات الخريطة / Map tools — layers, brushes and camera. -->
                 <LinearLayout
-                    android:id="@+id/beastsCard"
+                    android:id="@+id/mapToolsCard"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="3dp"
@@ -678,209 +699,13 @@
                         android:layout_height="wrap_content"
                         android:background="@color/user_header_bg"
                         android:paddingBottom="1dp"
-                        android:paddingLeft="5dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
                         android:paddingTop="1dp"
-                        android:text="@string/group_beasts"
+                        android:text="أدوات الخريطة"
                         android:textColor="@color/user_orange"
                         android:textSize="11sp"
                         android:textStyle="bold" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="2dp"
-                        android:orientation="horizontal">
-
-                        <ImageButton
-                            android:id="@+id/brushWolfButton"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:minWidth="48dp"
-                            android:minHeight="48dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_button"
-                            android:contentDescription="فرشاة الذئب"
-                            android:padding="2dp"
-                            android:scaleType="fitCenter" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:paddingLeft="4dp"
-                        android:paddingRight="4dp"
-                        android:text="@string/beasts_hint"
-                        android:textColor="#FFFFF3E0"
-                        android:textSize="9sp" />
-                </LinearLayout>
-
-                <!-- 3: القوانين / Laws — island law toggles live on the Nature tab. -->
-                <LinearLayout
-                    android:id="@+id/lawsCard"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="3dp"
-                    android:background="@drawable/bg_panel"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@color/user_header_bg"
-                        android:paddingBottom="1dp"
-                        android:paddingLeft="5dp"
-                        android:paddingTop="1dp"
-                        android:text="@string/group_laws"
-                        android:textColor="@color/user_orange"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:maxLines="3"
-                        android:paddingLeft="4dp"
-                        android:paddingRight="4dp"
-                        android:text="@string/laws_hint"
-                        android:textColor="@color/user_text_body"
-                        android:textSize="9sp" />
-
-                    <!-- Same id and listener as before: the mode toggle now sits with the laws. -->
-                    <ImageButton
-                        android:id="@+id/utilityModsButton"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_gravity="end"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/bg_button"
-                        android:contentDescription="@string/utility_mods"
-                        android:minWidth="48dp"
-                        android:minHeight="48dp"
-                        android:padding="3dp"
-                        android:scaleType="fitCenter" />
-                </LinearLayout>
-
-                <!-- 4: الإعدادات والخيارات / Settings & options — time, camera, overlays, brushes, build. -->
-                <LinearLayout
-                    android:id="@+id/settingsCard"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_panel"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:background="@color/user_header_bg"
-                        android:paddingBottom="1dp"
-                        android:paddingLeft="5dp"
-                        android:paddingTop="1dp"
-                        android:text="@string/group_settings"
-                        android:textColor="@color/user_orange"
-                        android:textSize="11sp"
-                        android:textStyle="bold" />
-
-                    <!-- Tools row: title, utilities, time controls and build action; scrolls on narrow screens. -->
-                    <HorizontalScrollView
-                        android:id="@+id/dockToolsRow"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/bg_bar"
-                        android:scrollbars="horizontal">
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/titleText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_vertical"
-                                android:maxWidth="@dimen/title_text_max_width"
-                                android:maxLines="2"
-                                android:paddingLeft="6dp"
-                                android:paddingRight="6dp"
-                                android:text="@string/title"
-                                android:textColor="@color/user_white"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
-
-                            <LinearLayout
-                                android:id="@+id/utilityBar"
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:orientation="horizontal">
-
-                                <ImageButton
-                                    android:id="@+id/utilityInfoButton"
-                                    android:layout_width="48dp"
-                                    android:layout_height="48dp"
-                                    android:minWidth="48dp"
-                                    android:minHeight="48dp"
-                                    android:layout_marginEnd="3dp"
-                                    android:background="@drawable/bg_button"
-                                    android:contentDescription="@string/utility_info"
-                                    android:padding="3dp"
-                                    android:scaleType="fitCenter" />
-
-                                <ImageButton
-                                    android:id="@+id/utilitySettingsButton"
-                                    android:layout_width="48dp"
-                                    android:layout_height="48dp"
-                                    android:minWidth="48dp"
-                                    android:minHeight="48dp"
-                                    android:layout_marginEnd="3dp"
-                                    android:background="@drawable/bg_button"
-                                    android:contentDescription="@string/utility_settings"
-                                    android:padding="3dp"
-                                    android:scaleType="fitCenter" />
-                            </LinearLayout>
-
-                            <ImageButton
-                                android:id="@+id/pauseButton"
-                                android:layout_width="48dp"
-                                android:layout_height="48dp"
-                                android:minWidth="48dp"
-                                android:minHeight="48dp"
-                                android:layout_marginEnd="3dp"
-                                android:background="@drawable/bg_button"
-                                android:contentDescription="@string/pause"
-                                android:padding="2dp"
-                                android:scaleType="fitCenter" />
-
-                            <ImageButton
-                                android:id="@+id/speedButton"
-                                android:layout_width="48dp"
-                                android:layout_height="48dp"
-                                android:minWidth="48dp"
-                                android:minHeight="48dp"
-                                android:layout_marginEnd="3dp"
-                                android:background="@drawable/bg_button"
-                                android:contentDescription="@string/speed"
-                                android:padding="2dp"
-                                android:scaleType="fitCenter" />
-
-                            <ImageButton
-                                android:id="@+id/buildButton"
-                                android:layout_width="48dp"
-                                android:layout_height="48dp"
-                                android:minWidth="48dp"
-                                android:minHeight="48dp"
-                                android:background="@drawable/bg_button"
-                                android:contentDescription="@string/build_island"
-                                android:padding="2dp"
-                                android:scaleType="fitCenter" />
-                        </LinearLayout>
-                    </HorizontalScrollView>
-
                     <!-- Island-only map tools; selectTab() hides this row on other tabs. -->
                     <LinearLayout
                         android:id="@+id/dockMapToolsRow"
@@ -1197,6 +1022,234 @@
                                     android:scaleType="fitCenter" />
                             </LinearLayout>
                         </HorizontalScrollView>
+                    </LinearLayout>
+                </LinearLayout>
+                <!-- 3: الإعدادات والخيارات / Settings & options — time and build actions. -->
+                <LinearLayout
+                    android:id="@+id/settingsCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_panel"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/user_header_bg"
+                        android:paddingBottom="1dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
+                        android:paddingTop="1dp"
+                        android:text="@string/group_settings"
+                        android:textColor="@color/user_orange"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+                    <!-- Tools row: title, utilities, time controls and build action; scrolls on narrow screens. -->
+                    <HorizontalScrollView
+                        android:id="@+id/dockToolsRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/bg_bar"
+                        android:scrollbars="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/titleText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:maxWidth="@dimen/title_text_max_width"
+                                android:maxLines="2"
+                                android:paddingLeft="6dp"
+                                android:paddingRight="6dp"
+                                android:text="@string/title"
+                                android:textColor="@color/user_white"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <LinearLayout
+                                android:id="@+id/utilityBar"
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal">
+
+                                <ImageButton
+                                    android:id="@+id/utilityInfoButton"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="3dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="@string/utility_info"
+                                    android:padding="3dp"
+                                    android:scaleType="fitCenter" />
+
+                                <ImageButton
+                                    android:id="@+id/utilitySettingsButton"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="3dp"
+                                    android:background="@drawable/bg_button"
+                                    android:contentDescription="@string/utility_settings"
+                                    android:padding="3dp"
+                                    android:scaleType="fitCenter" />
+                            </LinearLayout>
+
+                            <ImageButton
+                                android:id="@+id/pauseButton"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:minWidth="48dp"
+                                android:minHeight="48dp"
+                                android:layout_marginEnd="3dp"
+                                android:background="@drawable/bg_button"
+                                android:contentDescription="@string/pause"
+                                android:padding="2dp"
+                                android:scaleType="fitCenter" />
+
+                            <ImageButton
+                                android:id="@+id/speedButton"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:minWidth="48dp"
+                                android:minHeight="48dp"
+                                android:layout_marginEnd="3dp"
+                                android:background="@drawable/bg_button"
+                                android:contentDescription="@string/speed"
+                                android:padding="2dp"
+                                android:scaleType="fitCenter" />
+
+                            <ImageButton
+                                android:id="@+id/buildButton"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:minWidth="48dp"
+                                android:minHeight="48dp"
+                                android:background="@drawable/bg_button"
+                                android:contentDescription="@string/build_island"
+                                android:padding="2dp"
+                                android:scaleType="fitCenter" />
+                        </LinearLayout>
+                    </HorizontalScrollView>
+
+                </LinearLayout>
+                <!-- 4: القوانين / Laws — island law toggles live on the Nature tab. -->
+                <LinearLayout
+                    android:id="@+id/lawsCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="3dp"
+                    android:background="@drawable/bg_panel"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/user_header_bg"
+                        android:paddingBottom="1dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
+                        android:paddingTop="1dp"
+                        android:text="@string/group_laws"
+                        android:textColor="@color/user_orange"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:text="@string/laws_hint"
+                            android:textColor="@color/user_text_body"
+                            android:textSize="9sp" />
+
+                        <!-- Same id and listener as before: the mode toggle sits with the laws. -->
+                        <ImageButton
+                            android:id="@+id/utilityModsButton"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/bg_button"
+                            android:contentDescription="@string/utility_mods"
+                            android:minWidth="48dp"
+                            android:minHeight="48dp"
+                            android:padding="3dp"
+                            android:scaleType="fitCenter" />
+                    </LinearLayout>
+                </LinearLayout>
+                <!-- 5: البهائم / Beasts — living creatures (no invented species data). -->
+                <LinearLayout
+                    android:id="@+id/beastsCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="3dp"
+                    android:background="@drawable/bg_panel"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/user_header_bg"
+                        android:paddingBottom="1dp"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
+                        android:paddingTop="1dp"
+                        android:text="@string/group_beasts"
+                        android:textColor="@color/user_orange"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="4dp">
+
+                        <ImageButton
+                            android:id="@+id/brushWolfButton"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_button"
+                            android:contentDescription="فرشاة الذئب"
+                            android:minWidth="48dp"
+                            android:minHeight="48dp"
+                            android:padding="2dp"
+                            android:scaleType="fitCenter" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="@string/beasts_hint"
+                            android:textColor="#FFFFF3E0"
+                            android:textSize="9sp" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>

@@ -123,7 +123,7 @@ public final class World {
         int count = Math.max(1, population);
         for (int i = 0; i < count; i++) {
             Race race = pick(Race.values(), random);
-            Species species = pick(Species.values(), random);
+            Species species = Species.HUMAN;
             Job job = random.nextDouble() < 0.65 ? race.getPreferredJob() : pick(Job.values(), random);
             if (job == Job.RULER) {
                 job = Job.LABORER;

@@ -508,7 +508,7 @@ public final class OmatydomGame {
         if (tile == null || !tile.getType().isWalkable()) {
             return false;
         }
-        Species species = Species.values()[random.nextInt(Species.values().length)];
+        Species species = Species.HUMAN;
         Race race = Race.values()[random.nextInt(Race.values().length)];
         Religion religion = Religion.values()[random.nextInt(Religion.values().length)];
         Ideology ideology = Ideology.values()[random.nextInt(Ideology.values().length)];

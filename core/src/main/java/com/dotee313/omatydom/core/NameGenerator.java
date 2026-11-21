@@ -1,6 +1,5 @@
 package com.dotee313.omatydom.core;
 
-import java.util.Locale;
 import java.util.Random;
 
 /** Small built-in name pool. Replace with data files when the game grows. */
@@ -28,36 +27,6 @@ public final class NameGenerator {
             "Ashbourne", "Crownhart", "Dawnfield", "Duskhaven", "Embermoor", "Frostvale",
             "Gildhollow", "Hollowcrest", "Ironvale", "Moonmere", "Ravenholt", "Stonebridge",
             "Stormwatch", "Thornbury", "Wyrmford", "Elderbrook"
-    };
-
-    private static final String[] ELF_GIVEN = {
-            "Aelinn", "Caelen", "Eirwen", "Faelor", "Ithil", "Lorian", "Myri", "Oriana",
-            "Silvan", "Thalindra", "Vaelis", "Ylva"
-    };
-
-    private static final String[] ELF_FAMILY = {
-            "Amberwind", "Dawnleaf", "Eldermere", "Frostbloom", "Greysong", "Hollowgrove",
-            "Moonwhisper", "Nightfern", "Silverbough", "Starwillow"
-    };
-
-    private static final String[] ORC_GIVEN = {
-            "Brakka", "Drekk", "Ghal", "Gorruk", "Kraka", "Mog", "Ozul", "Shara",
-            "Skarn", "Threga", "Urzod", "Varg"
-    };
-
-    private static final String[] ORC_FAMILY = {
-            "Ashmaw", "Bonecleaver", "Duskmaul", "Gorehand", "Ironjaw", "Ravenclaw",
-            "Skullbreaker", "Stonefist", "Stormrend", "Wyrmtusk"
-    };
-
-    private static final String[] DWARF_GIVEN = {
-            "Bram", "Dorna", "Eirik", "Fenrik", "Hilda", "Korin", "Mora", "Norin",
-            "Orla", "Torin", "Ulfr", "Ygran"
-    };
-
-    private static final String[] DWARF_FAMILY = {
-            "Ashdelve", "Crownforge", "Deeproot", "Embervein", "Goldvein", "Grimhold",
-            "Hollowpeak", "Irondeep", "Moonvein", "Stonehand", "Stormanvil", "Dawnhammer"
     };
 
     private static final String[] PLACE_PREFIX = {
@@ -112,28 +81,9 @@ public final class NameGenerator {
         return givenName(random) + " " + familyName(random);
     }
 
-    /** A personal name whose word pools depend on the species key ("human" by default). */
+    /** A personal name from the single human word pool; the species key is kept for callers. */
     public static String personName(Random random, String species) {
-        String[] given = HUMAN_GIVEN;
-        String[] family = HUMAN_FAMILY;
-        String key = species == null ? "human" : species.toLowerCase(Locale.ROOT);
-        switch (key) {
-            case "elf":
-                given = ELF_GIVEN;
-                family = ELF_FAMILY;
-                break;
-            case "orc":
-                given = ORC_GIVEN;
-                family = ORC_FAMILY;
-                break;
-            case "dwarf":
-                given = DWARF_GIVEN;
-                family = DWARF_FAMILY;
-                break;
-            default:
-                break;
-        }
-        return pick(given, random) + " " + pick(family, random);
+        return pick(HUMAN_GIVEN, random) + " " + pick(HUMAN_FAMILY, random);
     }
 
     public static String cityName(Random random) {

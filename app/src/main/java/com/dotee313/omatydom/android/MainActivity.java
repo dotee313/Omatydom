@@ -15,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.dotee313.omatydom.core.Age;
 import com.dotee313.omatydom.core.BuildingType;
@@ -139,7 +140,7 @@ public class MainActivity extends Activity {
     private static final int[] DOCK_TOOLS_IDS = {R.id.utilityBar, R.id.dockToolsRow};
     private static final int[] DOCK_LAW_ROWS_IDS = {R.id.decreeGrid, R.id.natureList};
     private static final int[] DOCK_BEAST_ROWS_IDS = {R.id.creatureList};
-    private static final int[] DOCK_MAP_TOOLS_IDS = {R.id.dockMapToolsRow, R.id.overlayBar, R.id.brushBar};
+    private static final int[] DOCK_MAP_TOOLS_IDS = {R.id.mapToolsCard, R.id.dockMapToolsRow, R.id.overlayBar, R.id.brushBar};
 
     /** One short Arabic explanation per brush, index matches IslandView.Brush. */
     private static final String[] BRUSH_HINTS = {
@@ -154,7 +155,7 @@ public class MainActivity extends Activity {
             "كوخ: يبني بيتًا للسكان مقابل خشب وحجر.",
             "مزرعة: تنتج محاصيل يخزنها العمال مقابل خشب وحجر.",
             "طريق: يرصّ أحجارًا تسهّل تنقل السكان والتجار.",
-            "إنسان: يضيف مستوطنًا جديدًا على أرض قابلة للمشي.",
+            "إنسان: يضيف مستوطنًا جديدًا؛ اضغطها مرة أخرى للإلغاء.",
             "ذئب: يطلق كائنًا مفترسًا يطوف حول المقطع.",
             "نار: رمح العاصفة يضرب الهدف ويترك أثر لهب.",
             "مطر: يعيد ملء الغابات والبساتين قرب الهدف.",
@@ -697,7 +698,16 @@ public class MainActivity extends Activity {
             button.setImageDrawable(PixelIcons.brushIcon(this, brush));
             button.setContentDescription("أدوات الجزيرة — " + BRUSH_HINTS[i]);
             button.setBackgroundResource(R.drawable.bg_button);
-            button.setOnClickListener(v -> selectBrush(brush, true));
+            button.setOnClickListener(v -> {
+                if (currentBrush != IslandView.Brush.INSPECT && currentBrush == brush) {
+                    selectBrush(IslandView.Brush.INSPECT, false);
+                    islandView.setPlannedBuilding(null);
+                    islandView.setPlannedTerrain(null);
+                    showHint("أُلغيت الأداة — عاد وضع الفحص.");
+                } else {
+                    selectBrush(brush, true);
+                }
+            });
         }
         selectBrush(IslandView.Brush.INSPECT, false);
     }
@@ -1751,6 +1761,7 @@ public class MainActivity extends Activity {
 
     private void showHint(String message) {
         hintView.setText(message);
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         uiHandler.removeCallbacks(hideHint);
         uiHandler.postDelayed(hideHint, HINT_MILLIS);
     }
@@ -2071,7 +2082,8 @@ public class MainActivity extends Activity {
         Clan clan = clanOf(citizen);
         String kingdom = kingdomOf(citizen);
         belonging.add(new CitizenInfoDialog.Row("المملكة",
-                kingdom == null ? "لا مملكة بعد" : kingdom));
+                kingdom == null ? "لا مملكة بعد" : kingdom,
+                kingdom == null ? 0xFFFF8A80 : 0xFFFFCA28));
         if (clan == null) {
             belonging.add(new CitizenInfoDialog.Row("العشيرة", "لا عشيرة بعد"));
         } else {
@@ -2088,7 +2100,8 @@ public class MainActivity extends Activity {
         boolean isRuler = world.getRuler() != null
                 && world.getRuler().getCitizen().getId() == citizen.getId();
         belonging.add(new CitizenInfoDialog.Row("الحاكم",
-                isRuler ? "نعم — حاكم الجزيرة الحالي" : "لا — ليس الحاكم الحالي"));
+                isRuler ? "نعم — حاكم الجزيرة الحالي" : "لا — ليس الحاكم الحالي",
+                isRuler ? 0xFFFFCA28 : 0xFFFF8A80));
         sections.add(new CitizenInfoDialog.Section("الانتماء والشعب",
                 CitizenInfoDialog.ICON_KINGDOM, 0xFFFCA311, belonging));
 
@@ -2154,12 +2167,14 @@ public class MainActivity extends Activity {
             }
             state.add(new CitizenInfoDialog.Row("الموقع", place));
         }
-        state.add(new CitizenInfoDialog.Row("الصحة", (int) citizen.getHealth() + "/100"));
+        state.add(new CitizenInfoDialog.Row("الصحة", (int) citizen.getHealth() + "/100",
+                citizen.getHealth() < 40 ? 0xFFFF8A80 : 0));
         state.add(new CitizenInfoDialog.Row("السعادة", (int) citizen.getHappiness() + "/100"));
         state.add(new CitizenInfoDialog.Row("الثروة", (int) citizen.getWealth() + "/100"));
         state.add(new CitizenInfoDialog.Row("الولاء", (int) citizen.getLoyalty() + "/100"));
         state.add(new CitizenInfoDialog.Row("الأحوال المؤقتة", effectsText(citizen)));
-        state.add(new CitizenInfoDialog.Row("ذهب الجزيرة", String.valueOf((int) world.getGold())));
+        state.add(new CitizenInfoDialog.Row("ذهب الجزيرة",
+                String.valueOf((int) world.getGold()), 0xFFFFCA28));
         sections.add(new CitizenInfoDialog.Section("الحالة والموقع",
                 CitizenInfoDialog.ICON_STATUS, 0xFF4FC3F7, state));
 
@@ -2347,9 +2362,6 @@ public class MainActivity extends Activity {
         }
         switch (species) {
             case HUMAN: return "مستوطنون قابلون للتكيف، يبنون بسرعة ويتعبون ببطء";
-            case ELF: return "سكان غابات طويلو العمر، بارعون في الحرف الدقيقة";
-            case ORC: return "رجال عشائر أشدّاء يفضّلون الغارات الجريئة والقاعات المتينة";
-            case DWARF: return "بنّاؤون تحت الأرض، يقدّرون الخزائن العميقة والأحقاد القديمة";
             default: return species.getDescription();
         }
     }

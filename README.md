@@ -13,15 +13,28 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 ## Download & play right now / التنزيل والتجربة
 
 **رابط التحميل المباشر للتطبيق (APK):**  
-https://github.com/dotee313/Omatydom/releases/download/v0.9.2/omatydom-0.9.2-debug.apk
+https://github.com/dotee313/Omatydom/releases/download/v0.9.3/omatydom-0.9.3-debug.apk
 
 افتح الرابط من جوالك،حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. التصميم الآن أنظف: سبع صفحات (الجزيرة، السكان، الطبيعة، المخلوقات، الممالك، القدرات، الأحداث) تتنقل بينها بقائمة سفلية من الأيقونات، وكل ضغطة على أيقونة أو شخص أو أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ. اختر أرضًا بالضغط ثم افتح «القدرات» لتوجيه تأثيرك إلى المكان المختار. السنة الكاملة في اللعبة تساوي ساعة واحدة من الوقت الحقيقي عند السرعة x1. يعمل على Android 5.0 أو أحدث.
 
-صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.9.2
+صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.9.3
+
+أرشيف الأيقونات المُعاد رسمها (٥٥ أيقونة): https://github.com/dotee313/Omatydom/releases/download/v0.9.3/omatydom-icons-v0.9.3.zip
 
 > The APK is debug-signed and intended for play-testing. Your phone may ask you to allow installation from unknown sources.
 
 ---
+
+## What's new in v0.9.3 — "Ordered Dock, Toggle Tools & Redrawn Icons"
+
+This is the second supervised three-team review. The user reported four concrete problems; reporters documented them, fixers applied only the approved changes, and the supervisor cross-checked the result before building and running all four verification suites.
+
+- **Ordered dock, detail by detail** — the seven navigation tabs stay pinned at the top; the grouped cards below are now **People → Map tools → Settings → Laws → Beasts**. Map tools moved out of the Settings card into their own `mapToolsCard`, so layers, all sixteen brushes and camera controls are a short scroll away instead of buried at the bottom. Inside People, status, ruler + resource strip, season + day progress and the hint are stacked first and the ruler actions sit at the bottom. Laws and Beasts each fit on one horizontal row. `selectTab()` hides the whole new card outside the Island tab, and no identifier was lost or duplicated.
+- **Real feedback instead of "decoration"** — every tool button now toggles: pressing the active brush again cancels it and returns to Inspect, clearing planned building/terrain. `showHint()` also raises a short Arabic toast, pressed buttons use a clearly darker colour, and the stale orange focus ring was removed from `bg_button.xml`.
+- **Single people** — orcs, elves and dwarves are removed from the model, names, UI descriptions and docs; only `Species.HUMAN` remains. Kingdom founding no longer uses "one kingdom per species": it now requires a capital far enough from existing capitals, assigns each kingdom a distinct colour, and still allows up to six kingdoms so wars and caravans keep working (`VerifyV080` passes with 114 caravans).
+- **Citizen window** — the opaque white dialog window is replaced by a rounded slate-grey shell (`#FF2F3A43`) while the content stays transparent and RTL; names and values are clear white, section headings and the title are gold, and selected rows can use gold or red values without breaking existing calls.
+- **Graphics** — all 55 supplied redrawn icon patterns replaced the old pixel art, with pure-white highlights; the icon ZIP was regenerated from the final source.
+- **Unchanged** — seven tabs, five overlays, sixteen brushes, 3-second Arabic hints, island resources, citizens, jobs, races/religions/ideologies, classes, wildlife, politics, building, hunting/fishing/gathering/mining, and the clock (270-day pregnancy, 360-day spacing, 360 game days = 1 real hour at x1).
 
 ## What's new in v0.9.2 — "Refined Dock, Clearer Icons"
 
@@ -75,7 +88,7 @@ A large visual and interaction overhaul. The simulation is unchanged, but the ga
 - **Impact effects** — rain ripples, fire sparks, lightning flashes, meteor streaks and rings, war marks and gentle healing/blessing motes when powers or disasters are used.
 - **Cleaner icon-first interface** — a compact resource strip, rounded dark panels, highlighted active tool tabs, 16 brush badges and the same seven bottom pages with 3-second Arabic explanations.
 
-All simulation rules from v0.6.0 remain: 16 templates, 19 biomes, four peoples, kingdoms/clans/cultures/wars, 70 technologies, 23 laws, 17 disasters, 33 resources, 134 buildings, one child at a time, 270-day pregnancy, a full-year rest and one game year per real hour at x1.
+All simulation rules from v0.6.0 remain: 16 templates, 19 biomes, one people (human only), kingdoms/clans/cultures/wars, 70 technologies, 23 laws, 17 disasters, 33 resources, 134 buildings, one child at a time, 270-day pregnancy, a full-year rest and one game year per real hour at x1.
 
 ## What's new in v0.6.0 — "Living Civilizations"
 
@@ -83,7 +96,7 @@ This is the large follow-up to v0.5.0, built from the systems discovered in the 
 
 - **Sixteen map templates** — islands, continent, checkerboard, cheese, donut, anthill, volcano, empty, box world, pancake, toast, lasagna, cubicles, bad apple, chaos pearl and dormant volcano. Templates change real terrain generation, not just the label.
 - **Nineteen biomes** — grass, savanna, enchanted, mushroom, corrupted, infernal, jungle, swamp, wasteland, desert, crystal, candy, lemon, tumor, biomass, pumpkin, cybertile, permafrost and sand. Biomes alter work, food, regrowth and tile colouring.
-- **Four civilized peoples** — human, elf, orc and dwarf. Species affect names, colours and the kingdoms that settlers can found; children inherit their mother's people.
+- **One civilized people** — human only. Settlers share one name pool and can found separate kingdoms; children inherit their mother's people.
 - **Kingdoms, clans, cultures and diplomacy** — capitals move, treasuries and armies grow, clans form, cultures accumulate knowledge, and relations shift between peace, alliance, rivalry and war.
 - **Five war types** — conquest, inspire, rebellion, spite and whisper. Wars consume armies and treasure, lower stability and eventually end with a treaty.
 - **Seventy technologies** — a real research tree with costs, categories and effects. Priests and traders generate knowledge, and research improves work, food, wood, ore, birth rate, learning, loyalty, defence, trade and construction costs.
@@ -297,7 +310,7 @@ The CLI includes the full v0.6.0 command set plus `trade`, `sea`, `citizens` and
 - [ ] Save/load (serialize `World` to JSON).
 - [x] Zoom/pan on the Android island view (v0.7.0, enhanced in v0.8.0).
 - [ ] Fully data-driven events and jobs instead of hard-coded ones.
-- [x] Character screens with portraits and needs (v0.9.0: Arabic citizen card; v0.9.1: grouped sections and truthful fields; v0.9.2: refined dock, adaptive heights, clearer icons).
+- [x] Character screens with portraits and needs (v0.9.0: Arabic citizen card; v0.9.1: grouped sections and truthful fields; v0.9.2: refined dock and adaptive heights; v0.9.3: slate-grey dialog, gold/red rows, toggle tools and redrawn icons).
 - [ ] Android UI with fragments and Material 3.
 - [ ] Scenario/challenge modes ("keep the island stable for 10 years").
 
@@ -309,6 +322,8 @@ The CLI includes the full v0.6.0 command set plus `trade`, `sea`, `citizens` and
 
 الجزيرة ليست دائرية بل مربع مدوّر فيه خلجان ورؤوس عشوائية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، وكل واحد منهم الآن **شخصية بكسلية أوضح وأكثر واقعية** (١٠×١٤ بكسل): شعر، وجه مضلّل، عينان، أنف، فم، ذراعان، حزام، حذاء، وأداة تختلف حسب المهنة (فأس، معول، صنارة، قوس، عصا، سلة، عملة). الحاكم يرتدي تاجًا ذهبيًا، والمرأة الحامل يظهر بطنها. أكثر أيقونات اللعبة مرسومة داخل التطبيق بالكود، ومعها الآن شعارك وأيقونات المعلومات والأنماط والإعدادات وخلفية قائمتك الأصلية من الملف الذي أرسلته، مُبسّطة لتناسب واجهة الجوال. الرسم مستطيلات مسطّحة خفيفة على الهاتف مع حواف وتظليل ووميض أقوى. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال.
 
+في الإصدار ٠٫٩٫٣ راجعت الفرق الثلاثة مرة ثانية بعد ملاحظاتك: صار الشريط مرتبًا تفصيلًا (البشر ← أدوات الخريطة ← الإعدادات ← القوانين ← البهائم) وأدوات الخريطة في بطاقة مستقلة قريبة من الأعلى، وصار الضغط على أداة مفعّلة مرة ثانية يلغيها ويعيد الفحص، وظهر ردّ فعل واضح لكل ضغطة بدل الإحساس بأن الأزرار زينة. وحُذف الأورك والإلف والأقزام فبقي شعب إنسان واحد، ومُنعت مشكلة توقف الممالك بعد الحذف. نافذة الشخص صارت رمادية كحلية بنص أبيض واضح وعناوين ذهبية، وتقبل نصوصًا حمراء عند الحاجة. واستُبدلت الأيقونات الـ٥٥ برسوماتك المُعاد رسمها. ثوابت الزمن والحمل والتبويبات والطبقات والفرش باقية كما هي.
+
 في الإصدار ٠٫٩٫٢ راجعت ثلاث فرق متخصصة الواجهة والكود والرسومات، فتحسّن ارتفاع الشريط بحسب حجم الشاشة، وصارت أهداف اللمس ٤٨dp، وتوقفت قصّ النصوص العربية، وصحّحت الهوامش اتجاه RTL، وأصلحت أيقونات متشابهة وأضيفت أيقونات للثقافة والحالة والحمل. كما لم يعد نص الحمل يذكر فاصل الولادة لمن لا يمكنها الحمل، وتوقفت إعادة رسم الخريطة عند إيقاف التطبيق. ثوابت الزمن والبناء والسكان والتبويبات السبع باقية كما هي.
 
 في الإصدار ٠٫٩٫١ رُتّب الشريط السفلي في أربع مجموعات واضحة: **البشر** لكل ما يخص السكان والحاكم، **البهائم** للحيوانات والمخلوقات شبه العاقلة، **القوانين** لقوانين الجزيرة والمراسيم، و**الإعدادات والخيارات** للسرعة والعدسة والطبقات والفرش والبناء. ولكل مجموعة ولكل قسم في بطاقة الشخصية أيقونة بكسلية جديدة رسمها فنان مخصص بالألوان نفسها. بطاقة الشخصية صارت خمسة أقسام مرتبة تعرض المملكة والعشيرة والشعب والدين والأيديولوجيا والفكرة والمهنة والحالة والموقع، وتقول بصدق إن اللغة والزواج والقرابة والمهارات المنفصلة غير مسجلة في النموذج بدل اختراعها. نص الحمل صار محكومًا بالبيانات الحقيقية: يوم الحمل من ٢٧٠، والفاصل يُحسب فقط بعد ولادة حقيقية وللإناث البالغات القابلات للحمل. الاختبارات الأربعة تنجح، وأُضيف فحص تكاليف المباني وثوابت الساعة.
@@ -317,7 +332,7 @@ The CLI includes the full v0.6.0 command set plus `trade`, `sea`, `citizens` and
 
 في الإصدار ٠٫٨٫٠ دخلت تصميماتك الأصلية إلى اللعبة: الشعار والأيقونات وخلفية القائمة وألوانك (الخمري والبرتقالي والفحمي) صارت جزءًا من شريط العنوان وأزرار المعلومات والأنماط والإعدادات والتبويبات والفرش. تحسّنت الرسومات كثيرًا: حواف ساحلية وبيئية متجاورة، ظلال تحت الأشجار والحيوانات والمباني، وميض ماء، صفوف محاصيل في المزارع، طرق مرصوفة، اتجاه نظر للسكان، ودخان ووميض وذيول أطول للتأثيرات. وأُضيفت **قوافل تجارية** بين الممالك: تُفتح كل ٣٠–٤٥ يومًا، وتستغرق ١٠–٢٠ يومًا، وتجلب ذهبًا وطعامًا ومعرفة، ويظهر تقدّمها في صفحة الممالك وأمر `trade` في نسخة الحاسوب.
 
-في الإصدار ٠٫٦٫٠ صارت الجزيرة عالمًا أعمق: **١٦ شكلًا للخريطة**، **١٩ بيئة حيوية**، أربع شعوب (إنسان، إلف، أورك، قزم)، ممالك وعشائر وثقافات وعلاقات دبلوماسية وخمس أنواع حروب، **٧٠ تقنية** تُبحث وتغيّر الاقتصاد والولاء والدفاع، **٢٣ قانونًا عالميًا** يمكن تفعيله أو إيقافه، **١٧ كارثة** و**١٢ حالة مؤقتة** و**٣٣ موردًا** و**١٣٤ نوع مبنى**. تظهر كل هذه الأنظمة في سبع صفحات: الجزيرة، السكان، الطبيعة، المخلوقات، الممالك، القدرات، الأحداث. اضغط أي وجه في صفحة السكان لتعيينه حاكمًا. وأي ضغطة على أيقونة أو شخص أو قطعة أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ ثم يختفي تلقائيًا.
+في الإصدار ٠٫٦٫٠ صارت الجزيرة عالمًا أعمق: **١٦ شكلًا للخريطة**، **١٩ بيئة حيوية**، شعب واحد (إنسان فقط)، ممالك وعشائر وثقافات وعلاقات دبلوماسية وخمس أنواع حروب، **٧٠ تقنية** تُبحث وتغيّر الاقتصاد والولاء والدفاع، **٢٣ قانونًا عالميًا** يمكن تفعيله أو إيقافه، **١٧ كارثة** و**١٢ حالة مؤقتة** و**٣٣ موردًا** و**١٣٤ نوع مبنى**. تظهر كل هذه الأنظمة في سبع صفحات: الجزيرة، السكان، الطبيعة، المخلوقات، الممالك، القدرات، الأحداث. اضغط أي وجه في صفحة السكان لتعيينه حاكمًا. وأي ضغطة على أيقونة أو شخص أو قطعة أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ ثم يختفي تلقائيًا.
 
 **الزمن والحمل:** السنة في اللعبة = ٤ فصول × ٩٠ يومًا = ٣٦٠ يومًا، وتستغرق **ساعة واحدة** من الوقت الحقيقي عند السرعة x1 (كل يوم = ١٠ ثوانٍ). المرأة تحمل مرة واحدة فقط، ويستغرق الحمل **٣ فصول = ٩ أشهر = ٢٧٠ يومًا**، ثم ترتاح سنة كاملة قبل حمل جديد. تجد اليوم الحالي للمرة الحامل في صفحة السكان وفي شرح الضغط عليها.
 
