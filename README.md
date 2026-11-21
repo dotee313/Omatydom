@@ -1,6 +1,6 @@
 # Omatydom
 
-> A life-simulation game about watching a society think, believe, argue, and change — and deciding when (or whether) to intervene.
+> A tiny living island: watch a society think, believe, work, build and change — and decide when (or whether) to intervene.
 
 **Omatydom** is a life-simulation game set on an island, where you observe and shape a living society. The game runs semi-automatically, giving you the freedom to intervene — or to step back and let events unfold on their own.
 
@@ -10,64 +10,73 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 
 ---
 
-## Core pillars
+## What's new in v0.2.0 — "The Living Island"
 
-- **Emergent society** — every citizen has an age, race, gender, religion, ideology, wealth, health, happiness, education, and loyalty. Beliefs drift, people are born, people die, and moods ripple through the island.
-- **Semi-automatic time** — days advance on their own. The economy, population, politics, and random events keep moving whether you act or not.
-- **Real agency** — pause, change speed, issue decrees, appoint a ruler, assassinate a ruler, or seize direct control of the throne. You can also release control and become a pure observer again.
-- **Consequence** — stability, food, gold, public mood, and ruler approval are coupled. Crackdowns calm the island but make people miserable; festivals make people happy but cost gold.
-- **Deterministic simulation** — the engine runs on a seed, so a scenario can be reproduced, tested, and shared.
+This update turns the abstract population into an actual **place**:
 
-## What exists in v0.1.0 (the foundation)
+- **A real island map** — 40×24 tiles of water, sand, grass, forest, orchards, mountains and caves. Resources regenerate slowly.
+- **Six original races** — Vaeli, Korun, Sireni, Dravi, Lumin and Tiren. None of them exist in our world; each has a colour, a story and a natural trade.
+- **Tiny simple bodies** — islanders are drawn as a coloured dot with a short body line, like compact stick figures. No sprites, no textures, no heavy rendering: cheap enough for a phone.
+- **Working citizens** — each person walks the map and performs a real job:
+  - Woodcutters harvest forests → **wood**
+  - Gatherers pick fruit in orchards → **food**
+  - Fishers work from the shore → **food**
+  - Hunters track deer and boar → **food**
+  - Miners dig stone, ore and rare crystal in mountains and caves
+  - Builders spend wood and stone to raise **huts, docks, towers, temples and mines**
+  - Priests calm and convert nearby people; rulers inspire loyalty; traders earn gold
+- **Social classes** — Child, Laborer, Artisan, Clergy and Noble, coloured and driven by wealth and occupation.
+- **Spreading ideas** — Survival, Progress, Mysticism, Rebellion, Peace, Trade and Curiosity jump between neighbours and nudge happiness and loyalty.
+- **Wildlife** — deer, boar and fish wander the island; hunters deplete them and new animals arrive over time.
+- **ASCII map on desktop** — the full simulation is playable and debuggable without Android.
 
-This repository contains a **playable foundation**, not a finished game:
+## Earlier foundation (v0.1.0)
 
-- A pure-Java simulation engine with no Android dependencies (`core`).
-- A text-based desktop runner for testing and balancing (`desktop`).
-- A native Android UI written in Java (`app`).
-- A clean intervention API (`OmatydomGame`) used by both front-ends.
-
-Planned next: map/tile rendering, character portraits, save/load, diplomacy between factions, a schema-based event system, modding support, and a richer Android UI with fragments and Material components.
+- Pure-Java simulation engine with no Android dependencies (`core`).
+- Text-based desktop runner (`desktop`) and native Android UI (`app`).
+- One intervention API (`OmatydomGame`) shared by both front-ends.
 
 ---
 
 ## Architecture
 
 ```
-┌──────────────┐        ┌──────────────────┐
-│   desktop    │        │       app        │
-│  (CLI demo)  │        │ (Android UI)    │
-└──────┬───────┘        └────────┬─────────┘
-       │                         │
-       └──────────┬──────────────┘
+┌──────────────┐        ┌──────────────────────┐
+│   desktop    │        │         app          │
+│  (CLI + map) │        │ (Android + IslandView)│
+└──────┬───────┘        └──────────┬───────────┘
+       │                           │
+       └──────────┬────────────────┘
                   ▼
-        ┌───────────────────┐
-        │       core        │
-        │  pure Java engine │
-        │  model + systems  │
-        └───────────────────┘
+        ┌────────────────────┐
+        │        core        │
+        │  pure Java engine  │
+        │  model + world     │
+        └────────────────────┘
 ```
 
 | Module | Type | Purpose |
 | --- | --- | --- |
-| `core` | `java-library` | All game rules: citizens, ruler, world, events, decrees, simulation loop. No framework dependencies. |
-| `desktop` | Java application | Command-line front-end used to play-test the simulation quickly. |
-| `app` | Android application | Native Android UI that drives the same `core` engine. |
+| `core` | `java-library` | Game rules: terrain, agents, animals, jobs, resources, events, politics. No framework dependencies. |
+| `desktop` | Java application | Command-line front-end with ASCII map, used for play-testing. |
+| `app` | Android application | Native Java UI that draws the island and forwards player actions. |
 
-The frontend never contains game rules. It only calls `OmatydomGame` and renders the resulting `World` state. This keeps the simulation testable on a desktop JVM and reusable on Android.
+The front-ends never contain game rules. They only call `OmatydomGame` and render the resulting state.
 
 ### Key classes
 
-- `OmatydomGame` — public facade: create a game, tick time, pause/speed, choose/assassinate a ruler, take/release control, issue decrees.
-- `SimulationEngine` — advances one day: economy, ageing, health, happiness, belief drift, births, deaths, coups, succession, random events.
-- `World` — the island state: citizens, ruler, gold, food, stability, day counter, event history.
+- `OmatydomGame` — facade: create/tick, pause/speed, appoint or assassinate a ruler, take/release control, issue decrees, assign jobs, build structures.
+- `SimulationEngine` — one day: economy, agent work, wildlife, idea spread, ageing, births, deaths, coups, succession, events.
+- `World` — island state: map, citizens, agents, animals, stockpiles, ruler, chronicle.
+- `IslandMap` / `Tile` / `TileType` / `Structure` — terrain and buildings.
+- `Agent` — a citizen's position, job, target and work progress.
 - `Citizen` / `Ruler` — the people and the throne.
-- `Decree`, `GameEvent`, `EventType` — player actions and the chronicle of what happened.
-- `Race`, `Religion`, `Ideology`, `Gender` — the diversity of the island.
+- `Race`, `SocialClass`, `Idea`, `Job` — identity and daily life.
+- `Decree`, `GameEvent`, `EventType` — player actions and the island chronicle.
 
 ---
 
-## Project layout
+## Project layout (v0.2.0)
 
 ```
 Omatydom/
@@ -88,42 +97,38 @@ Omatydom/
 │       ├── GameEvent.java
 │       ├── EventType.java
 │       ├── NameGenerator.java
-│       └── model/
-│           ├── Citizen.java
-│           ├── Ruler.java
-│           ├── Race.java
-│           ├── Religion.java
-│           ├── Ideology.java
-│           └── Gender.java
+│       ├── model/
+│       │   ├── Citizen.java, Ruler.java
+│       │   ├── Race.java, Gender.java
+│       │   ├── Religion.java, Ideology.java
+│       │   ├── Job.java, SocialClass.java, Idea.java
+│       └── world/
+│           ├── IslandMap.java, Tile.java
+│           ├── TileType.java, Structure.java
+│           └── Agent.java, Animal.java, AnimalType.java
 ├── desktop/
-│   ├── build.gradle
 │   └── src/main/java/com/dotee313/omatydom/desktop/DesktopLauncher.java
 └── app/
-    ├── build.gradle
     ├── src/main/AndroidManifest.xml
     └── src/main/
         ├── java/com/dotee313/omatydom/android/
         │   ├── MainActivity.java
+        │   ├── IslandView.java
         │   └── EventAdapter.java
-        └── res/
-            ├── layout/activity_main.xml
-            ├── layout/event_item.xml
-            └── values/strings.xml, themes.xml
+        └── res/layout/activity_main.xml, event_item.xml
 ```
 
 ---
 
 ## Build and run
 
-Requirements: **JDK 17**, **Gradle 8.x**, and for the Android app **Android SDK 34** (or simply Android Studio).
+Requirements: **JDK 17**, **Gradle 8.x**, and for Android **SDK 34** (or Android Studio).
 
 ### Android
 
 1. Open Android Studio → **Open** → select the `Omatydom` folder.
-2. Let Gradle sync (it will download the Android Gradle Plugin automatically).
-3. Run the `app` configuration on an emulator or device (API 21+).
-
-Or from a terminal with Gradle installed:
+2. Let Gradle sync.
+3. Run `app` on an emulator or device (API 21+).
 
 ```bash
 gradle :app:assembleDebug
@@ -132,8 +137,8 @@ gradle :app:assembleDebug
 ### Desktop demo
 
 ```bash
-gradle :desktop:run                 # random seed
-gradle :desktop:run --args="12345"  # fixed seed (reproducible island)
+gradle :desktop:run                 # random island
+gradle :desktop:run --args="42"     # reproducible island
 ```
 
 ### Desktop commands
@@ -141,47 +146,51 @@ gradle :desktop:run --args="12345"  # fixed seed (reproducible island)
 | Command | Description |
 | --- | --- |
 | `help` | Show all commands. |
-| `status` | Day, population, stability, gold, food, ruler, mood. |
-| `events [n]` | Show the last `n` chronicle entries (default 10). |
-| `step [n]` / `run [n]` | Advance `n` days (default 1). |
-| `pause` / `resume` | Stop or resume the automatic clock. |
-| `speed n` | Set how many days pass per tick (1–10). |
-| `rulers` | List eligible adult candidates. |
-| `choose <id>` | Appoint a candidate as ruler. |
-| `assassinate` | Remove the current ruler and trigger a succession. |
-| `control` / `auto` | Take direct control of the throne / give it back. |
-| `decree <NAME>` | Issue a decree (`FESTIVAL`, `TAX_CUT`, `CRACKDOWN`, …). |
+| `status` | Day, population, stability, stockpiles, ruler, mood. |
+| `map` | ASCII island: terrain, buildings, animals and working islanders. |
+| `agents [n]` | List living islanders with job, class, idea and position. |
+| `resources` | Wood, stone, ore, crystal, food, gold, buildings, wildlife. |
+| `animals` | Deer / boar / fish counts. |
+| `jobs` | List assignable job names. |
+| `job <id> <JOB>` | Reassign an islander (e.g. `job 3 BUILDER`). |
+| `build <x> <y> <STRUCTURE>` | Build from your own stockpile (e.g. `build 12 8 HUT`). |
+| `events [n]` | Show the last `n` chronicle entries. |
+| `step [n]` / `run [n]` | Advance `n` days. |
+| `pause` / `resume` | Stop or resume the clock. |
+| `speed n` | Days per tick (1–10). |
+| `rulers` / `choose <id>` | List candidates / appoint a ruler. |
+| `assassinate` | Remove the ruler and trigger a succession. |
+| `control` / `auto` | Take direct control / step back. |
+| `decree [NAME]` | Issue a decree (`FESTIVAL`, `CRACKDOWN`, …). |
 | `quit` | Exit. |
-
-Decree names are listed by typing `decree` with no argument.
 
 ---
 
 ## Roadmap
 
 - [ ] Save/load (serialize `World` to JSON).
-- [ ] Tile map and visual simulation of citizens moving on the island.
-- [ ] Factions with relations, rivalries, and wars.
-- [ ] Data-driven event definitions instead of hard-coded events.
-- [ ] Portrait generator and character screens.
-- [ ] Android UI rewritten with fragments + Material 3.
-- [ ] Tutorial scenario and challenge modes ("keep the island stable for 10 years").
+- [ ] Zoom/pan and touch interaction on the Android island view.
+- [ ] Factions with relations, rivalries and wars.
+- [ ] Data-driven events and jobs instead of hard-coded ones.
+- [ ] Character screens with portraits and needs.
+- [ ] Android UI with fragments and Material 3.
+- [ ] Scenario/challenge modes ("keep the island stable for 10 years").
 
 ---
 
 ## ملخص بالعربية
 
-**أوماتيدوم** لعبة محاكاة حياة تدور في جزيرة، حيث تراقب مجتمعًا حيًا وتشكّله. الزمن يمضي تلقائيًا، ولك أن تتدخل أو أن تترك الأحداث تجري من نفسها.
+**أوماتيدوم** لعبة محاكاة حياة على جزيرة، حيث تراقب مجتمعًا حيًا وتشكّله. الزمن يمضي تلقائيًا، ولك أن تتدخل أو تترك الأحداث تجري من نفسها.
 
-سكان الجزيرة مختلفون: أعراق وديانات وأيديولوجيات متعددة، وعلى رأس الأمة حاكم. تستطيع اختيار من يحكم، أو اغتياله، أو تولّي زمام قراراته مباشرة. لا تُجبر على إدارة كل تفصيلة: يمكنك التوجيه، والتلاعب، أو مجرد المشاهدة بينما يعيش الناس ويعتقدون ويتطورون.
+في التحديث الجديد الجزيرة أصبحت خريطة حقيقية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، لكل منهم لون ومهنة طبيعية. الناس أجسام صغيرة جدًا (نقطة بلون العرق + خط قصير بلون المهنة) حتى لا يثقلوا الهاتف. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال. هناك أيضًا طبقات اجتماعية وأفكار تنتقل بين الجيران.
 
-المشروع مقسّم إلى ثلاثة أجزاء: `core` (محرك المحاكاة بلغة جافا خالصة)، و`desktop` (واجهة سطر أوامر للتجربة)، و`app` (واجهة أندرويد أصلية). افتح المجلد في Android Studio وشغّل تطبيق `app`، أو شغّل النسخة المكتبية باستخدام `gradle :desktop:run`.
+التحكم: افتح المشروع في Android وشغّل `app`، أو جرّب `gradle :desktop:run --args="42"` ثم اكتب `map` لرؤية الجزيرة و`agents` لرؤية العمال.
 
 ---
 
 ## Contributing
 
-Ideas, balancing suggestions, event packs, and pull requests are welcome. Please keep all game rules inside `core` so both front-ends stay in sync.
+Ideas, balancing suggestions, event packs and pull requests are welcome. Keep all game rules inside `core` so both front-ends stay in sync.
 
 ## License
 

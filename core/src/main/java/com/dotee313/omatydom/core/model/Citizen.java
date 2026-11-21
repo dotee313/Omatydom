@@ -9,6 +9,9 @@ public final class Citizen {
 
     private Religion religion;
     private Ideology ideology;
+    private Job job;
+    private SocialClass socialClass;
+    private Idea idea;
     private int ageDays;
     private double health;
     private double happiness;
@@ -23,9 +26,12 @@ public final class Citizen {
         this.id = id;
         this.name = name == null ? "Nameless" : name;
         this.gender = gender == null ? Gender.MALE : gender;
-        this.race = race == null ? Race.HUMAN : race;
+        this.race = race == null ? Race.VAELI : race;
         this.religion = religion == null ? Religion.NONE : religion;
         this.ideology = ideology == null ? Ideology.APATHETIC : ideology;
+        this.job = Job.LABORER;
+        this.socialClass = SocialClass.LABORER;
+        this.idea = Idea.SURVIVAL;
         this.ageDays = Math.max(0, ageDays);
         this.health = 75;
         this.happiness = 55;
@@ -66,6 +72,30 @@ public final class Citizen {
 
     public void setIdeology(Ideology ideology) {
         this.ideology = ideology == null ? Ideology.APATHETIC : ideology;
+    }
+
+    public Job getJob() {
+        return job;
+    }
+
+    public void setJob(Job job) {
+        this.job = job == null ? Job.LABORER : job;
+    }
+
+    public SocialClass getSocialClass() {
+        return socialClass;
+    }
+
+    public void setSocialClass(SocialClass socialClass) {
+        this.socialClass = socialClass == null ? SocialClass.LABORER : socialClass;
+    }
+
+    public Idea getIdea() {
+        return idea;
+    }
+
+    public void setIdea(Idea idea) {
+        this.idea = idea == null ? Idea.SURVIVAL : idea;
     }
 
     public int getAgeDays() {

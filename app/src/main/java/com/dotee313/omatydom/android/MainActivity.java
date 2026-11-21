@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     private TextView statusView;
     private TextView rulerView;
     private ListView eventsView;
+    private IslandView islandView;
     private EventAdapter eventAdapter;
     private Button pauseButton;
     private Button speedButton;
@@ -74,6 +75,8 @@ public class MainActivity extends Activity {
 
         eventAdapter = new EventAdapter(this);
         eventsView.setAdapter(eventAdapter);
+        islandView = findViewById(R.id.islandView);
+        islandView.setGame(game);
 
         ArrayAdapter<String> decreeAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, decreeNames());
@@ -161,10 +164,11 @@ public class MainActivity extends Activity {
         World world = game.getWorld();
 
         statusView.setText(String.format(Locale.getDefault(),
-                "Day %d  •  Population %d  •  Stability %.0f/100%nGold %.0f  •  Food %.0f  •  Speed x%d  •  %s",
+                "Day %d  •  Pop %d  •  Stability %.0f/100%nGold %.0f  •  Food %.0f  •  Wood %.0f%nStone %.0f  •  Ore %.0f  •  Buildings %d  •  Speed x%d  •  %s",
                 world.getDay(), world.getPopulation(), world.getStability(),
-                world.getGold(), world.getFood(), game.getSpeed(),
-                game.isPaused() ? "PAUSED" : "RUNNING"));
+                world.getGold(), world.getFood(), world.getWood(),
+                world.getStone(), world.getOre(), world.getMap().countStructures(),
+                game.getSpeed(), game.isPaused() ? "PAUSED" : "RUNNING"));
 
         if (world.getRuler() == null) {
             rulerView.setText("No ruler — the island is waiting for a leader.");
@@ -186,6 +190,7 @@ public class MainActivity extends Activity {
             eventAdapter.add(event);
         }
         eventAdapter.notifyDataSetChanged();
+        islandView.invalidate();
 
         candidates = game.getRulerCandidates();
         if (candidates.size() != lastCandidateCount) {

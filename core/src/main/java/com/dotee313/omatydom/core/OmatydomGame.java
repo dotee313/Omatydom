@@ -1,12 +1,20 @@
 package com.dotee313.omatydom.core;
 
 import com.dotee313.omatydom.core.model.Citizen;
+import com.dotee313.omatydom.core.model.Job;
 import com.dotee313.omatydom.core.model.Religion;
 import com.dotee313.omatydom.core.model.Ruler;
+import com.dotee313.omatydom.core.model.SocialClass;
+import com.dotee313.omatydom.core.world.Agent;
+import com.dotee313.omatydom.core.world.Animal;
+import com.dotee313.omatydom.core.world.IslandMap;
+import com.dotee313.omatydom.core.world.Structure;
+import com.dotee313.omatydom.core.world.Tile;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -48,6 +56,18 @@ public final class OmatydomGame {
 
     public SimulationEngine getEngine() {
         return engine;
+    }
+
+    public IslandMap getMap() {
+        return world.getMap();
+    }
+
+    public List<Agent> getAgents() {
+        return world.getAgents();
+    }
+
+    public List<Animal> getAnimals() {
+        return world.getAnimals();
     }
 
     // ------------------------------------------------------------------
@@ -147,6 +167,22 @@ public final class OmatydomGame {
         }
         Ruler old = world.getRuler();
         String oldName = old == null ? "no one" : old.getCitizen().getName();
+        if (old != null && old.getCitizen() != chosen && old.getCitizen().isAlive()) {
+            old.getCitizen().setJob(Job.LABORER);
+            old.getCitizen().setOccupation(Job.LABORER.getDisplayName());
+            old.getCitizen().setSocialClass(SocialClass.LABORER);
+            Agent oldAgent = world.findAgent(old.getCitizen());
+            if (oldAgent != null) {
+                oldAgent.setJob(Job.LABORER);
+            }
+        }
+        chosen.setJob(Job.RULER);
+        chosen.setOccupation(Job.RULER.getDisplayName());
+        chosen.setSocialClass(SocialClass.NOBLE);
+        Agent newAgent = world.findAgent(chosen);
+        if (newAgent != null) {
+            newAgent.setJob(Job.RULER);
+        }
         world.setRuler(new Ruler(chosen, GameConfig.RULER_TITLE, world.getDay()));
         engine.postEvent(new GameEvent(world.getDay(), EventType.SUCCESSION, "A ruler is chosen",
                 oldName + " gives way to " + chosen.getName() + ".", 4));
@@ -201,6 +237,71 @@ public final class OmatydomGame {
                 decree.getDisplayName(),
                 decree.getDescription() + " (decreed by " + rulerName + ")", 3));
         return true;
+    }
+
+    /** Reassign an islander's work. Choosing RULER appoints them to the throne. */
+    public boolean assignJob(int citizenId, Job job) {
+        if (job == null) {
+            return false;
+        }
+        if (job == Job.RULER) {
+            return chooseRuler(citizenId);
+        }
+        Citizen citizen = findCitizen(citizenId);
+        if (citizen == null || !citizen.isAlive()) {
+            return false;
+        }
+        citizen.setJob(job);
+        citizen.setOccupation(job.getDisplayName());
+        if (job == Job.PRIEST) {
+            citizen.setSocialClass(SocialClass.CLERGY);
+        } else if (job == Job.BUILDER || job == Job.MINER
+                || job == Job.TRADER || job == Job.WOODCUTTER) {
+            citizen.setSocialClass(SocialClass.ARTISAN);
+        } else if (citizen.getSocialClass() == SocialClass.NOBLE) {
+            citizen.setSocialClass(SocialClass.LABORER);
+        }
+        Agent agent = world.findAgent(citizen);
+        if (agent != null) {
+            agent.setJob(job);
+        }
+        engine.postEvent(new GameEvent(world.getDay(), EventType.POLITICS, "A new calling",
+                citizen.getName() + " is now a " + job.getDisplayName().toLowerCase() + ".", 2));
+        return true;
+    }
+
+    /** Player-driven construction, paid for from the island's stockpiles. */
+    public boolean build(int x, int y, Structure structure) {
+        if (structure == null || !structure.isBuildable()) {
+            return false;
+        }
+        Tile tile = world.getMap().get(x, y);
+        if (tile == null || !tile.isFreeLand()) {
+            return false;
+        }
+        if (world.getWood() < structure.getWoodCost()
+                || world.getStone() < structure.getStoneCost()) {
+            return false;
+        }
+        world.setWood(world.getWood() - structure.getWoodCost());
+        world.setStone(world.getStone() - structure.getStoneCost());
+        world.getMap().placeStructure(x, y, structure);
+        engine.postEvent(new GameEvent(world.getDay(), EventType.ECONOMY, "Built by your hand",
+                structure.getDisplayName() + " rises at " + x + "," + y + ".", 3));
+        return true;
+    }
+
+    public String resourceSummary() {
+        int animals = 0;
+        for (Animal animal : world.getAnimals()) {
+            if (animal.isAlive()) {
+                animals++;
+            }
+        }
+        return String.format(Locale.ROOT,
+                "Wood %.0f | Stone %.0f | Ore %.0f | Crystal %.0f | Food %.0f | Gold %.0f | Buildings %d | Wildlife %d",
+                world.getWood(), world.getStone(), world.getOre(), world.getCrystal(),
+                world.getFood(), world.getGold(), world.getMap().countStructures(), animals);
     }
 
     private Citizen findCitizen(int id) {
