@@ -3,6 +3,7 @@ package com.dotee313.omatydom.desktop;
 import com.dotee313.omatydom.core.Decree;
 import com.dotee313.omatydom.core.GameEvent;
 import com.dotee313.omatydom.core.OmatydomGame;
+import com.dotee313.omatydom.core.Power;
 import com.dotee313.omatydom.core.SimulationListener;
 import com.dotee313.omatydom.core.World;
 import com.dotee313.omatydom.core.model.Citizen;
@@ -127,6 +128,24 @@ public final class DesktopLauncher {
                 game.takeControl();
                 printStatus();
                 break;
+            case "power": {
+                if (parts.length < 2) {
+                    System.out.println("Available powers: " + java.util.Arrays.toString(Power.values()));
+                    break;
+                }
+                Power power = null;
+                for (Power candidate : Power.values()) {
+                    if (candidate.name().equalsIgnoreCase(parts[1])) {
+                        power = candidate;
+                        break;
+                    }
+                }
+                boolean done = power != null && game.usePower(power);
+                System.out.println(done ? "The power " + power + " was cast."
+                        : "Unknown power, on cooldown, or not enough gold.");
+                printStatus();
+                break;
+            }
             case "auto":
                 game.releaseControl();
                 printStatus();
@@ -198,7 +217,7 @@ public final class DesktopLauncher {
     }
 
     private static void printHelp() {
-        System.out.println("Commands: help | status | events [n] | step [n] | run [n] | pause | resume");
+        System.out.println("Commands: help | status | events [n] | step [n] | run [n] | power [NAME] | pause | resume");
         System.out.println("          speed n | rulers | choose <id> | assassinate | control | auto");
         System.out.println("          decree [NAME] | map | agents | resources | animals | jobs");
         System.out.println("          job <id> <JOB> | build <x> <y> <STRUCTURE> | quit");

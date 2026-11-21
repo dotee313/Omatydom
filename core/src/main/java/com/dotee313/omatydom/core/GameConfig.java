@@ -34,6 +34,7 @@ public final class GameConfig {
     public static final int DAYS_PER_YEAR = 360;
     public static final int DAYS_PER_SEASON = 90;
     public static final int DAYS_PER_MONTH = 30;
+    public static final int DAYS_PER_AGE = 2 * DAYS_PER_YEAR;
     public static final long YEAR_REAL_MILLIS = 3_600_000L;
     public static final long MILLIS_PER_GAME_DAY = YEAR_REAL_MILLIS / DAYS_PER_YEAR;
     public static final int UI_TICK_MILLIS = 500;

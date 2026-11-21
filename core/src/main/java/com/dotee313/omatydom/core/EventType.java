@@ -15,7 +15,10 @@ public enum EventType {
     COUP("Coup"),
     ASSASSINATION("Assassination"),
     DISCOVERY("Discovery"),
-    POLITICS("Politics");
+    POLITICS("Politics"),
+    POWER("World Power"),
+    WEATHER("Weather"),
+    AGE("Age");
 
     private final String displayName;
 

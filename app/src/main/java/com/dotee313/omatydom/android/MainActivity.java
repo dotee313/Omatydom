@@ -13,10 +13,12 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.dotee313.omatydom.core.Age;
 import com.dotee313.omatydom.core.Decree;
 import com.dotee313.omatydom.core.GameConfig;
 import com.dotee313.omatydom.core.GameEvent;
 import com.dotee313.omatydom.core.OmatydomGame;
+import com.dotee313.omatydom.core.Power;
 import com.dotee313.omatydom.core.World;
 import com.dotee313.omatydom.core.model.Citizen;
 import com.dotee313.omatydom.core.model.Job;
@@ -49,9 +51,12 @@ public class MainActivity extends Activity {
 
     private LinearLayout peopleList;
     private GridLayout decreeGrid;
+    private GridLayout powerGrid;
 
-    private final ImageButton[] navButtons = new ImageButton[4];
-    private final View[] pages = new View[4];
+    private final ImageButton[] navButtons = new ImageButton[5];
+    private final View[] pages = new View[5];
+    private int selectedTileX = -1;
+    private int selectedTileY = -1;
     private int currentTab;
 
     private final List<Citizen> candidates = new ArrayList<>();
@@ -86,6 +91,7 @@ public class MainActivity extends Activity {
         eventsView = findViewById(R.id.eventsList);
         peopleList = findViewById(R.id.peopleList);
         decreeGrid = findViewById(R.id.decreeGrid);
+        powerGrid = findViewById(R.id.powerGrid);
 
         eventAdapter = new EventAdapter(this);
         eventsView.setAdapter(eventAdapter);
@@ -101,13 +107,16 @@ public class MainActivity extends Activity {
 
             @Override
             public void onTileTapped(int x, int y) {
-                showHint(tileExplanation(x, y));
+                selectedTileX = x;
+                selectedTileY = y;
+                showHint(tileExplanation(x, y) + " — صار هذا هدف القدرات.");
             }
         });
 
         setupTopControls();
         setupBottomNav();
         setupDecreeGrid();
+        setupPowersGrid();
 
         refreshUi();
     }
@@ -175,16 +184,20 @@ public class MainActivity extends Activity {
         navButtons[0] = findViewById(R.id.navWorldButton);
         navButtons[1] = findViewById(R.id.navPeopleButton);
         navButtons[2] = findViewById(R.id.navDecreesButton);
-        navButtons[3] = findViewById(R.id.navEventsButton);
+        navButtons[3] = findViewById(R.id.navPowersButton);
+        navButtons[4] = findViewById(R.id.navEventsButton);
         pages[0] = findViewById(R.id.worldPage);
         pages[1] = findViewById(R.id.peoplePage);
         pages[2] = findViewById(R.id.decreesPage);
-        pages[3] = findViewById(R.id.eventsPage);
+        pages[3] = findViewById(R.id.powersPage);
+        pages[4] = findViewById(R.id.eventsPage);
+        navButtons[3].setImageDrawable(PixelIcons.control(this, PixelIcons.Control.CONTROL));
 
         final String[] hints = {
                 "الجزيرة: اضغط أي شخص أو قطعة أرض لتعرف ما هي.",
                 "السكان: اضغط أي وجه لتعيين صاحبه حاكمًا.",
                 "المراسيم: كل أيقونة أمر يؤثر على كل الجزيرة.",
+                "القدرات: اضغط أيقونة لتغيير العالم — اختر هدفها بالضغط على الأرض أولًا.",
                 "الأحداث: سجل ما حدث يومًا بيوم."
         };
         for (int i = 0; i < navButtons.length; i++) {
@@ -234,6 +247,47 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void setupPowersGrid() {
+        int size = Math.round(56 * getResources().getDisplayMetrics().density);
+        Power[] powers = Power.values();
+        for (int i = 0; i < powers.length; i++) {
+            final Power power = powers[i];
+            ImageButton button = new ImageButton(this);
+            GridLayout.LayoutParams params = new GridLayout.LayoutParams(
+                    GridLayout.spec(i / 5), GridLayout.spec(i % 5));
+            params.width = size;
+            params.height = size;
+            button.setLayoutParams(params);
+            button.setBackground(null);
+            button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
+            button.setPadding(3, 3, 3, 3);
+            button.setContentDescription(arabicPower(power));
+            button.setImageDrawable(PixelIcons.power(this, power));
+            button.setOnClickListener(v -> castPower(power));
+            powerGrid.addView(button);
+        }
+    }
+
+    private void castPower(Power power) {
+        boolean targeted = selectedTileX >= 0 && selectedTileY >= 0;
+        int cooldown = game.getPowerCooldownDaysLeft(power);
+        if (cooldown > 0) {
+            showHint("هذه القدرة تحتاج " + cooldown + " يومًا قبل أن تعود.");
+            return;
+        }
+        boolean done = targeted
+                ? game.usePower(power, selectedTileX, selectedTileY)
+                : game.usePower(power);
+        if (!done) {
+            showHint("تحتاج " + power.getGoldCost() + " ذهبًا لتفعيل «"
+                    + arabicPower(power) + "».");
+            return;
+        }
+        showHint(arabicPower(power) + " — " + arabicPowerDescription(power)
+                + "\nالتبريد: " + power.getCooldownDays() + " يومًا.");
+        refreshUi();
+    }
+
     private void startTicking() {
         if (!ticking) {
             ticking = true;
@@ -281,11 +335,16 @@ public class MainActivity extends Activity {
                     expecting));
         }
 
+        Age age = game.getAge();
         seasonView.setText(String.format(Locale.getDefault(),
-                "الفصل %s • الشهر %d/12 • يوم %d/%d • سنة كاملة = ساعة واحدة",
+                "%s • %s • %s • الشهر %d/12 • يوم %d/%d%nمواليد %d • وفيات %d • مبانٍ %d • قدرات %d",
+                arabicAge(age),
+                arabicWeather(world.getWeather()),
                 season, month, day % GameConfig.DAYS_PER_YEAR == 0
                         ? GameConfig.DAYS_PER_YEAR : day % GameConfig.DAYS_PER_YEAR,
-                GameConfig.DAYS_PER_YEAR));
+                GameConfig.DAYS_PER_YEAR,
+                world.getBirths(), world.getDeaths(),
+                world.getStructuresBuilt(), world.getPowersUsed()));
         dayProgress.setProgress((int) (game.getDayProgress() * 100));
 
         eventAdapter.clear();
@@ -341,6 +400,7 @@ public class MainActivity extends Activity {
                     ? "حامل • يوم " + citizen.getGestationDay(game.getWorld().getDay())
                             + "/" + GameConfig.GESTATION_DAYS
                     : arabicJob(citizen.getJob()) + " • " + citizen.getAgeYears() + " سنة";
+            status += " • " + arabicTrait(citizen.getTrait());
             info.setText(citizen.getName() + "\n" + status);
             row.addView(info);
 
@@ -364,7 +424,8 @@ public class MainActivity extends Activity {
                 : arabicJob(citizen.getJob()) + " • " + citizen.getAgeYears() + " سنة • صحة "
                         + (int) citizen.getHealth() + " • سعادة " + (int) citizen.getHappiness();
         return citizen.getName() + " — " + citizen.getRace().getDescription()
-                + "\n" + state + ". اضغط وجهه في تبويب السكان لتعيينه حاكمًا.";
+                + "\n" + state + " • " + arabicTrait(citizen.getTrait())
+                + ". اضغط وجهه في تبويب السكان لتعيينه حاكمًا.";
     }
 
     private String tileExplanation(int x, int y) {
@@ -444,6 +505,78 @@ public class MainActivity extends Activity {
             case TRADER: return "تاجر";
             case LABORER:
             default: return "عامل";
+        }
+    }
+
+    private static String arabicPower(Power power) {
+        switch (power) {
+            case RAIN: return "مطر الحياة";
+            case BLOOM: return "المدّ الأخضر";
+            case HEAL: return "نور الشفاء";
+            case BLESS: return "البركة";
+            case LIGHTNING: return "رمح العاصفة";
+            case PLAGUE: return "الحمّى الرمادية";
+            case EARTHQUAKE: return "زلزال";
+            case METEOR: return "نيزك";
+            case PEACE: return "سكينة";
+            case PROSPERITY:
+            default: return "مطر الذهب";
+        }
+    }
+
+    private static String arabicPowerDescription(Power power) {
+        switch (power) {
+            case RAIN: return "يعيد ملء الغابات والبساتين والجبال بالماء.";
+            case BLOOM: return "ينبت مساحة واسعة ويضيف طعامًا للمخازن.";
+            case HEAL: return "يعيد صحة كل من حول نقطة الهدف.";
+            case BLESS: return "يرفع السعادة والولاء في المنطقة.";
+            case LIGHTNING: return "يضرب الناس والحيوانات في مساحة صغيرة.";
+            case PLAGUE: return "ينشر حمى خطيرة في مساحة صغيرة.";
+            case EARTHQUAKE: return "يهدم المباني القريبة ويهز الاستقرار.";
+            case METEOR: return "نيزك محرق يدمر الهدف ويترك معادن.";
+            case PEACE: return "يهدئ كل الجزيرة ويرفع الاستقرار.";
+            case PROSPERITY:
+            default: return "يملأ الخزانة ويزيد ثروة كل بيت.";
+        }
+    }
+
+    private static String arabicAge(Age age) {
+        switch (age) {
+            case DAWN: return "عصر الفجر";
+            case SUN: return "عصر الشمس";
+            case HARVEST: return "عصر الحصاد";
+            case STORM: return "عصر العواصف";
+            case MOON: return "عصر القمر";
+            case ASH: return "عصر الرماد";
+            case ICE: return "عصر الجليد";
+            case RENEWAL:
+            default: return "عصر التجدد";
+        }
+    }
+
+    private static String arabicWeather(com.dotee313.omatydom.core.world.Weather weather) {
+        switch (weather) {
+            case RAIN: return "مطر";
+            case STORM: return "عاصفة";
+            case DROUGHT: return "جفاف";
+            case SNOW: return "ثلوج";
+            case ASH: return "رماد بركاني";
+            case CLEAR:
+            default: return "صحو";
+        }
+    }
+
+    private static String arabicTrait(com.dotee313.omatydom.core.model.Trait trait) {
+        switch (trait) {
+            case BRAVE: return "شجاع";
+            case LAZY: return "كسول";
+            case GENEROUS: return "كريم";
+            case ZEALOUS: return "متعصّب";
+            case CURIOUS: return "فضولي";
+            case RESILIENT: return "صامد";
+            case GREEDY: return "طماع";
+            case CONTENT:
+            default: return "راضٍ";
         }
     }
 

@@ -15,6 +15,7 @@ import com.dotee313.omatydom.core.world.AnimalType;
 import com.dotee313.omatydom.core.world.IslandMap;
 import com.dotee313.omatydom.core.world.Structure;
 import com.dotee313.omatydom.core.world.TileType;
+import com.dotee313.omatydom.core.world.Weather;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +41,13 @@ public final class World {
     private double ore;
     private double crystal;
     private double stability;
+    private Weather weather = Weather.CLEAR;
+    private int weatherDaysLeft = 3;
+
+    private int births;
+    private int deaths;
+    private int structuresBuilt;
+    private int powersUsed;
 
     public World(String name, IslandMap map) {
         this.name = name == null ? "Omatydom" : name;
@@ -147,11 +155,25 @@ public final class World {
     /** Add one animal in a suitable habitat. */
     public static void spawnAnimal(World world, Random random) {
         double roll = random.nextDouble();
-        AnimalType type = roll < 0.35 ? AnimalType.FISH
-                : (roll < 0.68 ? AnimalType.DEER : AnimalType.BOAR);
+        AnimalType type;
+        if (roll < 0.04) {
+            type = AnimalType.DRAGON;
+        } else if (roll < 0.10) {
+            AnimalType[] monsters = {AnimalType.WOLF, AnimalType.WORM,
+                    AnimalType.GOLEM, AnimalType.ZOMBIE};
+            type = monsters[random.nextInt(monsters.length)];
+        } else if (roll < 0.38) {
+            type = AnimalType.FISH;
+        } else if (roll < 0.70) {
+            type = AnimalType.DEER;
+        } else {
+            type = AnimalType.BOAR;
+        }
         int[] spot;
         if (type.isWater()) {
             spot = world.map.randomTileOf(TileType.WATER, random);
+        } else if (type == AnimalType.DRAGON || type == AnimalType.GOLEM) {
+            spot = world.map.randomTileOf(random.nextBoolean() ? TileType.MOUNTAIN : TileType.CAVE, random);
         } else {
             spot = world.map.randomTileOf(random.nextBoolean() ? TileType.FOREST : TileType.GRASS, random);
         }
@@ -318,6 +340,54 @@ public final class World {
 
     public void setStability(double stability) {
         this.stability = Math.max(0, Math.min(100, stability));
+    }
+
+    public Weather getWeather() {
+        return weather;
+    }
+
+    public void setWeather(Weather weather) {
+        this.weather = weather == null ? Weather.CLEAR : weather;
+    }
+
+    public int getWeatherDaysLeft() {
+        return weatherDaysLeft;
+    }
+
+    public void setWeatherDaysLeft(int days) {
+        this.weatherDaysLeft = Math.max(1, days);
+    }
+
+    public int getBirths() {
+        return births;
+    }
+
+    public void incrementBirths() {
+        births++;
+    }
+
+    public int getDeaths() {
+        return deaths;
+    }
+
+    public void incrementDeaths() {
+        deaths++;
+    }
+
+    public int getStructuresBuilt() {
+        return structuresBuilt;
+    }
+
+    public void incrementStructuresBuilt() {
+        structuresBuilt++;
+    }
+
+    public int getPowersUsed() {
+        return powersUsed;
+    }
+
+    public void incrementPowersUsed() {
+        powersUsed++;
     }
 
     public void addEvent(GameEvent event) {

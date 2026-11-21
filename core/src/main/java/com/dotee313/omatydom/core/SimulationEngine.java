@@ -11,10 +11,12 @@ import com.dotee313.omatydom.core.model.Ruler;
 import com.dotee313.omatydom.core.model.SocialClass;
 import com.dotee313.omatydom.core.world.Agent;
 import com.dotee313.omatydom.core.world.Animal;
+import com.dotee313.omatydom.core.world.AnimalType;
 import com.dotee313.omatydom.core.world.IslandMap;
 import com.dotee313.omatydom.core.world.Structure;
 import com.dotee313.omatydom.core.world.Tile;
 import com.dotee313.omatydom.core.world.TileType;
+import com.dotee313.omatydom.core.world.Weather;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,10 +66,18 @@ public final class SimulationEngine {
         int day = world.getDay() + 1;
         world.setDay(day);
 
+        stepWeather(day);
+        damageStructuresFromWeather(day);
+        if (day > 1 && (day - 1) % GameConfig.DAYS_PER_AGE == 0) {
+            postEvent(new GameEvent(day, EventType.AGE, "A new age begins",
+                    "The island enters the " + Age.of(day).getDisplayName() + ".", 5));
+        }
+
         double population = Math.max(1, world.getPopulation());
         stepEconomy(population, day);
         stepAgents(day);
         stepAnimals();
+        stepMonsters(day);
         stepIdeas();
 
         double mood = computeMood();
@@ -88,7 +98,104 @@ public final class SimulationEngine {
         }
     }
 
+    /** Weather persists for a few days so it feels like a season, not noise. */
+    private void stepWeather(int day) {
+        if (world.getWeatherDaysLeft() > 1 && random.nextDouble() < 0.75) {
+            world.setWeatherDaysLeft(world.getWeatherDaysLeft() - 1);
+            return;
+        }
+        int season = OmatydomGame.seasonOf(day);
+        double roll = random.nextDouble();
+        Weather next;
+        if (season == 3) {
+            next = roll < 0.45 ? Weather.SNOW
+                    : (roll < 0.70 ? Weather.STORM : Weather.CLEAR);
+        } else if (season == 1) {
+            next = roll < 0.30 ? Weather.DROUGHT
+                    : (roll < 0.55 ? Weather.STORM : Weather.CLEAR);
+        } else {
+            next = roll < 0.42 ? Weather.CLEAR
+                    : (roll < 0.72 ? Weather.RAIN
+                    : (roll < 0.85 ? Weather.STORM : Weather.DROUGHT));
+        }
+        if (random.nextDouble() < 0.04) {
+            next = Weather.ASH;
+        }
+        world.setWeather(next);
+        world.setWeatherDaysLeft(2 + random.nextInt(5));
+        if (postWeatherEvent(next)) {
+            postEvent(new GameEvent(day, EventType.WEATHER, "The sky changes",
+                    next.getDisplayName() + " settles over the island.", 1));
+        }
+    }
+
+    /** Dangerous creatures hurt nearby islanders each day. */
+    private void stepMonsters(int day) {
+        for (Animal animal : new ArrayList<>(world.getAnimals())) {
+            if (!animal.isAlive() || !animal.getType().isDangerous()) {
+                continue;
+            }
+            for (Agent agent : new ArrayList<>(world.getAgents())) {
+                if (!agent.getCitizen().isAlive()
+                        || distance(animal.getX(), animal.getY(), agent.getX(), agent.getY()) > 1
+                        || random.nextDouble() >= 0.25) {
+                    continue;
+                }
+                Citizen victim = agent.getCitizen();
+                double damage = animal.getType() == AnimalType.DRAGON ? 10
+                        : (animal.getType() == AnimalType.GOLEM ? 6 : 4);
+                victim.setHealth(victim.getHealth() - damage);
+                if (victim.getHealth() <= 0) {
+                    killCitizenByCause(victim, day, animal.getType().getDisplayName());
+                } else if (random.nextDouble() < 0.02) {
+                    postEvent(new GameEvent(day, EventType.DISASTER, "A creature attacks",
+                            animal.getType().getDisplayName() + " wounded "
+                                    + victim.getName() + ".", 2));
+                }
+            }
+        }
+    }
+
+    private void killCitizenByCause(Citizen citizen, int day, String cause) {
+        citizen.setAlive(false);
+        citizen.setHealth(0);
+        world.incrementDeaths();
+        Agent agent = world.findAgent(citizen);
+        if (agent != null) {
+            world.removeAgent(agent);
+        }
+        if (world.getRuler() != null
+                && citizen.getId() == world.getRuler().getCitizen().getId()) {
+            world.setRuler(null);
+        }
+        postEvent(new GameEvent(day, EventType.DEATH, "A life cut short",
+                citizen.getName() + " was killed by " + cause + ".", 3));
+    }
+
+    private void damageStructuresFromWeather(int day) {
+        double chance = world.getWeather().getStructureDamageChance();
+        if (chance <= 0) {
+            return;
+        }
+        for (int y = 0; y < world.getMap().getHeight(); y++) {
+            for (int x = 0; x < world.getMap().getWidth(); x++) {
+                Tile tile = world.getMap().get(x, y);
+                if (tile != null && tile.getStructure() != Structure.NONE
+                        && random.nextDouble() < chance) {
+                    tile.setStructure(Structure.NONE);
+                    postEvent(new GameEvent(day, EventType.WEATHER, "Weather damage",
+                            "A storm tore down a structure at (" + x + "," + y + ").", 2));
+                }
+            }
+        }
+    }
+
+    private static boolean postWeatherEvent(Weather weather) {
+        return weather != Weather.CLEAR;
+    }
+
     private void stepEconomy(double population, int day) {
+        regrowResources();
         double before = world.getFood();
         world.setFood(world.getFood() - population * GameConfig.FOOD_PER_CITIZEN);
 
@@ -107,6 +214,26 @@ public final class SimulationEngine {
                 * (0.5 + world.getStability() / 200.0);
         double upkeep = population * GameConfig.ADMIN_COST_PER_CITIZEN;
         world.setGold(world.getGold() + income - upkeep);
+    }
+
+    /** Gentle daily regrowth; rain and green ages make the island recover faster. */
+    private void regrowResources() {
+        double chance = 0.010 * world.getWeather().getRegrowthMultiplier()
+                * Age.of(world.getDay()).getWorkMultiplier();
+        for (int y = 0; y < world.getMap().getHeight(); y++) {
+            for (int x = 0; x < world.getMap().getWidth(); x++) {
+                Tile tile = world.getMap().get(x, y);
+                if (tile == null || tile.getResource() >= 24) {
+                    continue;
+                }
+                TileType type = tile.getType();
+                if ((type == TileType.FOREST || type == TileType.ORCHARD
+                        || type == TileType.MOUNTAIN || type == TileType.CAVE)
+                        && random.nextDouble() < chance / 4) {
+                    tile.setResource(Math.min(24, tile.getResource() + 1));
+                }
+            }
+        }
     }
 
     // ------------------------------------------------------------------
@@ -323,6 +450,14 @@ public final class SimulationEngine {
                 && agent.getY() == agent.getTargetY();
     }
 
+    /** Innate traits make some islanders noticeably better or worse at work. */
+    private double workYield(Agent agent, double base) {
+        double traitFactor = 1.0 + agent.getCitizen().getTrait().getWorkModifier();
+        double weatherFactor = world.getWeather().getWorkMultiplier();
+        double ageFactor = Age.of(world.getDay()).getWorkMultiplier();
+        return Math.max(base * 0.3, base * traitFactor * weatherFactor * ageFactor);
+    }
+
     private void work(Agent agent, int day) {
         Job job = agent.getJob();
         IslandMap map = world.getMap();
@@ -332,7 +467,7 @@ public final class SimulationEngine {
             case WOODCUTTER:
                 if (tile != null && tile.getType() == TileType.FOREST && tile.getResource() > 0) {
                     tile.setResource(tile.getResource() - 1);
-                    world.setWood(world.getWood() + GameConfig.WOOD_PER_LOG);
+                    world.setWood(world.getWood() + workYield(agent, GameConfig.WOOD_PER_LOG));
                     if (random.nextDouble() < 0.03) {
                         postEvent(new GameEvent(day, EventType.ECONOMY, "Axes in the forest",
                                 agent.getCitizen().getName() + " brings back a load of wood.", 1));
@@ -342,7 +477,7 @@ public final class SimulationEngine {
             case GATHERER:
                 if (tile != null && tile.getType() == TileType.ORCHARD && tile.getResource() > 0) {
                     tile.setResource(tile.getResource() - 1);
-                    world.setFood(world.getFood() + GameConfig.FOOD_PER_FRUIT);
+                    world.setFood(world.getFood() + workYield(agent, GameConfig.FOOD_PER_FRUIT));
                     if (random.nextDouble() < 0.03) {
                         postEvent(new GameEvent(day, EventType.ECONOMY, "Fruit harvest",
                                 agent.getCitizen().getName() + " fills a basket in the orchard.", 1));
@@ -353,7 +488,7 @@ public final class SimulationEngine {
                 if (tile != null && (tile.getType() == TileType.MOUNTAIN || tile.getType() == TileType.CAVE)
                         && tile.getResource() > 0) {
                     tile.setResource(tile.getResource() - 1);
-                    world.setStone(world.getStone() + GameConfig.STONE_PER_DIG);
+                    world.setStone(world.getStone() + workYield(agent, GameConfig.STONE_PER_DIG));
                     if (random.nextDouble() < 0.5) {
                         world.setOre(world.getOre() + GameConfig.ORE_PER_DIG);
                     }
@@ -368,7 +503,7 @@ public final class SimulationEngine {
                 break;
             case FISHER:
                 if (map.hasWaterNeighbour(agent.getX(), agent.getY())) {
-                    world.setFood(world.getFood() + GameConfig.FOOD_PER_FISH);
+                    world.setFood(world.getFood() + workYield(agent, GameConfig.FOOD_PER_FISH));
                     if (random.nextDouble() < 0.03) {
                         postEvent(new GameEvent(day, EventType.ECONOMY, "The nets are full",
                                 agent.getCitizen().getName() + " returns with fish from the shore.", 1));
@@ -380,10 +515,20 @@ public final class SimulationEngine {
                 if (animal != null && animal.isAlive()
                         && Math.abs(animal.getX() - agent.getX()) <= 1
                         && Math.abs(animal.getY() - agent.getY()) <= 1) {
-                    animal.setHealth(animal.getHealth() - 6);
+                    animal.setHealth(animal.getHealth()
+                            - (int) Math.round(workYield(agent, 6)));
+                    if (animal.getType().isDangerous() && random.nextDouble() < 0.15) {
+                        Citizen hunter = agent.getCitizen();
+                        hunter.setHealth(hunter.getHealth() - 18);
+                        if (hunter.getHealth() <= 0) {
+                            killCitizenByCause(hunter, day, animal.getType().getDisplayName());
+                            agent.clearTarget();
+                            break;
+                        }
+                    }
                     if (animal.getHealth() <= 0) {
                         animal.setAlive(false);
-                        world.setFood(world.getFood() + GameConfig.FOOD_PER_HUNT);
+                        world.setFood(world.getFood() + workYield(agent, GameConfig.FOOD_PER_HUNT));
                         postEvent(new GameEvent(day, EventType.ECONOMY, "A successful hunt",
                                 agent.getCitizen().getName() + " brings down a "
                                         + animal.getType().getDisplayName().toLowerCase() + ".", 2));
@@ -403,6 +548,7 @@ public final class SimulationEngine {
                         world.setWood(world.getWood() - structure.getWoodCost());
                         world.setStone(world.getStone() - structure.getStoneCost());
                         map.placeStructure(agent.getX(), agent.getY(), structure);
+                        world.incrementStructuresBuilt();
                         postEvent(new GameEvent(day, EventType.ECONOMY, "New construction",
                                 structure.getDisplayName() + " raised by "
                                         + agent.getCitizen().getName() + ".", 3));
@@ -560,6 +706,8 @@ public final class SimulationEngine {
         mood += Math.max(-20, Math.min(20, foodPerCitizen * 2 - 10));
         mood += (world.getStability() - 50) * 0.3;
         mood += Math.min(10, world.getMap().countStructures() * 0.8);
+        mood += world.getWeather().getMoodDelta();
+        mood += Age.of(world.getDay()).getMoodDelta();
         return clamp(mood * 0.6 + averageHappiness * 0.4);
     }
 
@@ -581,11 +729,15 @@ public final class SimulationEngine {
                     + (world.getRuler() == null ? -1.5 : 0)
                     + random.nextDouble() * 0.3 - 0.15;
 
-            citizen.setHappiness(citizen.getHappiness() + happinessDelta);
+            citizen.setHappiness(citizen.getHappiness()
+                    + happinessDelta + citizen.getTrait().getHappinessModifier() * 0.02);
             citizen.setHealth(citizen.getHealth() + healthDelta);
             citizen.setWealth(citizen.getWealth() + wealthDelta);
-            citizen.setLoyalty(citizen.getLoyalty() + loyaltyDelta);
-            citizen.setEducation(citizen.getEducation() + random.nextDouble() * 0.05);
+            citizen.setLoyalty(citizen.getLoyalty()
+                    + loyaltyDelta + citizen.getTrait().getLoyaltyModifier() * 0.02);
+            citizen.setEducation(citizen.getEducation()
+                    + random.nextDouble() * 0.05
+                    + Math.max(0, citizen.getTrait().getLearningModifier()) * 0.04);
 
             if (citizen.isAdult() && citizen.getJob() == Job.LABORER
                     && citizen.getSocialClass() == SocialClass.CHILD) {
@@ -625,9 +777,11 @@ public final class SimulationEngine {
             double deathChance = 0.00015
                     + Math.max(0, ageYears - 60) * 0.00006
                     + (citizen.getHealth() < 25 ? 0.008 : 0);
+            deathChance *= 1.0 - Math.max(0, citizen.getTrait().getSurvivalModifier());
             if (random.nextDouble() < deathChance) {
                 citizen.setAlive(false);
                 citizen.setHealth(0);
+                world.incrementDeaths();
                 postEvent(new GameEvent(day, EventType.DEATH, "A life ends",
                         citizen.getName() + " has died at the age of " + ageYears + ".", 2));
             }
@@ -662,6 +816,7 @@ public final class SimulationEngine {
             }
             double chance = GameConfig.CONCEPTION_CHANCE_PER_DAY
                     * fertility
+                    * Age.of(day).getBirthMultiplier()
                     * (0.5 + woman.getHealth() / 200.0)
                     * (woman.getWealth() < 15 ? 0.5 : 1.0);
             if (random.nextDouble() < chance) {
@@ -691,6 +846,7 @@ public final class SimulationEngine {
         child.setHealth(70);
         child.setLoyalty(mother.getLoyalty());
         world.addCitizen(child);
+        world.incrementBirths();
 
         Agent motherAgent = world.findAgent(mother);
         int x = motherAgent == null ? world.getMap().getWidth() / 2 : motherAgent.getX();
@@ -888,6 +1044,161 @@ public final class SimulationEngine {
                 break;
             }
         }
+    }
+
+    // ------------------------------------------------------------------
+    // World powers (player-triggered miracles and disasters)
+    // ------------------------------------------------------------------
+
+    public void castPower(Power power, int tx, int ty) {
+        int day = world.getDay();
+        int radius;
+        switch (power) {
+            case RAIN:
+                radius = 4;
+                for (int y = ty - radius; y <= ty + radius; y++) {
+                    for (int x = tx - radius; x <= tx + radius; x++) {
+                        Tile tile = world.getMap().get(x, y);
+                        if (tile != null && (tile.getType() == TileType.FOREST
+                                || tile.getType() == TileType.ORCHARD
+                                || tile.getType() == TileType.MOUNTAIN
+                                || tile.getType() == TileType.CAVE)) {
+                            tile.setResource(Math.min(24, tile.getResource() + 9));
+                        }
+                    }
+                }
+                break;
+            case BLOOM:
+                radius = 7;
+                for (int y = ty - radius; y <= ty + radius; y++) {
+                    for (int x = tx - radius; x <= tx + radius; x++) {
+                        Tile tile = world.getMap().get(x, y);
+                        if (tile != null && tile.getType() == TileType.GRASS
+                                && random.nextDouble() < 0.35) {
+                            tile.setType(TileType.ORCHARD);
+                            tile.setResource(8);
+                        } else if (tile != null && (tile.getType() == TileType.ORCHARD
+                                || tile.getType() == TileType.FOREST)) {
+                            tile.setResource(Math.min(24, tile.getResource() + 6));
+                        }
+                    }
+                }
+                world.setFood(world.getFood() + 60);
+                break;
+            case HEAL:
+                radius = 5;
+                for (Citizen citizen : world.getLivingCitizens()) {
+                    if (nearAgent(citizen, tx, ty, radius)) {
+                        citizen.setHealth(Math.min(100, citizen.getHealth() + 40));
+                    }
+                }
+                break;
+            case BLESS:
+                radius = 6;
+                for (Citizen citizen : world.getLivingCitizens()) {
+                    if (nearAgent(citizen, tx, ty, radius)) {
+                        citizen.setHappiness(Math.min(100, citizen.getHappiness() + 18));
+                        citizen.setLoyalty(Math.min(100, citizen.getLoyalty() + 14));
+                    }
+                }
+                break;
+            case LIGHTNING:
+            case PLAGUE:
+            case EARTHQUAKE:
+            case METEOR:
+                radius = power == Power.METEOR ? 4 : (power == Power.EARTHQUAKE ? 3 : 2);
+                for (Citizen citizen : new ArrayList<>(world.getLivingCitizens())) {
+                    if (!nearAgent(citizen, tx, ty, radius)) {
+                        continue;
+                    }
+                    double damage = power == Power.METEOR ? 75
+                            : (power == Power.EARTHQUAKE ? 22
+                            : (power == Power.LIGHTNING ? 55 : 34));
+                    citizen.setHealth(citizen.getHealth() - damage - random.nextDouble() * 10);
+                    if (citizen.getHealth() <= 0) {
+                        killCitizen(citizen, day, power);
+                    }
+                }
+                for (Animal animal : new ArrayList<>(world.getAnimals())) {
+                    if (animal.isAlive() && distance(animal.getX(), animal.getY(), tx, ty) <= radius) {
+                        animal.setHealth(animal.getHealth() - 40);
+                        if (animal.getHealth() <= 0) {
+                            animal.setAlive(false);
+                        }
+                    }
+                }
+                for (int y = ty - radius; y <= ty + radius; y++) {
+                    for (int x = tx - radius; x <= tx + radius; x++) {
+                        Tile tile = world.getMap().get(x, y);
+                        if (tile == null) {
+                            continue;
+                        }
+                        if ((power == Power.EARTHQUAKE || power == Power.METEOR)
+                                && tile.getStructure() != Structure.NONE) {
+                            tile.setStructure(Structure.NONE);
+                        }
+                        if (power == Power.METEOR && distance(x, y, tx, ty) <= 1
+                                && tile.getType() != TileType.WATER) {
+                            tile.setType(TileType.MOUNTAIN);
+                            tile.setResource(12);
+                        }
+                    }
+                }
+                if (power == Power.EARTHQUAKE || power == Power.METEOR) {
+                    world.setStability(world.getStability() - (power == Power.METEOR ? 14 : 8));
+                }
+                if (power == Power.METEOR) {
+                    world.setStone(world.getStone() + 60);
+                    world.setOre(world.getOre() + 20);
+                    world.setCrystal(world.getCrystal() + 5);
+                }
+                break;
+            case PEACE:
+                for (Citizen citizen : world.getLivingCitizens()) {
+                    citizen.setHappiness(Math.min(100, citizen.getHappiness() + 10));
+                    citizen.setLoyalty(Math.min(100, citizen.getLoyalty() + 8));
+                }
+                world.setStability(world.getStability() + 12);
+                break;
+            case PROSPERITY:
+                world.setGold(world.getGold() + 180);
+                for (Citizen citizen : world.getLivingCitizens()) {
+                    citizen.setWealth(citizen.getWealth() + 18);
+                }
+                break;
+            default:
+                break;
+        }
+        postEvent(new GameEvent(day, EventType.POWER, "A hand from the sky",
+                power.getDisplayName() + " was used at (" + tx + "," + ty + ").", 3));
+    }
+
+    private void killCitizen(Citizen citizen, int day, Power cause) {
+        citizen.setAlive(false);
+        citizen.setHealth(0);
+        world.incrementDeaths();
+        Agent agent = world.findAgent(citizen);
+        if (agent != null) {
+            world.removeAgent(agent);
+        }
+        if (citizen.getId() == (world.getRuler() == null ? -1
+                : world.getRuler().getCitizen().getId())) {
+            world.setRuler(null);
+        }
+        postEvent(new GameEvent(day, EventType.DISASTER, "A life cut short",
+                citizen.getName() + " did not survive " + cause.getDisplayName() + ".", 3));
+    }
+
+    private boolean nearAgent(Citizen citizen, int x, int y, int radius) {
+        Agent agent = world.findAgent(citizen);
+        if (agent == null) {
+            return false;
+        }
+        return distance(agent.getX(), agent.getY(), x, y) <= radius;
+    }
+
+    private static int distance(int x1, int y1, int x2, int y2) {
+        return Math.abs(x1 - x2) + Math.abs(y1 - y2);
     }
 
     private <T> T pick(T[] values) {

@@ -7,6 +7,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
 import com.dotee313.omatydom.core.Decree;
+import com.dotee313.omatydom.core.Power;
 import com.dotee313.omatydom.core.model.Citizen;
 import com.dotee313.omatydom.core.model.Gender;
 import com.dotee313.omatydom.core.model.Job;
@@ -64,6 +65,47 @@ final class PixelIcons {
             "........."
     };
 
+    private static final String[] POWER_RAIN = {
+            "...WWW...", "..WWWWW..", ".WWWWWWW.", "WWWWWWWWW", ".........",
+            "..B.B.B..", ".B.B.B.B.", "..B.B.B..", "........."
+    };
+    private static final String[] POWER_BLOOM = {
+            "....G....", "...GGG...", "..GGGGG..", ".GGYGGGG.", "GGGYYGGG.",
+            ".GGYGGGG.", "..GGGGG..", "...GGG...", "....G...."
+    };
+    private static final String[] POWER_HEAL = {
+            "....W....", "...WWW...", "....W....", ".WWWWWWW.", "..WWWWW..",
+            ".WWWWWWW.", "....W....", "...WWW...", "....W...."
+    };
+    private static final String[] POWER_BLESS = {
+            "....Y....", "..Y.Y.Y..", "...YYY...", ".YYYYYYY.", "..YYYYY..",
+            "...YYY...", "..Y.Y.Y..", ".Y..Y..Y.", "........."
+    };
+    private static final String[] POWER_LIGHTNING = {
+            "......Y..", ".....YY..", "....YY...", "...YYY...", "..YYY....",
+            "...YY....", "..YY.....", ".YY......", "Y........"
+    };
+    private static final String[] POWER_PLAGUE = {
+            "..KKKKK..", ".KKKKKKK.", "KKWKKKWKK", "KKWKKKWKK", "KKKKKKKKK",
+            ".KWWWWWK.", "KKKKKKKKK", ".K.K.K.K.", "..K...K.."
+    };
+    private static final String[] POWER_EARTHQUAKE = {
+            "K...K...K", ".K.K.K.K.", "..KKKKK..", "KKKKKKKKK", "..K.K.K..",
+            ".K.K.K.K.", "K...K...K", "..K...K..", ".K.....K."
+    };
+    private static final String[] POWER_METEOR = {
+            "........Y", ".......YY", "......YY.", "....YYYY.", "...YYYYY.",
+            "..YYYYYY.", ".YYYYYYY.", "YYYYYYYY.", "........."
+    };
+    private static final String[] POWER_PEACE = {
+            "..WW...WW", ".WWWW.WWW", "WWWWWWWWW", ".WWWWWWW.", "..WWWWW..",
+            "...WWW...", "....W....", "...WWW...", "..W...W.."
+    };
+    private static final String[] POWER_PROSPERITY = {
+            "..YYYYY..", ".YYYWYYY.", "YYYYYYYYY", "YYYWYYYYY", "YYYYYYYYY",
+            ".YYYWYYY.", "..YYYYY..", "...YYY...", "....Y...."
+    };
+
     private static final String[] NEXT = {
             ".........",
             "..B......",
@@ -93,6 +135,22 @@ final class PixelIcons {
             case PAUSE:
             default:
                 return pattern(context, PAUSE);
+        }
+    }
+
+    static Drawable power(Context context, Power power) {
+        switch (power) {
+            case RAIN: return pattern(context, POWER_RAIN);
+            case BLOOM: return pattern(context, POWER_BLOOM);
+            case HEAL: return pattern(context, POWER_HEAL);
+            case BLESS: return pattern(context, POWER_BLESS);
+            case LIGHTNING: return pattern(context, POWER_LIGHTNING);
+            case PLAGUE: return pattern(context, POWER_PLAGUE);
+            case EARTHQUAKE: return pattern(context, POWER_EARTHQUAKE);
+            case METEOR: return pattern(context, POWER_METEOR);
+            case PEACE: return pattern(context, POWER_PEACE);
+            case PROSPERITY:
+            default: return pattern(context, POWER_PROSPERITY);
         }
     }
 

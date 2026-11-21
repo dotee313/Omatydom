@@ -13,7 +13,9 @@ import com.dotee313.omatydom.core.world.Tile;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Random;
 
@@ -32,6 +34,7 @@ public final class OmatydomGame {
     private int speed = 1;
     private boolean playerControlsRuler;
     private double dayAccumulator;
+    private final Map<Power, Integer> powerReadyDay = new EnumMap<>(Power.class);
 
     private OmatydomGame(World world, Random random) {
         this.world = world;
@@ -98,6 +101,45 @@ public final class OmatydomGame {
         }
     }
 
+    // ------------------------------------------------------------------
+    // World powers
+    // ------------------------------------------------------------------
+
+    /** Cast a world power at a chosen tile. Costs gold and has a cooldown. */
+    public boolean usePower(Power power, int x, int y) {
+        if (power == null || !world.getMap().inBounds(x, y)) {
+            return false;
+        }
+        int day = world.getDay();
+        Integer ready = powerReadyDay.get(power);
+        if (ready != null && day < ready) {
+            return false;
+        }
+        if (world.getGold() < power.getGoldCost()) {
+            return false;
+        }
+        world.setGold(world.getGold() - power.getGoldCost());
+        powerReadyDay.put(power, day + power.getCooldownDays());
+        world.incrementPowersUsed();
+        engine.castPower(power, x, y);
+        return true;
+    }
+
+    /** Convenience for the CLI and quick-play buttons: pick a random land tile. */
+    public boolean usePower(Power power) {
+        int[] spot = world.getMap().randomWalkable(random);
+        return spot != null && usePower(power, spot[0], spot[1]);
+    }
+
+    public int getPowerReadyDay(Power power) {
+        Integer ready = powerReadyDay.get(power);
+        return ready == null ? 0 : ready;
+    }
+
+    public int getPowerCooldownDaysLeft(Power power) {
+        return Math.max(0, getPowerReadyDay(power) - world.getDay());
+    }
+
     /** 0..1 progress towards the next game day, for the UI clock bar. */
     public double getDayProgress() {
         return Math.max(0.0, Math.min(1.0, dayAccumulator));
@@ -109,6 +151,18 @@ public final class OmatydomGame {
 
     public static int monthOf(int day) {
         return ((Math.max(1, day) - 1) / GameConfig.DAYS_PER_MONTH) % 12 + 1;
+    }
+
+    public static Age ageOf(int day) {
+        return Age.of(day);
+    }
+
+    public Age getAge() {
+        return Age.of(world.getDay());
+    }
+
+    public int getAgeProgress() {
+        return (Math.max(1, world.getDay()) - 1) % GameConfig.DAYS_PER_AGE + 1;
     }
 
     public boolean isPaused() {
@@ -313,6 +367,7 @@ public final class OmatydomGame {
         world.setWood(world.getWood() - structure.getWoodCost());
         world.setStone(world.getStone() - structure.getStoneCost());
         world.getMap().placeStructure(x, y, structure);
+        world.incrementStructuresBuilt();
         engine.postEvent(new GameEvent(world.getDay(), EventType.ECONOMY, "Built by your hand",
                 structure.getDisplayName() + " rises at " + x + "," + y + ".", 3));
         return true;

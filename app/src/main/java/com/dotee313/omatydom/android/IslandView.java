@@ -213,7 +213,7 @@ public class IslandView extends View {
     private void drawAnimal(Canvas canvas, Animal animal) {
         float px = offsetX + animal.getX() * cell + cell / 2f;
         float py = offsetY + animal.getY() * cell + cell / 2f;
-        float u = Math.max(1f, cell / 10f);
+        float u = Math.max(1f, cell / (animal.getType().isDangerous() ? 7f : 10f));
         paint.setColor(animal.getType().getColor());
         if (animal.getType() == AnimalType.FISH) {
             canvas.drawRect(px - 2 * u, py - u, px + 2 * u, py + u, paint);
@@ -227,6 +227,16 @@ public class IslandView extends View {
         paint.setColor(0xFF3E2723);
         canvas.drawRect(px - u, py + u, px, py + 2 * u, paint);
         canvas.drawRect(px + u, py + u, px + 2 * u, py + 2 * u, paint);
+        if (animal.getType().isDangerous()) {
+            paint.setColor(0xFFFF1744);
+            canvas.drawRect(px - 2 * u, py - 3 * u, px - u, py - 2 * u, paint);
+            canvas.drawRect(px + u, py - 3 * u, px + 2 * u, py - 2 * u, paint);
+            if (animal.getType() == AnimalType.DRAGON) {
+                paint.setColor(animal.getType().getColor());
+                canvas.drawRect(px - 4 * u, py - 3 * u, px - 2 * u, py - u, paint);
+                canvas.drawRect(px + 2 * u, py - 3 * u, px + 4 * u, py - u, paint);
+            }
+        }
     }
 
     private void drawPerson(Canvas canvas, Agent agent) {

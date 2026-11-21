@@ -13,17 +13,30 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 ## Download & play right now / التنزيل والتجربة
 
 **رابط التحميل المباشر للتطبيق (APK):**  
-https://github.com/dotee313/Omatydom/releases/download/v0.4.0/omatydom-0.4.0-debug.apk
+https://github.com/dotee313/Omatydom/releases/download/v0.5.0/omatydom-0.5.0-debug.apk
 
-افتح الرابط من جوالك، حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. التصميم الآن أنظف: أربع صفحات (الجزيرة، السكان، المراسيم، الأحداث) تتنقل بينها بقائمة سفلية من الأيقونات، وكل ضغطة على أيقونة أو شخص أو أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ. السنة الكاملة في اللعبة تساوي ساعة واحدة من الوقت الحقيقي عند السرعة x1. يعمل على Android 5.0 أو أحدث.
+افتح الرابط من جوالك، حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. التصميم الآن أنظف: خمس صفحات (الجزيرة، السكان، المراسيم، القدرات، الأحداث) تتنقل بينها بقائمة سفلية من الأيقونات، وكل ضغطة على أيقونة أو شخص أو أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ. اختر أرضًا بالضغط ثم افتح «القدرات» لتوجيه تأثيرك إلى المكان المختار. السنة الكاملة في اللعبة تساوي ساعة واحدة من الوقت الحقيقي عند السرعة x1. يعمل على Android 5.0 أو أحدث.
 
-صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.4.0
+صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.5.0
 
 > The APK is debug-signed and intended for play-testing. Your phone may ask you to allow installation from unknown sources.
 
 ---
 
-## What's new in v0.4.0 — "Realistic Island"
+## What's new in v0.5.0 — "Living World"
+
+A major update inspired by the structure and design ideas found in the supplied `New.zip` archive. All new icons, names and behaviour are original and generated in code; no proprietary art or text was copied.
+
+- **Ten world powers with a dedicated tab** — life rain, green tide, healing, blessing, storm spear, gray sickness, earthquake, sky fire, calm and golden rain. Each has a code-drawn icon, gold cost, cooldown in game days and a chronicle entry. Tap a tile first to aim a power; otherwise it picks a random land tile.
+- **Changing weather** — clear skies, rain, storms, drought, snow and volcanic ash. Weather lasts several days and really changes work output, resource regrowth, mood and the chance of storm damage to buildings.
+- **Eight long ages** — Dawn, High Sun, Harvest, Storm, Quiet Moon, Ash, Long Ice and Renewal. An age lasts two game years, shifts work and birth rates, changes mood and is announced in the chronicle.
+- **Personalities** — every islander gets one of eight traits: brave, lazy, generous, zealous, curious, resilient, greedy or content. Traits modify work, happiness, loyalty, learning and survival, and appear in the people tab and tap hints.
+- **Dangerous creatures** — wolves, sand worms, crystal golems, restless ones and young dragons now roam beside deer, boars and fish. They are drawn larger with red eyes; they wound or kill nearby islanders, and hunters can be hurt when attacking them.
+- **World statistics** — births, deaths, structures built and powers used are shown in the top status line and tracked in `World`.
+- **Cleaner five-tab layout** — the new Powers tab joins island, people, decrees and chronicle in the bottom navigation bar. Arabic hints still disappear after 3 seconds.
+- **Same core simulation rules** — 12 months, four seasons, one game year per real hour at x1, one child at a time, 270-day pregnancy and a full-year rest are unchanged.
+
+## Earlier: v0.4.0 — "Realistic Island"
 
 A cleaner, deeper update built on top of v0.3.0:
 
@@ -83,18 +96,18 @@ The front-ends never contain game rules. They only call `OmatydomGame` and rende
 
 ### Key classes
 
-- `OmatydomGame` — facade: create/tick, pause/speed, appoint or assassinate a ruler, take/release control, issue decrees, assign jobs, build structures.
-- `SimulationEngine` — one day: economy, agent work, wildlife, idea spread, ageing, births, deaths, coups, succession, events.
-- `World` — island state: map, citizens, agents, animals, stockpiles, ruler, chronicle.
+- `OmatydomGame` — facade: create/tick, pause/speed, appoint or assassinate a ruler, take/release control, issue decrees, cast powers, assign jobs, build structures.
+- `SimulationEngine` — one day: weather, ages, economy, resource regrowth, agent work, wildlife, monsters, idea spread, ageing, births, deaths, coups, succession, powers and events.
+- `World` — island state: map, citizens, agents, animals, stockpiles, ruler, weather and chronicle statistics.
 - `IslandMap` / `Tile` / `TileType` / `Structure` — terrain and buildings.
-- `Agent` — a citizen's position, job, target and work progress.
-- `Citizen` / `Ruler` — the people and the throne.
+- `Agent` / `Animal` — positions, jobs, targets, work and wildlife.
+- `Citizen` / `Ruler` / `Trait` — the people, the throne and personalities.
 - `Race`, `SocialClass`, `Idea`, `Job` — identity and daily life.
-- `Decree`, `GameEvent`, `EventType` — player actions and the island chronicle.
+- `Decree`, `Power`, `Age`, `Weather`, `GameEvent`, `EventType` — actions, world states and the chronicle.
 
 ---
 
-## Project layout (v0.4.0)
+## Project layout (v0.5.0)
 
 ```
 Omatydom/
@@ -111,18 +124,19 @@ Omatydom/
 │       ├── SimulationEngine.java
 │       ├── SimulationListener.java
 │       ├── World.java
+│       ├── Age.java, Power.java
 │       ├── Decree.java
 │       ├── GameEvent.java
 │       ├── EventType.java
 │       ├── NameGenerator.java
 │       ├── model/
-│       │   ├── Citizen.java, Ruler.java
+│       │   ├── Citizen.java, Ruler.java, Trait.java
 │       │   ├── Race.java, Gender.java
 │       │   ├── Religion.java, Ideology.java
 │       │   ├── Job.java, SocialClass.java, Idea.java
 │       └── world/
 │           ├── IslandMap.java, Tile.java
-│           ├── TileType.java, Structure.java
+│           ├── TileType.java, Structure.java, Weather.java
 │           └── Agent.java, Animal.java, AnimalType.java
 ├── desktop/
 │   └── src/main/java/com/dotee313/omatydom/desktop/DesktopLauncher.java
@@ -182,6 +196,7 @@ gradle :desktop:run --args="42"     # reproducible island
 | `assassinate` | Remove the ruler and trigger a succession. |
 | `control` / `auto` | Take direct control / step back. |
 | `decree [NAME]` | Issue a decree (`FESTIVAL`, `CRACKDOWN`, …). |
+| `power [NAME]` | Cast a world power (`RAIN`, `BLOOM`, `METEOR`, …) at a random land tile. |
 | `quit` | Exit. |
 
 ---

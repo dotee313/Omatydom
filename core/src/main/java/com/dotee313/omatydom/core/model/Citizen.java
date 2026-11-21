@@ -13,6 +13,7 @@ public final class Citizen {
     private Ideology ideology;
     private Job job;
     private SocialClass socialClass;
+    private Trait trait;
     private Idea idea;
     private int ageDays;
     private double health;
@@ -37,6 +38,8 @@ public final class Citizen {
         this.ideology = ideology == null ? Ideology.APATHETIC : ideology;
         this.job = Job.LABORER;
         this.socialClass = SocialClass.LABORER;
+        Trait[] traits = Trait.values();
+        this.trait = traits[Math.floorMod(id * 2654435761L, traits.length)];
         this.idea = Idea.SURVIVAL;
         this.ageDays = Math.max(0, ageDays);
         this.health = 75;
@@ -94,6 +97,14 @@ public final class Citizen {
 
     public void setSocialClass(SocialClass socialClass) {
         this.socialClass = socialClass == null ? SocialClass.LABORER : socialClass;
+    }
+
+    public Trait getTrait() {
+        return trait;
+    }
+
+    public void setTrait(Trait trait) {
+        this.trait = trait == null ? Trait.CONTENT : trait;
     }
 
     public Idea getIdea() {
