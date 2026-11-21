@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Phones: compact dock by default so the map keeps more vertical space; tablets override below. -->
-    <dimen name="dock_height">60dp</dimen>
+    <dimen name="dock_height">68dp</dimen>
     <!-- Narrow phones: short title leaves room for the toolbar buttons. -->
     <dimen name="title_text_max_width">56dp</dimen>
+    <!-- Floating panel seed height and its offset from the top of the map. -->
+    <dimen name="panel_height_seed">320dp</dimen>
+    <dimen name="panel_top_offset">96dp</dimen>
 </resources>

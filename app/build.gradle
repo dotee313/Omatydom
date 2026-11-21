@@ -10,8 +10,8 @@ android {
         applicationId 'com.dotee313.omatydom'
         minSdk 21
         targetSdk 34
-        versionCode 13
-        versionName '0.9.4'
+        versionCode 14
+        versionName '0.9.5'
     }
 
     compileOptions {

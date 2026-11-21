@@ -17,7 +17,9 @@ final class PixelIcons {
 
     enum Control {
         PAUSE, SPEED, CONTROL, ASSASSINATE, NEXT,
-        ZOOM_IN, ZOOM_OUT, CENTER, GRID
+        ZOOM_IN, ZOOM_OUT, CENTER, GRID,
+        BRUSH_SMALL, BRUSH_MEDIUM, BRUSH_LARGE,
+        HIDE_UI, SHOW_UI
     }
 
     /** Groups shown in the new bottom dock; kept separate from legacy nav art. */
@@ -247,6 +249,63 @@ final class PixelIcons {
             "NNNNNNNNN",
             "..N...N..",
             "..N...N.."
+    };
+
+    // Original size and UI-toggle controls; same palette and 9x9 grid as above.
+    private static final String[] BRUSH_SMALL = {
+            ".........",
+            "...KKK...",
+            "...KYK...",
+            "...KKK...",
+            "....N....",
+            "...N.....",
+            "..N......",
+            ".N.......",
+            "N........"
+    };
+    private static final String[] BRUSH_MEDIUM = {
+            "..KKKKK..",
+            "..KFFYK..",
+            "..KYYYK..",
+            "..KYYYK..",
+            "..KKKKK..",
+            "....N....",
+            "...N.....",
+            "..N......",
+            ".N......."
+    };
+    private static final String[] BRUSH_LARGE = {
+            ".KKKKKKK.",
+            ".KFFFFYK.",
+            ".KYYYYYK.",
+            ".KYYYYYK.",
+            ".KYYYYYK.",
+            ".KYYYYYK.",
+            ".KKKKKKK.",
+            "....N....",
+            "....N...."
+    };
+    private static final String[] HIDE_UI = {
+            "KK.....KK",
+            "K.......K",
+            "K.......K",
+            "K.......K",
+            "KNNNYYNNK",
+            "K.......K",
+            "K.......K",
+            "K.......K",
+            "KK.....KK"
+    };
+    private static final String[] SHOW_UI = {
+            "KK.....KK",
+            "K.......K",
+            "KYYYYYYYK",
+            "K.......K",
+            "KFFFFFFFK",
+            "K.......K",
+            "KYYYYYYYK",
+            "K.......K",
+            "KK.....KK"
     };
 
     // Seven distinct bottom-tab badges.
@@ -700,6 +759,16 @@ final class PixelIcons {
                 return pattern(context, CENTER);
             case GRID:
                 return pattern(context, GRID);
+            case BRUSH_SMALL:
+                return pattern(context, BRUSH_SMALL);
+            case BRUSH_MEDIUM:
+                return pattern(context, BRUSH_MEDIUM);
+            case BRUSH_LARGE:
+                return pattern(context, BRUSH_LARGE);
+            case HIDE_UI:
+                return pattern(context, HIDE_UI);
+            case SHOW_UI:
+                return pattern(context, SHOW_UI);
             case PAUSE:
             default:
                 return pattern(context, PAUSE);

@@ -141,6 +141,21 @@ public class MainActivity extends Activity {
     private static final int[] DOCK_LAW_ROWS_IDS = {R.id.decreeGrid, R.id.natureList};
     private static final int[] DOCK_BEAST_ROWS_IDS = {R.id.creatureList};
     private static final int[] DOCK_MAP_TOOLS_IDS = {R.id.mapToolsCard, R.id.dockMapToolsRow, R.id.overlayBar, R.id.brushBar};
+    private static final int[][] CONTEXT_SHORTCUT_TARGETS = {
+        {}, {R.id.brushHumanButton, R.id.controlButton, R.id.assassinateButton},
+        {R.id.overlayTerrainButton, R.id.utilityModsButton, R.id.buildButton},
+        {R.id.brushWolfButton, R.id.brushFireButton, R.id.brushRainButton},
+        {R.id.foundClanButton, R.id.foundKingdomButton, R.id.researchButton},
+        {R.id.brushFireButton, R.id.brushRainButton, R.id.brushMeteorButton},
+        {R.id.utilityInfoButton, R.id.panelCloseButton, R.id.utilitySettingsButton}
+    };
+    private static final int[][] BRUSH_OFFSETS_1 = {{0, 0}};
+    private static final int[][] BRUSH_OFFSETS_2 = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
+    private static final int[][] BRUSH_OFFSETS_3 = {
+            {-1, -1}, {0, -1}, {1, -1},
+            {-1, 0}, {0, 0}, {1, 0},
+            {-1, 1}, {0, 1}, {1, 1}
+    };
 
     /** One short Arabic explanation per brush, index matches IslandView.Brush. */
     private static final String[] BRUSH_HINTS = {
@@ -210,6 +225,15 @@ public class MainActivity extends Activity {
     private IslandView.Brush lastPaintHintBrush = IslandView.Brush.INSPECT;
     private long lastPaintHintAt;
     private boolean gridVisible;
+    private int brushSize = 1;
+    private final Set<Long> strokeTiles = new HashSet<>();
+    private int lastStrokeX = -1;
+    private int lastStrokeY = -1;
+    private long lastStrokeAt;
+    private boolean strokeFailureReported;
+    private final ImageButton[] brushSizeButtons = new ImageButton[3];
+    private final ImageButton[] contextShortcutButtons = new ImageButton[3];
+    private boolean uiHidden;
 
     private static final ResourceType[] STRIP_RESOURCES = {
             ResourceType.GOLD, ResourceType.BREAD, ResourceType.WOOD,
@@ -313,6 +337,7 @@ public class MainActivity extends Activity {
 
             @Override
             public void onTileTapped(int x, int y) {
+                if (uiHidden) { setUiHidden(false); islandView.invalidate(); return; }
                 selectedTileX = x;
                 selectedTileY = y;
                 showHint(tileExplanation(x, y) + " — صار هذا هدف القدرات.");
@@ -320,7 +345,8 @@ public class MainActivity extends Activity {
 
             @Override
             public void onTilePainted(int x, int y, IslandView.Brush brush) {
-                boolean hintShown = paintAt(x, y, brush);
+                if (uiHidden) { setUiHidden(false); islandView.invalidate(); return; }
+                boolean hintShown = paintArea(x, y, brush);
                 if (!hintShown) {
                     showPaintHintOnce(brush);
                 }
@@ -344,9 +370,13 @@ public class MainActivity extends Activity {
         setupResourceStrip();
         setupOverlayBar();
         setupBrushBar();
+        setupBrushSizeBar();
+        setupHideUiButton();
+        setupPanelCloseButton();
         setupBuildButton();
         setupMapControls();
         setupBottomNav();
+        applyPanelLayout();
         setupDecreeGrid();
         setupPowersGrid();
         setupDisasterGrid();
@@ -470,10 +500,10 @@ public class MainActivity extends Activity {
         groupDockHeaderById("القوانين", DOCK_LAWS_HEADER_IDS);
         groupDockHeaderById("الإعدادات والخيارات", DOCK_SETTINGS_HEADER_IDS);
 
-        groupDockDescribe("الشريط السفلي — شريط تصنيف واحد + صف أدوات واحد", DOCK_BOTTOM_IDS);
+        groupDockDescribe("الشريط السفلي — خريطة دائمة ولوحات عائمة وشريط أدوات سياقي", DOCK_BOTTOM_IDS);
         groupDockDescribe("التنقل بين التبويبات السبعة", DOCK_NAV_IDS);
         groupDockDescribe("المعلومات والموارد — ذهب، طعام، خشب، حجر، خام، بلور", DOCK_INFO_IDS);
-        groupDockDescribe("الشريط العالمي — المعلومات والأنماط والسرعة والبناء", DOCK_TOOLS_IDS);
+        groupDockDescribe("الشريط العالمي — المعلومات والأنماط والسرعة والبناء والصف السياقي", DOCK_TOOLS_IDS);
         groupDockDescribe("القوانين — قوانين العالم والمراسيم", DOCK_LAW_ROWS_IDS);
         groupDockDescribe("البهائم — مخلوقات الجزيرة", DOCK_BEAST_ROWS_IDS);
         groupDockDescribe("أدوات الجزيرة — طبقات وفرش وتكبير، تظهر في تبويب الجزيرة فقط",
@@ -669,7 +699,7 @@ public class MainActivity extends Activity {
             badge.addView(icon, new LinearLayout.LayoutParams(dp(14), dp(14)));
 
             TextView count = new TextView(this);
-            count.setTextSize(9f);
+            count.setTextSize(12f);
             count.setTextColor(0xFFFFFFFF);
             count.setGravity(android.view.Gravity.CENTER);
             count.setBackground(PixelIcons.smallBadge(this, type.getColor()));
@@ -715,9 +745,54 @@ public class MainActivity extends Activity {
         selectBrush(IslandView.Brush.INSPECT, false);
     }
 
+    /** Three sandbox brush sizes; every other brush stays a single tile. */
+    private void setupBrushSizeBar() {
+        int[] ids = {
+                R.id.brushSizeSmallButton, R.id.brushSizeMediumButton, R.id.brushSizeLargeButton
+        };
+        PixelIcons.Control[] icons = {
+                PixelIcons.Control.BRUSH_SMALL, PixelIcons.Control.BRUSH_MEDIUM,
+                PixelIcons.Control.BRUSH_LARGE
+        };
+        String[] names = {"صغير", "متوسط", "كبير"};
+        for (int i = 0; i < ids.length; i++) {
+            final int size = i + 1;
+            ImageButton button = findViewById(ids[i]);
+            if (button == null) {
+                continue;
+            }
+            brushSizeButtons[i] = button;
+            button.setImageDrawable(PixelIcons.control(this, icons[i]));
+            button.setContentDescription("حجم الفرشاة — " + names[i]);
+            button.setOnClickListener(v -> setBrushSize(size,
+                    "حجم الفرشاة: صغير/متوسط/كبير — اسحب لرسم مساحة أوسع."));
+        }
+        setBrushSize(brushSize, null);
+    }
+
+    private void setBrushSize(int size, String hint) {
+        brushSize = Math.max(1, Math.min(3, size));
+        resetStroke();
+        for (int i = 0; i < brushSizeButtons.length; i++) {
+            ImageButton button = brushSizeButtons[i];
+            if (button == null) {
+                continue;
+            }
+            boolean active = i + 1 == brushSize;
+            button.setBackgroundResource(active ? R.drawable.brush_selected : R.drawable.bg_button);
+            button.setAlpha(active ? 1f : 0.62f);
+        }
+        if (hint != null) {
+            showHint(hint);
+        }
+    }
+
     private void selectBrush(IslandView.Brush brush, boolean announce) {
         if (brush == null) {
             return;
+        }
+        if (currentBrush != brush) {
+            resetStroke();
         }
         currentBrush = brush;
         islandView.setBrush(brush);
@@ -909,61 +984,69 @@ public class MainActivity extends Activity {
 
     /** Applies the selected brush at one tile. Returns true when a hint was shown. */
     private boolean paintAt(int x, int y, IslandView.Brush brush) {
+        return paintAt(x, y, brush, true);
+    }
+
+    /** Same action with hint delivery controlled by callers painting a whole area. */
+    private boolean paintAt(int x, int y, IslandView.Brush brush, boolean announce) {
         if (brush == null || x < 0 || y < 0) {
             return false;
         }
         switch (brush) {
             case WATER:
-                game.paintTile(x, y, TileType.WATER);
-                break;
+                return !game.paintTile(x, y, TileType.WATER);
             case SAND:
-                game.paintTile(x, y, TileType.SAND);
-                break;
+                return !game.paintTile(x, y, TileType.SAND);
             case GRASS:
-                game.paintTile(x, y, TileType.GRASS);
-                break;
+                return !game.paintTile(x, y, TileType.GRASS);
             case FOREST:
-                game.paintTile(x, y, TileType.FOREST);
-                break;
+                return !game.paintTile(x, y, TileType.FOREST);
             case ORCHARD:
-                game.paintTile(x, y, TileType.ORCHARD);
-                break;
+                return !game.paintTile(x, y, TileType.ORCHARD);
             case MOUNTAIN:
-                game.paintTile(x, y, TileType.MOUNTAIN);
-                break;
+                return !game.paintTile(x, y, TileType.MOUNTAIN);
             case CAVE:
-                game.paintTile(x, y, TileType.CAVE);
-                break;
+                return !game.paintTile(x, y, TileType.CAVE);
             case HOUSE:
                 if (!game.build(x, y, Structure.HUT)) {
-                    showHint("لا يُبنى كوخ هنا — تحتاج أرضًا فارغة و10 خشب و4 حجر.");
+                    if (announce) {
+                        showHint("لا يُبنى كوخ هنا — تحتاج أرضًا فارغة و10 خشب و4 حجر.");
+                    }
                     return true;
                 }
-                break;
+                return false;
             case FARM:
                 if (!game.build(x, y, Structure.FARM)) {
-                    showHint("لا تُبنى مزرعة هنا — تحتاج أرضًا فارغة و12 خشب و3 حجر.");
+                    if (announce) {
+                        showHint("لا تُبنى مزرعة هنا — تحتاج أرضًا فارغة و12 خشب و3 حجر.");
+                    }
                     return true;
                 }
-                break;
+                return false;
             case ROAD:
                 if (!game.build(x, y, Structure.ROAD)) {
-                    showHint("لا يُرصّ طريق هنا — تحتاج أرضًا فارغة وخشبًا وحجرًا.");
+                    if (announce) {
+                        showHint("لا يُرصّ طريق هنا — تحتاج أرضًا فارغة وخشبًا وحجرًا.");
+                    }
                     return true;
                 }
-                break;
+                return false;
             case HUMAN:
                 if (!game.spawnSettlerAt(x, y)) {
-                    showHint("لا يستقر مستوطن هنا — اختر أرضًا قابلة للمشي.");
+                    if (announce) {
+                        showHint("لا يستقر مستوطن هنا — اختر أرضًا قابلة للمشي.");
+                    }
                     return true;
                 }
-                break;
+                return false;
             case WOLF:
                 if (!game.spawnCreatureAt(AnimalType.WOLF, x, y)) {
-                    showHint("خارج الخريطة — لا يمكن إطلاق ذئب هنا.");
+                    if (announce) {
+                        showHint("خارج الخريطة — لا يمكن إطلاق ذئب هنا.");
+                    }
                     return true;
                 }
-                break;
+                return false;
             case FIRE:
                 game.usePower(Power.LIGHTNING, x, y);
                 islandView.playEffect(IslandView.Effect.FIRE, x, y);
@@ -981,6 +1064,78 @@ public class MainActivity extends Activity {
                 break;
         }
         return false;
+    }
+
+    /** Terrain brushes scale with brushSize; costly or entity brushes stay 1x1. */
+    private boolean paintArea(int x, int y, IslandView.Brush brush) {
+        if (brush == null || x < 0 || y < 0) {
+            return false;
+        }
+        noteStrokeStart(x, y);
+        if (!isTerrainBrush(brush)) {
+            return paintAt(x, y, brush, true);
+        }
+        int[][] offsets = brushSize == 3 ? BRUSH_OFFSETS_3
+                : brushSize == 2 ? BRUSH_OFFSETS_2 : BRUSH_OFFSETS_1;
+        boolean failed = false;
+        for (int[] offset : offsets) {
+            int tx = x + offset[0];
+            int ty = y + offset[1];
+            if (!strokeTiles.add(strokeKey(tx, ty))) {
+                continue;
+            }
+            if (!game.getMap().inBounds(tx, ty)) {
+                failed = true;
+                continue;
+            }
+            if (paintAt(tx, ty, brush, false)) {
+                failed = true;
+            }
+        }
+        if (failed && !strokeFailureReported) {
+            strokeFailureReported = true;
+            showHint("بعض المقاطع خارج الخريطة أو لا تقبل الطلاء — بقية المساحة رُسمت.");
+        }
+        return failed;
+    }
+
+    private static boolean isTerrainBrush(IslandView.Brush brush) {
+        switch (brush) {
+            case WATER:
+            case SAND:
+            case GRASS:
+            case FOREST:
+            case ORCHARD:
+            case MOUNTAIN:
+            case CAVE:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static long strokeKey(int x, int y) {
+        return ((long) x << 32) | (y & 0xFFFFFFFFL);
+    }
+
+    private void noteStrokeStart(int x, int y) {
+        long now = System.currentTimeMillis();
+        if (lastStrokeAt == 0L || now - lastStrokeAt > 400L
+                || Math.abs(x - lastStrokeX) > 2 || Math.abs(y - lastStrokeY) > 2) {
+            strokeTiles.clear();
+            strokeFailureReported = false;
+        }
+        lastStrokeX = x;
+        lastStrokeY = y;
+        lastStrokeAt = now;
+    }
+
+    private void resetStroke() {
+        strokeTiles.clear();
+        strokeFailureReported = false;
+        lastStrokeX = -1;
+        lastStrokeY = -1;
+        lastStrokeAt = 0L;
     }
 
     /** One hint per stroke, not one per dragged tile. */
@@ -1034,6 +1189,117 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void setupHideUiButton() {
+        ImageButton hideUi = findViewById(R.id.hideUiButton);
+        if (hideUi == null) {
+            return;
+        }
+        hideUi.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.HIDE_UI));
+        hideUi.setContentDescription("إخفاء الواجهة — أول لمسة على الخريطة تعيدها");
+        hideUi.setOnClickListener(v -> setUiHidden(!uiHidden));
+    }
+
+    private void setupPanelCloseButton() {
+        ImageButton close = findViewById(R.id.panelCloseButton);
+        if (close == null) {
+            return;
+        }
+        close.setImageDrawable(PixelIcons.nav(this, 0));
+        close.setContentDescription("العودة للخريطة");
+        close.setOnClickListener(v -> {
+            selectTab(0);
+            showHint("أُغلقت اللوحة — عدت إلى الخريطة.");
+        });
+    }
+
+    private void setUiHidden(boolean hidden) {
+        uiHidden = hidden;
+        applyUiVisibility();
+        ImageButton hideUi = findViewById(R.id.hideUiButton);
+        if (hideUi != null) {
+            hideUi.setImageDrawable(PixelIcons.control(this,
+                    hidden ? PixelIcons.Control.SHOW_UI : PixelIcons.Control.HIDE_UI));
+            hideUi.setContentDescription(hidden
+                    ? "إظهار الواجهة" : "إخفاء الواجهة — أول لمسة على الخريطة تعيدها");
+        }
+    }
+
+    private void applyUiVisibility() {
+        setViewVisibility(R.id.bottomDock, uiHidden ? View.GONE : View.VISIBLE);
+        setViewVisibility(R.id.toolStrip, uiHidden ? View.GONE : View.VISIBLE);
+        setViewVisibility(R.id.hudStatsPanel, uiHidden ? View.GONE : View.VISIBLE);
+        setViewVisibility(R.id.hudTimePanel, uiHidden ? View.GONE : View.VISIBLE);
+        setViewVisibility(R.id.toolContextRow,
+                uiHidden || currentTab == 0 ? View.GONE : View.VISIBLE);
+        setViewVisibility(R.id.panelCloseButton,
+                uiHidden || currentTab == 0 ? View.GONE : View.VISIBLE);
+        for (int i = 1; i < pages.length; i++) {
+            if (pages[i] != null) {
+                pages[i].setVisibility(uiHidden || i != currentTab ? View.GONE : View.VISIBLE);
+            }
+        }
+    }
+
+    private void setViewVisibility(int id, int visibility) {
+        View view = findViewById(id);
+        if (view != null) {
+            view.setVisibility(visibility);
+        }
+    }
+
+    /** Copies each target's icon and click into the shared three-button context row. */
+    private void bindContextShortcuts() {
+        int[] ids = {R.id.toolShortcut1Button, R.id.toolShortcut2Button, R.id.toolShortcut3Button};
+        for (int slot = 0; slot < ids.length; slot++) {
+            ImageButton shortcut = findViewById(ids[slot]);
+            if (shortcut == null) {
+                continue;
+            }
+            contextShortcutButtons[slot] = shortcut;
+            int[] targets = currentTab >= 0 && currentTab < CONTEXT_SHORTCUT_TARGETS.length
+                    ? CONTEXT_SHORTCUT_TARGETS[currentTab] : new int[0];
+            View found = slot < targets.length ? findViewById(targets[slot]) : null;
+            ImageButton target = found instanceof ImageButton ? (ImageButton) found : null;
+            if (target == null) {
+                shortcut.setVisibility(View.GONE);
+                shortcut.setOnClickListener(null);
+                continue;
+            }
+            shortcut.setVisibility(View.VISIBLE);
+            shortcut.setImageDrawable(target.getDrawable());
+            shortcut.setContentDescription(target.getContentDescription());
+            shortcut.setOnClickListener(v -> target.performClick());
+        }
+    }
+
+    /** Floating panels are capped so the permanent map stays readable underneath. */
+    private void applyPanelLayout() {
+        View container = findViewById(R.id.pageContainer);
+        if (container == null) {
+            return;
+        }
+        container.post(() -> {
+            int h = container.getHeight();
+            if (h <= 0) {
+                return;
+            }
+            int top = (int) getResources().getDimension(R.dimen.panel_top_offset);
+            int maxH = Math.max(dp(160), Math.min((int) (h * 0.58f), h - top - dp(8)));
+            for (int i = 1; i < pages.length; i++) {
+                View page = pages[i];
+                if (page == null) {
+                    continue;
+                }
+                android.widget.FrameLayout.LayoutParams params =
+                        new android.widget.FrameLayout.LayoutParams(
+                                android.widget.FrameLayout.LayoutParams.MATCH_PARENT, maxH,
+                                android.view.Gravity.TOP | android.view.Gravity.START);
+                params.setMargins(dp(8), top, dp(8), dp(8));
+                page.setLayoutParams(params);
+            }
+        });
+    }
+
     private void setupBottomNav() {
         int[] ids = {
                 R.id.navWorldButton, R.id.navPeopleButton, R.id.navNatureButton,
@@ -1055,32 +1321,51 @@ public class MainActivity extends Activity {
             final int index = i;
             navButtons[i] = findViewById(ids[i]);
             pages[i] = findViewById(pageIds[i]);
+            if (navButtons[i] == null) {
+                continue;
+            }
             navButtons[i].setImageDrawable(PixelIcons.nav(this, i));
             navButtons[i].setContentDescription(descriptions[i]);
-            navButtons[i].setOnClickListener(v -> {
+            View.OnClickListener listener = v -> {
+                if (index > 0 && currentTab == index) {
+                    selectTab(0);
+                    showHint("أُغلقت اللوحة — عدت إلى الخريطة.");
+                    return;
+                }
                 selectTab(index);
                 showHint(TAB_HINTS[index] + groupDockHint(index));
-            });
+            };
+            navButtons[i].setOnClickListener(listener);
+            android.view.ViewParent parent = navButtons[i].getParent();
+            if (parent instanceof View) {
+                ((View) parent).setOnClickListener(listener);
+            }
         }
         groupDockWire();
     }
 
     private void selectTab(int index) {
         currentTab = index;
-        for (int i = 0; i < pages.length; i++) {
+        for (int i = 0; i < navButtons.length; i++) {
+            ImageButton button = navButtons[i];
+            if (button == null) {
+                continue;
+            }
             boolean active = i == index;
-            pages[i].setVisibility(active ? View.VISIBLE : View.GONE);
-            navButtons[i].setBackgroundResource(
+            View navSurface = button.getParent() instanceof View
+                    ? (View) button.getParent() : button;
+            navSurface.setBackgroundResource(
                     active ? R.drawable.nav_selected : R.drawable.bg_button);
-            navButtons[i].setAlpha(active ? 1f : 0.62f);
+            navSurface.setAlpha(active ? 1f : 0.62f);
             // The active pill is burgundy, so whiten its silhouette for contrast.
             if (active) {
-                navButtons[i].setColorFilter(0xFFFFFFFF,
+                button.setColorFilter(0xFFFFFFFF,
                         android.graphics.PorterDuff.Mode.SRC_IN);
             } else {
-                navButtons[i].clearColorFilter();
+                button.clearColorFilter();
             }
         }
+        // The map stays visible; floating panels are driven by applyUiVisibility().
         // Toggle every map-tools id: the island log, its rows, overlays and
         // brushes must all disappear together, then return on the Island tab.
         boolean islandTab = index == 0;
@@ -1094,12 +1379,14 @@ public class MainActivity extends Activity {
                 mapTool.setVisibility(mapToolsVisibility);
             }
         }
+        bindContextShortcuts();
         // Force a rebuild on tab open; later refreshes go through signature checks.
         signatures.remove(TAB_KEYS[index]);
         if (index == 4) {
             signatures.remove("techs");
         }
         refreshCurrentTab();
+        applyUiVisibility();
     }
 
     private void setupDecreeGrid() {
