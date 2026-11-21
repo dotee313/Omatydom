@@ -458,7 +458,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    /** Applies the four group labels and tags the rows that hold each group today. */
+    /** Applies the group labels to the surviving wrappers and their headers. */
     private void groupDockWire() {
         groupDockGroup("البشر", DOCK_HUMANS_IDS);
         groupDockGroup("البهائم", DOCK_BEASTS_IDS);
@@ -470,19 +470,22 @@ public class MainActivity extends Activity {
         groupDockHeaderById("القوانين", DOCK_LAWS_HEADER_IDS);
         groupDockHeaderById("الإعدادات والخيارات", DOCK_SETTINGS_HEADER_IDS);
 
-        groupDockDescribe("شريط الأوامر — أربع مجموعات: البشر، البهائم، القوانين، الإعدادات والخيارات",
-                DOCK_BOTTOM_IDS);
-        groupDockDescribe("التنقل بين المجموعات والتبويبات السبعة", DOCK_NAV_IDS);
+        groupDockDescribe("الشريط السفلي — شريط تصنيف واحد + صف أدوات واحد", DOCK_BOTTOM_IDS);
+        groupDockDescribe("التنقل بين التبويبات السبعة", DOCK_NAV_IDS);
         groupDockDescribe("المعلومات والموارد — ذهب، طعام، خشب، حجر، خام، بلور", DOCK_INFO_IDS);
-        groupDockDescribe("الإعدادات والخيارات — المعلومات والأنماط والسرعة والبناء", DOCK_TOOLS_IDS);
+        groupDockDescribe("الشريط العالمي — المعلومات والأنماط والسرعة والبناء", DOCK_TOOLS_IDS);
         groupDockDescribe("القوانين — قوانين العالم والمراسيم", DOCK_LAW_ROWS_IDS);
         groupDockDescribe("البهائم — مخلوقات الجزيرة", DOCK_BEAST_ROWS_IDS);
         groupDockDescribe("أدوات الجزيرة — طبقات وفرش وتكبير، تظهر في تبويب الجزيرة فقط",
                 DOCK_MAP_TOOLS_IDS);
 
-        View dock = groupDockFind(DOCK_BOTTOM_IDS);
-        if (dock != null) {
-            groupDockScan(dock);
+        // Group headers now live in the global strip and island log, not only in bottomDock.
+        View scanRoot = findViewById(android.R.id.content);
+        if (scanRoot == null) {
+            scanRoot = groupDockFind(DOCK_BOTTOM_IDS);
+        }
+        if (scanRoot != null) {
+            groupDockScan(scanRoot);
         }
     }
 
@@ -538,9 +541,9 @@ public class MainActivity extends Activity {
         switch (tab) {
             case 0: return " — أدوات الجزيرة";
             case 1: return " — البشر";
-            case 2: return " — القوانين";
+            case 2: return " — الطبيعة";
             case 3: return " — البهائم";
-            case 4: return " — القوانين";
+            case 4: return " — الممالك";
             case 5: return " — القدرات";
             default: return " — الأحداث";
         }
@@ -1078,21 +1081,17 @@ public class MainActivity extends Activity {
                 navButtons[i].clearColorFilter();
             }
         }
-        // The grouped dock keeps layers, brushes and camera tools in one row.
-        // It belongs to the Island tab only, on every other tab it is hidden.
+        // Toggle every map-tools id: the island log, its rows, overlays and
+        // brushes must all disappear together, then return on the Island tab.
         boolean islandTab = index == 0;
-        View dockTools = groupDockFind(DOCK_MAP_TOOLS_IDS);
-        if (dockTools != null) {
-            dockTools.setVisibility(islandTab ? View.VISIBLE : View.GONE);
-            if (islandTab) {
-                View overlays = groupDockFind(R.id.overlayBar);
-                View brushes = groupDockFind(R.id.brushBar);
-                if (overlays != null) {
-                    overlays.setVisibility(View.VISIBLE);
-                }
-                if (brushes != null) {
-                    brushes.setVisibility(View.VISIBLE);
-                }
+        int mapToolsVisibility = islandTab ? View.VISIBLE : View.GONE;
+        for (int resId : DOCK_MAP_TOOLS_IDS) {
+            if (resId == 0) {
+                continue;
+            }
+            View mapTool = findViewById(resId);
+            if (mapTool != null) {
+                mapTool.setVisibility(mapToolsVisibility);
             }
         }
         // Force a rebuild on tab open; later refreshes go through signature checks.

@@ -69,7 +69,7 @@ public final class DesktopLauncher {
         }
 
         createGame(seed, template, modPack);
-        System.out.println("=== Omatydom v0.9.3 — Ordered Dock, Toggle Tools & Redrawn Icons | seed " + seed + " ===");
+        System.out.println("=== Omatydom v0.9.4 — Simple WorldBox-like Bar & Roomy Map | seed " + seed + " ===");
         printHelp();
         printStatus();
 
