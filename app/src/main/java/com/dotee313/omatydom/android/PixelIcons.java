@@ -27,7 +27,8 @@ final class PixelIcons {
 
     /** Small badges for the sections of the richer citizen card. */
     enum CardSection {
-        KINGDOM, FAITH, LANGUAGE, PARTNER, CLAN, SKILLS, TRAITS, SPECIALTY
+        KINGDOM, FAITH, LANGUAGE, PARTNER, CLAN, SKILLS, TRAITS, SPECIALTY,
+        CULTURE, STATUS, PREGNANCY
     }
 
     private static final String[] PAUSE = {
@@ -131,26 +132,28 @@ final class PixelIcons {
             "........."
     };
 
+    // One shared lens colour (G) and dark K ink for both zoom tools;
+    // only the + / - shape differs.
     private static final String[] ZOOM_IN = {
             ".........",
-            "..WWW....",
-            ".W...W...",
-            "W..B..W..",
-            "W.BBB.W..",
-            "W..B..W..",
-            ".W...W...",
-            "..WWK....",
+            "..GGG....",
+            ".G...G...",
+            "G..K..G..",
+            "G.KKK.G..",
+            "G..K..G..",
+            ".G...G...",
+            "..GGK....",
             "....KK..."
     };
     private static final String[] ZOOM_OUT = {
             ".........",
-            "..WWW....",
-            ".W...W...",
-            "W..R..W..",
-            "W.RRR.W..",
-            "W..R..W..",
-            ".W...W...",
-            "..WWK....",
+            "..GGG....",
+            ".G...G...",
+            "G.....G..",
+            "G.KKK.G..",
+            "G.....G..",
+            ".G...G...",
+            "..GGK....",
             "....KK..."
     };
     private static final String[] CENTER = {
@@ -198,7 +201,7 @@ final class PixelIcons {
             ".NNNNNNN.", ".N.N.N.N.", ".NNNNNNN.", "........."
     };
     private static final String[] NAV_POWERS = {
-            "....Y....", "...YYY...", "..YYYYY..", ".YYYYYYY.", "YYYPYYYYY",
+            "....Y....", "...YYY...", "..YYYYY..", ".YYYYYYY.", "YYYYYYYYY",
             ".YYYYYYY.", "..YYYYY..", "...YYY...", "....Y...."
     };
     private static final String[] NAV_EVENTS = {
@@ -219,9 +222,11 @@ final class PixelIcons {
             ".Y.......", ".YY......", ".YYY.....", ".YYYY....", ".YYYYY...",
             ".NYYYYY..", ".NNYYYY..", ".NNNYY...", ".NNNN...."
     };
+    // A slim minaret on a broad N plinth: deliberately not POWER_BLESS,
+    // DECREE_TEMPLE or CARD_FAITH.
     private static final String[] OVER_RELIGION = {
-            "....Y....", "..Y.Y.Y..", "...YYY...", ".YYYYYYY.", "..YYYYY..",
-            "...YYY...", "..Y.Y.Y..", ".Y..Y..Y.", "........."
+            "....Y....", "...YYY...", "...YNY...", "...YNY...", "...YNY...",
+            "..YYYYY..", ".YYYYYYY.", ".NNNNNNN.", "NNNNNNNNN"
     };
     private static final String[] OVER_JOB = {
             ".........", ".....NN..", "....NNN..", "...NNN...", "..NNN....",
@@ -245,17 +250,18 @@ final class PixelIcons {
     // --- New grouped-dock art -------------------------------------------------
     // Three citizens in burgundy / orange / brown cloaks, not the old two-head badge.
     private static final String[] DOCK_PEOPLE = {
-            "...........",
-            "KKK.KKK.KKK",
-            "KWK.KWK.KWK",
-            "FFF.FFF.FFF",
-            "KFK.KFK.KFK",
-            "FWF.FWF.FWF",
-            "MMM.YYY.EEE",
-            "MWM.YWY.EWE",
-            "MMM.YYY.EEE",
-            "MWM.YWY.EWE",
-            "..........."
+            "............",
+            "KKK.KKK.KKK.",
+            "KWK.KWK.KWK.",
+            "FFF.FFF.FFF.",
+            "KFK.KFK.KFK.",
+            "FWF.FWF.FWF.",
+            "MMM.YYY.EEE.",
+            "MWM.YWY.EWE.",
+            "MMM.YYY.EEE.",
+            "MWM.YWY.EWE.",
+            "............",
+            "............"
     };
 
     // A wise horned beast: crystal horns, glowing eyes, burgundy mane, brown muzzle.
@@ -323,13 +329,26 @@ final class PixelIcons {
             "....Y....", "....Y....", "...YYY...", "YYYYYYYYY", ".YYFYFYY.",
             "..YYYYY..", ".YY...YY.", "Y.......Y", "........."
     };
+    // Traits = dark K shield; Specialty = Y tool/star over a solid M field.
     private static final String[] CARD_TRAITS = {
-            "...FFF...", "..FMMMF..", ".FMWMWMF.", "FMMMMMMMF", ".FMMMMMF.",
-            "..FMMMF..", "...FMF...", "....F....", "........."
+            "...KKK...", "..KWWWK..", ".KWWWWWK.", "KWWWWWWWK", "KWWWWWWWK",
+            ".KWWWWWK.", "..KWWWK..", "...KFK...", "....K...."
     };
     private static final String[] CARD_SPECIALTY = {
-            "..MMMMM..", ".MMMMMMM.", "MMMMWMMMM", "MMMMWMMMM", ".MMMMMMM.",
-            "..MMMMM..", "...MMM...", "....M....", "........."
+            "MMMMYMMMM", "MMMYYYMMM", "MYYYYYYYM", "MMYYYYYMM", "MYYYYYYYM",
+            "MMMYYYMMM", "MMMMYMMMM", "MMM.Y.MMM", "MMM.Y.MMM"
+    };
+    private static final String[] CARD_CULTURE = {
+            ".........", ".KKKKKKK.", ".KWWWWWK.", ".KWKKWWK.", ".KWWWWWK.",
+            ".KWKKWWK.", ".KWWWYYK.", ".MMMMMMM.", "........."
+    };
+    private static final String[] CARD_STATUS = {
+            "....Y....", "..YYYYY..", ".YYWWWYY.", "YYWWKWWYY", "YYWWKWWYY",
+            ".YYWWWYY.", "..YYYYY..", "...MMM...", "..MMMMM.."
+    };
+    private static final String[] CARD_PREGNANCY = {
+            ".........", "..MMMMM..", ".MWWWWWM.", ".MWFFFWM.", ".MWFFFWM.",
+            ".MWWWWWM.", "..MMMMM..", "...MMM...", "........."
     };
 
     // Decree badges, generated rather than loaded from an art pack.
@@ -728,6 +747,9 @@ final class PixelIcons {
             case SKILLS: return pattern(context, CARD_SKILLS);
             case TRAITS: return pattern(context, CARD_TRAITS);
             case SPECIALTY: return pattern(context, CARD_SPECIALTY);
+            case CULTURE: return pattern(context, CARD_CULTURE);
+            case STATUS: return pattern(context, CARD_STATUS);
+            case PREGNANCY: return pattern(context, CARD_PREGNANCY);
             case KINGDOM:
             default: return kingdomIcon(context);
         }
@@ -755,6 +777,18 @@ final class PixelIcons {
 
     static Drawable specialtyIcon(Context context) {
         return pattern(context, CARD_SPECIALTY);
+    }
+
+    static Drawable cultureIcon(Context context) {
+        return pattern(context, CARD_CULTURE);
+    }
+
+    static Drawable statusIcon(Context context) {
+        return pattern(context, CARD_STATUS);
+    }
+
+    static Drawable pregnancyIcon(Context context) {
+        return pattern(context, CARD_PREGNANCY);
     }
 
     static Drawable power(Context context, Power power) {
@@ -882,7 +916,7 @@ final class PixelIcons {
             // Palette used by the new grouped-dock and citizen-card art.
             case 'M': return 0xFF5B0A19; // burgundy
             case 'E': return 0xFF504A3E; // warm brown
-            case 'F': return 0xFFFFFFFF; // clean white highlight
+            case 'F': return 0xFFCFC9C4; // warm light highlight, visible on light tiles
             default: return Color.TRANSPARENT;
         }
     }

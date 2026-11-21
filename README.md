@@ -13,15 +13,24 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 ## Download & play right now / التنزيل والتجربة
 
 **رابط التحميل المباشر للتطبيق (APK):**  
-https://github.com/dotee313/Omatydom/releases/download/v0.9.1/omatydom-0.9.1-debug.apk
+https://github.com/dotee313/Omatydom/releases/download/v0.9.2/omatydom-0.9.2-debug.apk
 
 افتح الرابط من جوالك،حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. التصميم الآن أنظف: سبع صفحات (الجزيرة، السكان، الطبيعة، المخلوقات، الممالك، القدرات، الأحداث) تتنقل بينها بقائمة سفلية من الأيقونات، وكل ضغطة على أيقونة أو شخص أو أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ. اختر أرضًا بالضغط ثم افتح «القدرات» لتوجيه تأثيرك إلى المكان المختار. السنة الكاملة في اللعبة تساوي ساعة واحدة من الوقت الحقيقي عند السرعة x1. يعمل على Android 5.0 أو أحدث.
 
-صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.9.1
+صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.9.2
 
 > The APK is debug-signed and intended for play-testing. Your phone may ask you to allow installation from unknown sources.
 
 ---
+
+## What's new in v0.9.2 — "Refined Dock, Clearer Icons"
+
+This release is the supervised three-team polish pass over v0.9.1. Design, code and graphics reporters each audited the build; approved fixes were applied by a separate fixer in each team and cross-checked before merging.
+
+- **Design refinements** — the dock uses adaptive heights (160dp on phones, 220dp on tablets) instead of a fixed 220dp, every dock/tool/brush button is now 48dp, Arabic text wraps instead of being clipped, margins are RTL-correct `Start/End`, the laws group owns the mode button, and bars use darker, higher-contrast colours. Scrollbars are visible on horizontal tool rows.
+- **Code hardening** — `birthNote` and the desktop `statusOf` no longer claim birth spacing for someone who cannot conceive; `IslandView` skips null citizens and stops redrawing while paused; people/event lists refresh when every displayed field changes; dock icons are cached drawables instead of per-header bitmaps; `getIdentifier` is replaced with static `R.id` tables.
+- **Graphics fixes** — the religion overlay no longer duplicates the blessing power, the white highlight is visible on light tiles, all dock badges are 12×12, traits and specialty are visually distinct, new culture/status/pregnancy card icons are wired into the dossier, zoom in/out share one lens colour, and the launcher icon is generated consistently at all five densities.
+- **Unchanged** — seven tabs, five overlays, sixteen brushes, 3-second Arabic hints, island resources, citizens, jobs, races/religions/ideologies, classes, wildlife, politics, building, hunting/fishing/gathering/mining, and the clock (270-day pregnancy, 360-day spacing, 360 game days = 1 real hour at x1).
 
 ## What's new in v0.9.1 — "Organized Dock, Deeper People"
 
@@ -288,7 +297,7 @@ The CLI includes the full v0.6.0 command set plus `trade`, `sea`, `citizens` and
 - [ ] Save/load (serialize `World` to JSON).
 - [x] Zoom/pan on the Android island view (v0.7.0, enhanced in v0.8.0).
 - [ ] Fully data-driven events and jobs instead of hard-coded ones.
-- [x] Character screens with portraits and needs (v0.9.0: Arabic citizen card; v0.9.1: grouped sections, truthful fields and new icons).
+- [x] Character screens with portraits and needs (v0.9.0: Arabic citizen card; v0.9.1: grouped sections and truthful fields; v0.9.2: refined dock, adaptive heights, clearer icons).
 - [ ] Android UI with fragments and Material 3.
 - [ ] Scenario/challenge modes ("keep the island stable for 10 years").
 
@@ -299,6 +308,8 @@ The CLI includes the full v0.6.0 command set plus `trade`, `sea`, `citizens` and
 **أوماتيدوم** لعبة محاكاة حياة على جزيرة، حيث تراقب مجتمعًا حيًا وتشكّله. الزمن يمضي تلقائيًا، ولك أن تتدخل أو تترك الأحداث تجري من نفسها.
 
 الجزيرة ليست دائرية بل مربع مدوّر فيه خلجان ورؤوس عشوائية: ماء، رمال، غابات، أشجار فواكه، جبال وكهوف. سكانها من **ستة أعراق خيالية لا توجد في عالمنا**، وكل واحد منهم الآن **شخصية بكسلية أوضح وأكثر واقعية** (١٠×١٤ بكسل): شعر، وجه مضلّل، عينان، أنف، فم، ذراعان، حزام، حذاء، وأداة تختلف حسب المهنة (فأس، معول، صنارة، قوس، عصا، سلة، عملة). الحاكم يرتدي تاجًا ذهبيًا، والمرأة الحامل يظهر بطنها. أكثر أيقونات اللعبة مرسومة داخل التطبيق بالكود، ومعها الآن شعارك وأيقونات المعلومات والأنماط والإعدادات وخلفية قائمتك الأصلية من الملف الذي أرسلته، مُبسّطة لتناسب واجهة الجوال. الرسم مستطيلات مسطّحة خفيفة على الهاتف مع حواف وتظليل ووميض أقوى. كل شخص يمشي ويعمل: يجمع الخشب، يبني البيوت والأبراج، يصيد السمك والحيوانات، يجمع الفواكه، ويستخرج الحجر والخام والكريستال.
+
+في الإصدار ٠٫٩٫٢ راجعت ثلاث فرق متخصصة الواجهة والكود والرسومات، فتحسّن ارتفاع الشريط بحسب حجم الشاشة، وصارت أهداف اللمس ٤٨dp، وتوقفت قصّ النصوص العربية، وصحّحت الهوامش اتجاه RTL، وأصلحت أيقونات متشابهة وأضيفت أيقونات للثقافة والحالة والحمل. كما لم يعد نص الحمل يذكر فاصل الولادة لمن لا يمكنها الحمل، وتوقفت إعادة رسم الخريطة عند إيقاف التطبيق. ثوابت الزمن والبناء والسكان والتبويبات السبع باقية كما هي.
 
 في الإصدار ٠٫٩٫١ رُتّب الشريط السفلي في أربع مجموعات واضحة: **البشر** لكل ما يخص السكان والحاكم، **البهائم** للحيوانات والمخلوقات شبه العاقلة، **القوانين** لقوانين الجزيرة والمراسيم، و**الإعدادات والخيارات** للسرعة والعدسة والطبقات والفرش والبناء. ولكل مجموعة ولكل قسم في بطاقة الشخصية أيقونة بكسلية جديدة رسمها فنان مخصص بالألوان نفسها. بطاقة الشخصية صارت خمسة أقسام مرتبة تعرض المملكة والعشيرة والشعب والدين والأيديولوجيا والفكرة والمهنة والحالة والموقع، وتقول بصدق إن اللغة والزواج والقرابة والمهارات المنفصلة غير مسجلة في النموذج بدل اختراعها. نص الحمل صار محكومًا بالبيانات الحقيقية: يوم الحمل من ٢٧٠، والفاصل يُحسب فقط بعد ولادة حقيقية وللإناث البالغات القابلات للحمل. الاختبارات الأربعة تنجح، وأُضيف فحص تكاليف المباني وثوابت الساعة.
 

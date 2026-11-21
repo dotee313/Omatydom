@@ -26,9 +26,8 @@ import java.util.Locale;
  * constants, the "one year = one real hour" clock and short runs still hold.
  * Only public core APIs are used - no Android classes.</p>
  *
- * <p>The direct compile-time reference to Worker 4's {@code IslandMap.waterRatio()}
- * is intentional (as in VerifyV080): compilation is expected to fail until the
- * supervisor merges the Worker 4 map API.</p>
+ * <p>The sea assertions call {@link IslandMap#waterRatio()}, which is available
+ * in the current core API, and cross-check it against the counted land tiles.</p>
  */
 public final class VerifyV081 {
     private static final long[] SEEDS = {1L, 2L, 3L, 4L, 5L};

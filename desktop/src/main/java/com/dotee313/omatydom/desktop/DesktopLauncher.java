@@ -20,6 +20,7 @@ import com.dotee313.omatydom.core.civ.StatusEffect;
 import com.dotee313.omatydom.core.civ.TradeRoute;
 import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
+import com.dotee313.omatydom.core.model.Gender;
 import com.dotee313.omatydom.core.model.Job;
 import com.dotee313.omatydom.core.model.Ruler;
 import com.dotee313.omatydom.core.world.Agent;
@@ -68,7 +69,7 @@ public final class DesktopLauncher {
         }
 
         createGame(seed, template, modPack);
-        System.out.println("=== Omatydom v0.9.1 — Organized Dock & Deeper People | seed " + seed + " ===");
+        System.out.println("=== Omatydom v0.9.2 — Refined Dock, Clear Icons & Truthful Cards | seed " + seed + " ===");
         printHelp();
         printStatus();
 
@@ -686,7 +687,11 @@ public final class DesktopLauncher {
         if (citizen.isPregnant()) {
             status.append("PREGNANT ").append(citizen.getGestationDay(world.getDay()))
                     .append('/').append(GameConfig.GESTATION_DAYS).append('d');
-        } else if (citizen.getLastBirthDay() >= 0) {
+        } else if (citizen.isAlive()
+                && citizen.getGender() == Gender.FEMALE
+                && citizen.isAdult()
+                && citizen.getAgeYears() < 45
+                && citizen.getLastBirthDay() >= 0) {
             int restLeft = GameConfig.MIN_BIRTH_SPACING_DAYS
                     - (world.getDay() - citizen.getLastBirthDay());
             status.append(restLeft > 0 ? "RESTING " + restLeft + "d" : "REST COMPLETE");

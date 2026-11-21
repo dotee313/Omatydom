@@ -9,6 +9,7 @@
         android:id="@+id/eventTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textColor="@color/user_orange"
         android:textSize="14sp"
         android:textStyle="bold" />
 
@@ -16,6 +17,7 @@
         android:id="@+id/eventDetail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textColor="@color/user_text_body"
         android:textSize="12sp" />
 
 </LinearLayout>

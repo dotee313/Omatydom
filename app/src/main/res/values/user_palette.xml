@@ -7,4 +7,11 @@
     <color name="user_dark">#FF3E3B39</color>
     <color name="user_mid">#FF6D6A6A</color>
     <color name="user_white">#FFFFFFFF</color>
+    <!-- Explicit light-on-dark text colours, independent of the light theme. -->
+    <color name="user_text_body">#FFFFF3E0</color>
+    <color name="user_text_muted">#FFD9CDBE</color>
+    <!-- Darker bar/card-header backgrounds keep white and orange text readable. -->
+    <color name="user_bar_start">#FF5A5450</color>
+    <color name="user_bar_end">#FF373330</color>
+    <color name="user_header_bg">#FF2E2A27</color>
 </resources>

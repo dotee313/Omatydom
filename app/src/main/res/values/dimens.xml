@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Phones: compact dock by default so the map keeps more vertical space; tablets override below. -->
+    <dimen name="dock_height">160dp</dimen>
+    <!-- Narrow phones: short title leaves room for the toolbar buttons. -->
+    <dimen name="title_text_max_width">120dp</dimen>
+</resources>

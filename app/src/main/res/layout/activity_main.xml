@@ -165,7 +165,7 @@
                     android:id="@+id/foundClanButton"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginRight="3dp"
+                    android:layout_marginEnd="3dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_button"
                     android:contentDescription="تأسيس عشيرة"
@@ -176,7 +176,7 @@
                     android:id="@+id/foundKingdomButton"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginRight="3dp"
+                    android:layout_marginEnd="3dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_button"
                     android:contentDescription="تأسيس مملكة"
@@ -187,7 +187,7 @@
                     android:id="@+id/researchButton"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_marginRight="3dp"
+                    android:layout_marginEnd="3dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_button"
                     android:contentDescription="بحث تقني"
@@ -383,7 +383,7 @@
     <LinearLayout
         android:id="@+id/bottomDock"
         android:layout_width="match_parent"
-        android:layout_height="220dp"
+        android:layout_height="@dimen/dock_height"
         android:background="@color/user_dark"
         android:orientation="vertical">
 
@@ -396,9 +396,9 @@
         <HorizontalScrollView
             android:id="@+id/dockNavRow"
             android:layout_width="match_parent"
-            android:layout_height="42dp"
+            android:layout_height="48dp"
             android:background="@drawable/bg_bar"
-            android:scrollbars="none">
+            android:scrollbars="horizontal">
 
             <LinearLayout
                 android:id="@+id/bottomNav"
@@ -410,17 +410,19 @@
                 <ImageView
                     android:layout_width="26dp"
                     android:layout_height="26dp"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="6dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginEnd="6dp"
                     android:contentDescription="@string/logo_description"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_user_logo" />
 
                 <ImageButton
                     android:id="@+id/navWorldButton"
-                    android:layout_width="40dp"
+                    android:layout_width="48dp"
                     android:layout_height="match_parent"
-                    android:layout_marginRight="2dp"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:layout_marginEnd="2dp"
                     android:background="@drawable/bg_button"
                     android:contentDescription="الجزيرة"
                     android:padding="4dp"
@@ -428,9 +430,11 @@
 
                 <ImageButton
                     android:id="@+id/navPeopleButton"
-                    android:layout_width="40dp"
+                    android:layout_width="48dp"
                     android:layout_height="match_parent"
-                    android:layout_marginRight="2dp"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:layout_marginEnd="2dp"
                     android:background="@drawable/bg_button"
                     android:contentDescription="السكان"
                     android:padding="4dp"
@@ -438,9 +442,11 @@
 
                 <ImageButton
                     android:id="@+id/navNatureButton"
-                    android:layout_width="40dp"
+                    android:layout_width="48dp"
                     android:layout_height="match_parent"
-                    android:layout_marginRight="2dp"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:layout_marginEnd="2dp"
                     android:background="@drawable/bg_button"
                     android:contentDescription="الطبيعة"
                     android:padding="4dp"
@@ -448,9 +454,11 @@
 
                 <ImageButton
                     android:id="@+id/navCreaturesButton"
-                    android:layout_width="40dp"
+                    android:layout_width="48dp"
                     android:layout_height="match_parent"
-                    android:layout_marginRight="2dp"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:layout_marginEnd="2dp"
                     android:background="@drawable/bg_button"
                     android:contentDescription="المخلوقات"
                     android:padding="4dp"
@@ -458,9 +466,11 @@
 
                 <ImageButton
                     android:id="@+id/navKingdomsButton"
-                    android:layout_width="40dp"
+                    android:layout_width="48dp"
                     android:layout_height="match_parent"
-                    android:layout_marginRight="2dp"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:layout_marginEnd="2dp"
                     android:background="@drawable/bg_button"
                     android:contentDescription="الممالك"
                     android:padding="4dp"
@@ -468,9 +478,11 @@
 
                 <ImageButton
                     android:id="@+id/navPowersButton"
-                    android:layout_width="40dp"
+                    android:layout_width="48dp"
                     android:layout_height="match_parent"
-                    android:layout_marginRight="2dp"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    android:layout_marginEnd="2dp"
                     android:background="@drawable/bg_button"
                     android:contentDescription="القدرات"
                     android:padding="4dp"
@@ -478,8 +490,10 @@
 
                 <ImageButton
                     android:id="@+id/navEventsButton"
-                    android:layout_width="40dp"
+                    android:layout_width="48dp"
                     android:layout_height="match_parent"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
                     android:background="@drawable/bg_button"
                     android:contentDescription="الأحداث"
                     android:padding="4dp"
@@ -518,7 +532,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@color/user_brown"
+                        android:background="@color/user_header_bg"
                         android:paddingBottom="1dp"
                         android:paddingLeft="5dp"
                         android:paddingTop="1dp"
@@ -529,7 +543,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="36dp"
+                        android:layout_height="48dp"
                         android:layout_marginTop="2dp"
                         android:orientation="horizontal">
 
@@ -537,7 +551,9 @@
                             android:id="@+id/controlButton"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_marginRight="3dp"
+                            android:minWidth="48dp"
+                            android:minHeight="48dp"
+                            android:layout_marginEnd="3dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_button"
                             android:contentDescription="@string/control"
@@ -548,7 +564,9 @@
                             android:id="@+id/assassinateButton"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
-                            android:layout_marginRight="3dp"
+                            android:minWidth="48dp"
+                            android:minHeight="48dp"
+                            android:layout_marginEnd="3dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_button"
                             android:contentDescription="@string/assassinate"
@@ -559,6 +577,8 @@
                             android:id="@+id/brushHumanButton"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
+                            android:minWidth="48dp"
+                            android:minHeight="48dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_button"
                             android:contentDescription="فرشاة الإنسان"
@@ -581,8 +601,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
                             android:background="@drawable/bg_panel"
-                            android:ellipsize="end"
-                            android:maxLines="2"
+                            android:maxLines="3"
                             android:paddingBottom="3dp"
                             android:paddingLeft="6dp"
                             android:paddingRight="6dp"
@@ -595,8 +614,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:ellipsize="end"
-                            android:maxLines="1"
+                            android:maxLines="3"
                             android:paddingLeft="4dp"
                             android:paddingRight="4dp"
                             android:textColor="@color/user_orange"
@@ -616,8 +634,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:ellipsize="end"
-                            android:maxLines="2"
+                            android:maxLines="3"
                             android:paddingLeft="4dp"
                             android:paddingRight="4dp"
                             android:textColor="@color/user_orange"
@@ -639,8 +656,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="3dp"
                             android:background="@drawable/bg_panel"
-                            android:ellipsize="end"
-                            android:maxLines="2"
+                            android:maxLines="4"
                             android:minHeight="28dp"
                             android:padding="6dp"
                             android:textColor="#FFFFFFFF"
@@ -660,7 +676,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@color/user_brown"
+                        android:background="@color/user_header_bg"
                         android:paddingBottom="1dp"
                         android:paddingLeft="5dp"
                         android:paddingTop="1dp"
@@ -671,7 +687,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="36dp"
+                        android:layout_height="48dp"
                         android:layout_marginTop="2dp"
                         android:orientation="horizontal">
 
@@ -679,6 +695,8 @@
                             android:id="@+id/brushWolfButton"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
+                            android:minWidth="48dp"
+                            android:minHeight="48dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_button"
                             android:contentDescription="فرشاة الذئب"
@@ -711,7 +729,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@color/user_brown"
+                        android:background="@color/user_header_bg"
                         android:paddingBottom="1dp"
                         android:paddingLeft="5dp"
                         android:paddingTop="1dp"
@@ -724,13 +742,26 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
-                        android:ellipsize="end"
-                        android:maxLines="1"
+                        android:maxLines="3"
                         android:paddingLeft="4dp"
                         android:paddingRight="4dp"
                         android:text="@string/laws_hint"
-                        android:textColor="#FFFFF3E0"
+                        android:textColor="@color/user_text_body"
                         android:textSize="9sp" />
+
+                    <!-- Same id and listener as before: the mode toggle now sits with the laws. -->
+                    <ImageButton
+                        android:id="@+id/utilityModsButton"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="end"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="@string/utility_mods"
+                        android:minWidth="48dp"
+                        android:minHeight="48dp"
+                        android:padding="3dp"
+                        android:scaleType="fitCenter" />
                 </LinearLayout>
 
                 <!-- 4: الإعدادات والخيارات / Settings & options — time, camera, overlays, brushes, build. -->
@@ -744,7 +775,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:background="@color/user_brown"
+                        android:background="@color/user_header_bg"
                         android:paddingBottom="1dp"
                         android:paddingLeft="5dp"
                         android:paddingTop="1dp"
@@ -757,10 +788,10 @@
                     <HorizontalScrollView
                         android:id="@+id/dockToolsRow"
                         android:layout_width="match_parent"
-                        android:layout_height="42dp"
+                        android:layout_height="48dp"
                         android:layout_marginTop="2dp"
                         android:background="@drawable/bg_bar"
-                        android:scrollbars="none">
+                        android:scrollbars="horizontal">
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -770,10 +801,11 @@
 
                             <TextView
                                 android:id="@+id/titleText"
-                                android:layout_width="132dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:ellipsize="end"
-                                android:maxLines="1"
+                                android:layout_gravity="center_vertical"
+                                android:maxWidth="@dimen/title_text_max_width"
+                                android:maxLines="2"
                                 android:paddingLeft="6dp"
                                 android:paddingRight="6dp"
                                 android:text="@string/title"
@@ -789,29 +821,23 @@
 
                                 <ImageButton
                                     android:id="@+id/utilityInfoButton"
-                                    android:layout_width="40dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="3dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="3dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="@string/utility_info"
                                     android:padding="3dp"
                                     android:scaleType="fitCenter" />
 
                                 <ImageButton
-                                    android:id="@+id/utilityModsButton"
-                                    android:layout_width="40dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="3dp"
-                                    android:background="@drawable/bg_button"
-                                    android:contentDescription="@string/utility_mods"
-                                    android:padding="3dp"
-                                    android:scaleType="fitCenter" />
-
-                                <ImageButton
                                     android:id="@+id/utilitySettingsButton"
-                                    android:layout_width="40dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="3dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="3dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="@string/utility_settings"
                                     android:padding="3dp"
@@ -820,9 +846,11 @@
 
                             <ImageButton
                                 android:id="@+id/pauseButton"
-                                android:layout_width="40dp"
-                                android:layout_height="match_parent"
-                                android:layout_marginRight="3dp"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:minWidth="48dp"
+                                android:minHeight="48dp"
+                                android:layout_marginEnd="3dp"
                                 android:background="@drawable/bg_button"
                                 android:contentDescription="@string/pause"
                                 android:padding="2dp"
@@ -830,9 +858,11 @@
 
                             <ImageButton
                                 android:id="@+id/speedButton"
-                                android:layout_width="40dp"
-                                android:layout_height="match_parent"
-                                android:layout_marginRight="3dp"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:minWidth="48dp"
+                                android:minHeight="48dp"
+                                android:layout_marginEnd="3dp"
                                 android:background="@drawable/bg_button"
                                 android:contentDescription="@string/speed"
                                 android:padding="2dp"
@@ -840,8 +870,10 @@
 
                             <ImageButton
                                 android:id="@+id/buildButton"
-                                android:layout_width="40dp"
-                                android:layout_height="match_parent"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:minWidth="48dp"
+                                android:minHeight="48dp"
                                 android:background="@drawable/bg_button"
                                 android:contentDescription="@string/build_island"
                                 android:padding="2dp"
@@ -860,7 +892,7 @@
                         <LinearLayout
                             android:id="@+id/overlayBar"
                             android:layout_width="match_parent"
-                            android:layout_height="40dp"
+                            android:layout_height="48dp"
                             android:background="@drawable/bg_bar"
                             android:orientation="horizontal">
 
@@ -868,7 +900,9 @@
                                 android:id="@+id/overlayTerrainButton"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
-                                android:layout_marginRight="3dp"
+                                android:minWidth="48dp"
+                                android:minHeight="48dp"
+                                android:layout_marginEnd="3dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/bg_button"
                                 android:contentDescription="طبقة التضاريس"
@@ -879,7 +913,9 @@
                                 android:id="@+id/overlayBiomeButton"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
-                                android:layout_marginRight="3dp"
+                                android:minWidth="48dp"
+                                android:minHeight="48dp"
+                                android:layout_marginEnd="3dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/bg_button"
                                 android:contentDescription="طبقة الأحياء الحيوية"
@@ -890,7 +926,9 @@
                                 android:id="@+id/overlayKingdomButton"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
-                                android:layout_marginRight="3dp"
+                                android:minWidth="48dp"
+                                android:minHeight="48dp"
+                                android:layout_marginEnd="3dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/bg_button"
                                 android:contentDescription="طبقة الممالك"
@@ -901,7 +939,9 @@
                                 android:id="@+id/overlayReligionButton"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
-                                android:layout_marginRight="3dp"
+                                android:minWidth="48dp"
+                                android:minHeight="48dp"
+                                android:layout_marginEnd="3dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/bg_button"
                                 android:contentDescription="طبقة المعتقدات"
@@ -912,6 +952,8 @@
                                 android:id="@+id/overlayJobButton"
                                 android:layout_width="0dp"
                                 android:layout_height="match_parent"
+                                android:minWidth="48dp"
+                                android:minHeight="48dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/bg_button"
                                 android:contentDescription="طبقة المهن"
@@ -922,10 +964,10 @@
                         <HorizontalScrollView
                             android:id="@+id/brushBar"
                             android:layout_width="match_parent"
-                            android:layout_height="44dp"
+                            android:layout_height="48dp"
                             android:layout_marginTop="3dp"
                             android:background="@drawable/bg_bar"
-                            android:scrollbars="none">
+                            android:scrollbars="horizontal">
 
                             <LinearLayout
                                 android:layout_width="wrap_content"
@@ -934,9 +976,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushInspectButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة الفحص"
                                     android:padding="2dp"
@@ -944,9 +988,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushWaterButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة الماء"
                                     android:padding="2dp"
@@ -954,9 +1000,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushSandButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة الرمل"
                                     android:padding="2dp"
@@ -964,9 +1012,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushGrassButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة العشب"
                                     android:padding="2dp"
@@ -974,9 +1024,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushForestButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة الغابة"
                                     android:padding="2dp"
@@ -984,9 +1036,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushOrchardButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة البستان"
                                     android:padding="2dp"
@@ -994,9 +1048,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushMountainButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة الجبل"
                                     android:padding="2dp"
@@ -1004,9 +1060,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushCaveButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة الكهف"
                                     android:padding="2dp"
@@ -1014,9 +1072,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushHouseButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة الكوخ"
                                     android:padding="2dp"
@@ -1024,9 +1084,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushFarmButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة المزرعة"
                                     android:padding="2dp"
@@ -1034,9 +1096,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushRoadButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة الطريق"
                                     android:padding="2dp"
@@ -1044,9 +1108,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushFireButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة النار"
                                     android:padding="2dp"
@@ -1054,9 +1120,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushRainButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة المطر"
                                     android:padding="2dp"
@@ -1064,9 +1132,11 @@
 
                                 <ImageButton
                                     android:id="@+id/brushMeteorButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="فرشاة النيزك"
                                     android:padding="2dp"
@@ -1075,15 +1145,17 @@
                                 <View
                                     android:layout_width="1dp"
                                     android:layout_height="match_parent"
-                                    android:layout_marginLeft="2dp"
-                                    android:layout_marginRight="4dp"
+                                    android:layout_marginStart="2dp"
+                                    android:layout_marginEnd="4dp"
                                     android:background="@color/user_brown" />
 
                                 <ImageButton
                                     android:id="@+id/zoomInButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="تكبير الخريطة"
                                     android:padding="2dp"
@@ -1091,9 +1163,11 @@
 
                                 <ImageButton
                                     android:id="@+id/zoomOutButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="تصغير الخريطة"
                                     android:padding="2dp"
@@ -1101,9 +1175,11 @@
 
                                 <ImageButton
                                     android:id="@+id/centerButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
-                                    android:layout_marginRight="2dp"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
+                                    android:layout_marginEnd="2dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="توسيط الخريطة"
                                     android:padding="2dp"
@@ -1111,8 +1187,10 @@
 
                                 <ImageButton
                                     android:id="@+id/gridButton"
-                                    android:layout_width="44dp"
-                                    android:layout_height="match_parent"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
+                                    android:minWidth="48dp"
+                                    android:minHeight="48dp"
                                     android:background="@drawable/bg_button"
                                     android:contentDescription="إظهار أو إخفاء شبكة المربعات"
                                     android:padding="2dp"

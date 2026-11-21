@@ -230,7 +230,7 @@ public final class CitizenInfoDialog {
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
         icon.setContentDescription(section.title + " — " + row.label);
         line.addView(icon, new LinearLayout.LayoutParams(
-                dp(13f, density), dp(13f, density)));
+                dp(18f, density), dp(18f, density)));
 
         String label = row.label.isEmpty() ? "" : row.label + "  ";
         SpannableString text = new SpannableString(label + row.value);
@@ -264,13 +264,13 @@ public final class CitizenInfoDialog {
             case ICON_CLAN:
                 return PixelIcons.CardSection.CLAN;
             case ICON_CULTURE:
-                return PixelIcons.CardSection.FAITH;
+                return PixelIcons.CardSection.CULTURE;
             case ICON_FAMILY:
                 return PixelIcons.CardSection.PARTNER;
             case ICON_SKILL:
                 return PixelIcons.CardSection.SKILLS;
             case ICON_STATUS:
-                return PixelIcons.CardSection.TRAITS;
+                return PixelIcons.CardSection.STATUS;
             case ICON_LANGUAGE:
                 return PixelIcons.CardSection.LANGUAGE;
             case ICON_SPECIALTY:
@@ -299,9 +299,11 @@ public final class CitizenInfoDialog {
             case "اللغة":
                 return PixelIcons.CardSection.LANGUAGE;
             case "الزوج/الشريك":
-            case "القرابة":
-            case "الحمل":
                 return PixelIcons.CardSection.PARTNER;
+            case "القرابة":
+                return PixelIcons.CardSection.CLAN;
+            case "الحمل":
+                return PixelIcons.CardSection.PREGNANCY;
             case "المهارة":
             case "المشغول":
                 return PixelIcons.CardSection.SKILLS;

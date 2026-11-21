@@ -27,5 +27,5 @@
     <string name="group_laws">القوانين</string>
     <string name="group_settings">الإعدادات والخيارات</string>
     <string name="beasts_hint">الحيوانات والمخلوقات شبه العاقلة — المزيد في تبويب المخلوقات</string>
-    <string name="laws_hint">قوانين العالم في تبويب الطبيعة — والمراسيم في الممالك</string>
+    <string name="laws_hint">زر النمط يبدّل القوانين؛ التفاصيل في الطبيعة والمراسيم في الممالك</string>
 </resources>

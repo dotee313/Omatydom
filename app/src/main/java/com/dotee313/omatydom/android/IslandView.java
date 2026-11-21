@@ -134,6 +134,7 @@ public final class IslandView extends View {
     private Brush brush = Brush.INSPECT;
     private boolean showGrid;
     private boolean attached;
+    private boolean animating = true;
     private boolean cameraInitialized;
 
     private float density = 1f;
@@ -186,7 +187,7 @@ public final class IslandView extends View {
     private final Runnable animator = new Runnable() {
         @Override
         public void run() {
-            if (!attached || game == null) {
+            if (!attached || !animating || game == null) {
                 return;
             }
             pruneEffects(System.currentTimeMillis());
@@ -329,9 +330,23 @@ public final class IslandView extends View {
     // ------------------------------------------------------------------
 
     private void startAnimation() {
-        if (attached && game != null) {
+        if (attached && animating && game != null) {
             animatorHandler.removeCallbacks(animator);
             animatorHandler.post(animator);
+        }
+    }
+
+    /**
+     * Pauses or resumes this view's redraw loop. Resuming repaints immediately
+     * so returning from the Android background is never a stale frame.
+     */
+    public void setAnimating(boolean value) {
+        animating = value;
+        if (value) {
+            invalidate();
+            startAnimation();
+        } else {
+            animatorHandler.removeCallbacks(animator);
         }
     }
 
@@ -789,18 +804,21 @@ public final class IslandView extends View {
             return;
         }
         if (brush == Brush.INSPECT) {
-            Agent tapped = null;
+            Citizen tappedCitizen = null;
             for (Agent agent : game.getAgents()) {
-                if (agent.getCitizen().isAlive()
-                        && agent.getX() == tx && agent.getY() == ty) {
-                    tapped = agent;
+                Citizen citizen = agent.getCitizen();
+                if (citizen == null) {
+                    continue;
+                }
+                if (citizen.isAlive() && agent.getX() == tx && agent.getY() == ty) {
+                    tappedCitizen = citizen;
                     break;
                 }
             }
-            if (tapped != null) {
-                selectedCitizenId = tapped.getCitizen().getId();
+            if (tappedCitizen != null) {
+                selectedCitizenId = tappedCitizen.getId();
                 if (listener != null) {
-                    listener.onAgentTapped(tapped.getCitizen());
+                    listener.onAgentTapped(tappedCitizen);
                 }
             } else if (listener != null) {
                 listener.onTileTapped(tx, ty);
@@ -942,10 +960,11 @@ public final class IslandView extends View {
             }
         }
         for (Agent agent : game.getAgents()) {
-            if (!agent.getCitizen().isAlive()) {
+            Citizen citizen = agent.getCitizen();
+            if (citizen == null || !citizen.isAlive()) {
                 continue;
             }
-            float[] pos = citizenWalk.get(agent.getCitizen().getId());
+            float[] pos = citizenWalk.get(citizen.getId());
             float ax = pos == null ? agent.getX() : pos[WALK_X];
             float ay = pos == null ? agent.getY() : pos[WALK_Y];
             if (isOnScreen(ax, ay, 2)) {
@@ -1639,7 +1658,8 @@ public final class IslandView extends View {
         Agent closest = null;
         int best = 5;
         for (Agent agent : game.getAgents()) {
-            if (!agent.getCitizen().isAlive()) {
+            Citizen citizen = agent.getCitizen();
+            if (citizen == null || !citizen.isAlive()) {
                 continue;
             }
             int distance = Math.abs(agent.getX() - x) + Math.abs(agent.getY() - y);
@@ -1664,8 +1684,12 @@ public final class IslandView extends View {
             return 0;
         }
         for (Agent agent : game.getAgents()) {
-            if (agent.getX() == x && agent.getY() == y && agent.getCitizen().isAlive()) {
-                Job job = agent.getCitizen().getJob();
+            Citizen citizen = agent.getCitizen();
+            if (citizen == null) {
+                continue;
+            }
+            if (agent.getX() == x && agent.getY() == y && citizen.isAlive()) {
+                Job job = citizen.getJob();
                 return job == null ? 0 : opaque(job.getColor());
             }
         }

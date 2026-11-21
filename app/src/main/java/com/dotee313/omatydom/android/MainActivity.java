@@ -89,6 +89,58 @@ public class MainActivity extends Activity {
             "world", "people", "nature", "creatures", "kingdoms", "powers", "events"
     };
 
+    // ------------------------------------------------------------------
+    // Static dock id tables. They replace getIdentifier(); a 0 entry keeps the
+    // old "id not present in this layout" behaviour without a resource lookup.
+    // ------------------------------------------------------------------
+    private static final int[] DOCK_HUMANS_IDS = {
+            R.id.humansCard, // humansCard
+            0, // dockHumansGroup
+            0, // groupHumans
+            0, // humansGroup
+            0, // dockGroupHumans
+            0, // dockPeopleGroup
+            0  // peopleGroup
+    };
+    private static final int[] DOCK_BEASTS_IDS = {
+            R.id.beastsCard, // beastsCard
+            0, // dockAnimalsGroup
+            0, // groupAnimals
+            0, // animalsGroup
+            0, // dockGroupAnimals
+            0, // dockCreaturesGroup
+            0  // creaturesGroup
+    };
+    private static final int[] DOCK_LAWS_IDS = {
+            R.id.lawsCard, // lawsCard
+            0, // dockLawsGroup
+            0, // groupLaws
+            0, // lawsGroup
+            0, // dockGroupLaws
+            0, // dockNatureGroup
+            0  // natureGroup
+    };
+    private static final int[] DOCK_SETTINGS_IDS = {
+            R.id.settingsCard, // settingsCard
+            0, // dockOptionsGroup
+            0, // groupOptions
+            0, // optionsGroup
+            0, // dockGroupOptions
+            0, // dockSettingsGroup
+            0  // settingsGroup
+    };
+    private static final int[] DOCK_HUMANS_HEADER_IDS = {0, 0, 0}; // dockHumansHeader, groupHumansHeader, humansHeader
+    private static final int[] DOCK_BEASTS_HEADER_IDS = {0, 0, 0}; // dockAnimalsHeader, groupAnimalsHeader, animalsHeader
+    private static final int[] DOCK_LAWS_HEADER_IDS = {0, 0, 0}; // dockLawsHeader, groupLawsHeader, lawsHeader
+    private static final int[] DOCK_SETTINGS_HEADER_IDS = {0, 0, 0, 0}; // dockOptionsHeader, groupOptionsHeader, dockSettingsHeader, settingsHeader
+    private static final int[] DOCK_BOTTOM_IDS = {R.id.bottomDock};
+    private static final int[] DOCK_NAV_IDS = {R.id.dockNavRow};
+    private static final int[] DOCK_INFO_IDS = {R.id.dockInfoRow};
+    private static final int[] DOCK_TOOLS_IDS = {R.id.utilityBar, R.id.dockToolsRow};
+    private static final int[] DOCK_LAW_ROWS_IDS = {R.id.decreeGrid, R.id.natureList};
+    private static final int[] DOCK_BEAST_ROWS_IDS = {R.id.creatureList};
+    private static final int[] DOCK_MAP_TOOLS_IDS = {R.id.dockMapToolsRow, R.id.overlayBar, R.id.brushBar};
+
     /** One short Arabic explanation per brush, index matches IslandView.Brush. */
     private static final String[] BRUSH_HINTS = {
             "فحص: اضغط شخصًا أو قطعة أرض لتقرأ شرحها وتختار هدف القدرات.",
@@ -151,6 +203,8 @@ public class MainActivity extends Activity {
 
     private final ImageButton[] brushButtons = new ImageButton[IslandView.Brush.values().length];
     private final TextView[] resourceStripCounts = new TextView[6];
+    /** One cached dock badge drawable per group; never allocate one per title. */
+    private final Drawable[] dockBadges = new Drawable[PixelIcons.DockGroup.values().length];
     private IslandView.Brush currentBrush = IslandView.Brush.INSPECT;
     private IslandView.Brush lastPaintHintBrush = IslandView.Brush.INSPECT;
     private long lastPaintHintAt;
@@ -307,11 +361,13 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        islandView.setAnimating(true);
         startTicking();
     }
 
     @Override
     protected void onPause() {
+        islandView.setAnimating(false);
         stopTicking();
         uiHandler.removeCallbacks(hideHint);
         super.onPause();
@@ -322,28 +378,27 @@ public class MainActivity extends Activity {
     // ------------------------------------------------------------------
 
     // ------------------------------------------------------------------
-    // Grouped dock wiring. Group ids are resolved by name so this compiles
-    // with the current dock as well as Worker 1's four-group layout.
+    // Grouped dock wiring. Static int[] id tables replace name lookups;
+    // 0 entries are ignored, keeping the old missing-id behaviour.
     // ------------------------------------------------------------------
 
-    /** Finds a dock view by any known XML id name; null when none exists. */
-    private View groupDockFind(String... ids) {
-        for (String id : ids) {
-            int resId = getResources().getIdentifier(id, "id", getPackageName());
-            if (resId != 0) {
-                View view = findViewById(resId);
-                if (view != null) {
-                    return view;
-                }
+    /** Finds a dock view by any known static id; null when none exists. */
+    private View groupDockFind(int... ids) {
+        for (int resId : ids) {
+            if (resId == 0) {
+                continue;
+            }
+            View view = findViewById(resId);
+            if (view != null) {
+                return view;
             }
         }
         return null;
     }
 
     /** Describes every matching view without changing its id or listener. */
-    private void groupDockDescribe(String label, String... ids) {
-        for (String id : ids) {
-            int resId = getResources().getIdentifier(id, "id", getPackageName());
+    private void groupDockDescribe(String label, int... ids) {
+        for (int resId : ids) {
             if (resId == 0) {
                 continue;
             }
@@ -374,7 +429,7 @@ public class MainActivity extends Activity {
     }
 
     /** Labels a group container and, when present, its header for screen readers. */
-    private void groupDockGroup(String label, String... ids) {
+    private void groupDockGroup(String label, int... ids) {
         View group = groupDockFind(ids);
         if (group == null) {
             return;
@@ -387,9 +442,8 @@ public class MainActivity extends Activity {
     }
 
     /** Labels a dedicated header id directly when Worker 1's layout provides one. */
-    private void groupDockHeaderById(String label, String... ids) {
-        for (String id : ids) {
-            int resId = getResources().getIdentifier(id, "id", getPackageName());
+    private void groupDockHeaderById(String label, int... ids) {
+        for (int resId : ids) {
             if (resId == 0) {
                 continue;
             }
@@ -405,33 +459,27 @@ public class MainActivity extends Activity {
 
     /** Applies the four group labels and tags the rows that hold each group today. */
     private void groupDockWire() {
-        groupDockGroup("البشر", "humansCard", "dockHumansGroup", "groupHumans", "humansGroup",
-                "dockGroupHumans", "dockPeopleGroup", "peopleGroup");
-        groupDockGroup("البهائم", "beastsCard", "dockAnimalsGroup", "groupAnimals", "animalsGroup",
-                "dockGroupAnimals", "dockCreaturesGroup", "creaturesGroup");
-        groupDockGroup("القوانين", "lawsCard", "dockLawsGroup", "groupLaws", "lawsGroup",
-                "dockGroupLaws", "dockNatureGroup", "natureGroup");
-        groupDockGroup("الإعدادات والخيارات", "settingsCard", "dockOptionsGroup", "groupOptions",
-                "optionsGroup", "dockGroupOptions", "dockSettingsGroup", "settingsGroup");
+        groupDockGroup("البشر", DOCK_HUMANS_IDS);
+        groupDockGroup("البهائم", DOCK_BEASTS_IDS);
+        groupDockGroup("القوانين", DOCK_LAWS_IDS);
+        groupDockGroup("الإعدادات والخيارات", DOCK_SETTINGS_IDS);
 
-        groupDockHeaderById("البشر", "dockHumansHeader", "groupHumansHeader", "humansHeader");
-        groupDockHeaderById("البهائم", "dockAnimalsHeader", "groupAnimalsHeader", "animalsHeader");
-        groupDockHeaderById("القوانين", "dockLawsHeader", "groupLawsHeader", "lawsHeader");
-        groupDockHeaderById("الإعدادات والخيارات", "dockOptionsHeader", "groupOptionsHeader",
-                "dockSettingsHeader", "settingsHeader");
+        groupDockHeaderById("البشر", DOCK_HUMANS_HEADER_IDS);
+        groupDockHeaderById("البهائم", DOCK_BEASTS_HEADER_IDS);
+        groupDockHeaderById("القوانين", DOCK_LAWS_HEADER_IDS);
+        groupDockHeaderById("الإعدادات والخيارات", DOCK_SETTINGS_HEADER_IDS);
 
         groupDockDescribe("شريط الأوامر — أربع مجموعات: البشر، البهائم، القوانين، الإعدادات والخيارات",
-                "bottomDock");
-        groupDockDescribe("التنقل بين المجموعات والتبويبات السبعة", "dockNavRow");
-        groupDockDescribe("المعلومات والموارد — ذهب، طعام، خشب، حجر، خام، بلور", "dockInfoRow");
-        groupDockDescribe("الإعدادات والخيارات — المعلومات والأنماط والسرعة والبناء",
-                "utilityBar", "dockToolsRow");
-        groupDockDescribe("القوانين — قوانين العالم والمراسيم", "decreeGrid", "natureList");
-        groupDockDescribe("البهائم — مخلوقات الجزيرة", "creatureList");
+                DOCK_BOTTOM_IDS);
+        groupDockDescribe("التنقل بين المجموعات والتبويبات السبعة", DOCK_NAV_IDS);
+        groupDockDescribe("المعلومات والموارد — ذهب، طعام، خشب، حجر، خام، بلور", DOCK_INFO_IDS);
+        groupDockDescribe("الإعدادات والخيارات — المعلومات والأنماط والسرعة والبناء", DOCK_TOOLS_IDS);
+        groupDockDescribe("القوانين — قوانين العالم والمراسيم", DOCK_LAW_ROWS_IDS);
+        groupDockDescribe("البهائم — مخلوقات الجزيرة", DOCK_BEAST_ROWS_IDS);
         groupDockDescribe("أدوات الجزيرة — طبقات وفرش وتكبير، تظهر في تبويب الجزيرة فقط",
-                "dockMapToolsRow", "overlayBar", "brushBar");
+                DOCK_MAP_TOOLS_IDS);
 
-        View dock = groupDockFind("bottomDock");
+        View dock = groupDockFind(DOCK_BOTTOM_IDS);
         if (dock != null) {
             groupDockScan(dock);
         }
@@ -459,19 +507,18 @@ public class MainActivity extends Activity {
                 if (title.getContentDescription() == null) {
                     title.setContentDescription(value);
                 }
-                Drawable badge = PixelIcons.dockIcon(this, group);
+                Drawable badge = dockBadges[group.ordinal()];
+                if (badge == null) {
+                    badge = PixelIcons.dockIcon(this, group);
+                    if (badge != null) {
+                        // 24dp = 2x the 12x12 source pixels; one drawable per group.
+                        int size = dp(24);
+                        badge.setBounds(0, 0, size, size);
+                        dockBadges[group.ordinal()] = badge;
+                    }
+                }
                 if (badge != null) {
-                    int size = dp(18);
-                    android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
-                            size, size, android.graphics.Bitmap.Config.ARGB_8888);
-                    android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
-                    badge.setBounds(0, 0, size, size);
-                    badge.draw(canvas);
-                    android.graphics.drawable.BitmapDrawable sized =
-                            new android.graphics.drawable.BitmapDrawable(getResources(), bitmap);
-                    sized.setBounds(0, 0, size, size);
-                    title.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                            sized, null, null, null);
+                    title.setCompoundDrawablesRelative(badge, null, null, null);
                     title.setCompoundDrawablePadding(dp(4));
                 }
             }
@@ -1024,13 +1071,12 @@ public class MainActivity extends Activity {
         // The grouped dock keeps layers, brushes and camera tools in one row.
         // It belongs to the Island tab only, on every other tab it is hidden.
         boolean islandTab = index == 0;
-        View dockTools = groupDockFind("dockMapToolsRow", "mapToolsRow", "islandToolsRow",
-                "dockIslandTools", "islandMapTools", "mapTools");
+        View dockTools = groupDockFind(DOCK_MAP_TOOLS_IDS);
         if (dockTools != null) {
             dockTools.setVisibility(islandTab ? View.VISIBLE : View.GONE);
             if (islandTab) {
-                View overlays = groupDockFind("overlayBar", "dockOverlayRow", "overlayToolsRow");
-                View brushes = groupDockFind("brushBar", "dockBrushRow", "brushToolsRow");
+                View overlays = groupDockFind(R.id.overlayBar);
+                View brushes = groupDockFind(R.id.brushBar);
                 if (overlays != null) {
                     overlays.setVisibility(View.VISIBLE);
                 }
@@ -1625,9 +1671,29 @@ public class MainActivity extends Activity {
     private void refreshEvents() {
         World world = world();
         List<GameEvent> recent = world.getRecentEvents(60);
+        int expecting = 0;
+        for (Citizen citizen : world.getLivingCitizens()) {
+            if (citizen.isPregnant()) {
+                expecting++;
+            }
+        }
         StringBuilder sig = new StringBuilder();
         sig.append(world.getDay()).append('|').append(recent.size()).append('|')
-                .append(world.getAchievements().size()).append('|');
+                .append(world.getAchievements().size()).append('|')
+                .append(game.getModPack().name()).append('|')
+                .append(world.getWeather().name()).append('|')
+                .append(world.getPopulation()).append('|').append(expecting).append('|')
+                .append(world.getStability()).append('|')
+                .append(world.getGold()).append('|').append(world.getFood()).append('|')
+                .append(world.getWood()).append('|').append(world.getStone()).append('|')
+                .append(world.getOre()).append('|').append(world.getCrystal()).append('|')
+                .append(world.getBirths()).append('|').append(world.getDeaths()).append('|')
+                .append(world.getStructuresBuilt()).append('|').append(world.getPowersUsed())
+                .append('|').append(world.getWarsStarted()).append('|')
+                .append(world.getTechsUnlocked()).append('|').append(world.getClansFounded())
+                .append('|').append(world.getKingdomsFounded()).append('|')
+                .append(world.getLaws().size()).append('|')
+                .append(WorldLaw.values().length).append('|').append(Achievement.values().length);
         if (!recent.isEmpty()) {
             sig.append(recent.get(0).getTitle()).append(recent.get(0).getDay());
         }
@@ -1638,12 +1704,6 @@ public class MainActivity extends Activity {
         int year = world.getDay() / GameConfig.DAYS_PER_YEAR + 1;
         int month = OmatydomGame.monthOf(world.getDay());
         String season = SEASONS[OmatydomGame.seasonOf(world.getDay())];
-        int expecting = 0;
-        for (Citizen citizen : world.getLivingCitizens()) {
-            if (citizen.isPregnant()) {
-                expecting++;
-            }
-        }
         statText.setText(String.format(Locale.getDefault(),
                 "يوم %d • سنة %d • شهر %d • %s • %s%n"
                         + "سكان %d • حوامل %d • استقرار %.0f • ذهب %.0f • طعام %.0f%n"
@@ -1772,11 +1832,20 @@ public class MainActivity extends Activity {
     }
 
     private void refreshPeopleList() {
+        World world = world();
         StringBuilder sig = new StringBuilder();
+        sig.append(world.getDay()).append('|');
         for (Citizen citizen : candidates) {
             sig.append(citizen.getId()).append(':').append(citizen.getJob()).append(':')
-                    .append(citizen.isPregnant()).append(':').append((int) citizen.getHealth())
-                    .append(';');
+                    .append(citizen.isPregnant()).append(':')
+                    .append(citizen.getGestationDay(world.getDay())).append(':')
+                    .append((int) citizen.getHealth()).append(':')
+                    .append(citizen.getAgeYears()).append(':')
+                    .append(citizen.getTrait().name()).append(':')
+                    .append(citizen.getSpecies().name()).append(':')
+                    .append(citizen.getLoyalty()).append(':')
+                    .append(citizen.getWealth()).append(':')
+                    .append(citizen.getEducation()).append(';');
         }
         if (!changed("people", sig.toString())) {
             return;
@@ -2193,12 +2262,13 @@ public class MainActivity extends Activity {
      * rules; males, children and women who cannot conceive get no spacing claim.
      */
     private static String birthNote(Citizen citizen, int day) {
+        if (!citizen.isAlive() || citizen.getGender() != Gender.FEMALE
+                || !citizen.isAdult() || citizen.getAgeYears() >= 45) {
+            return "لا ينطبق";
+        }
         if (citizen.isPregnant()) {
             return "حامل، يوم " + citizen.getGestationDay(day)
                     + "/" + GameConfig.GESTATION_DAYS;
-        }
-        if (citizen.getGender() != Gender.FEMALE || !citizen.isAdult()) {
-            return "لا ينطبق";
         }
         if (citizen.canConceive(day)) {
             return "غير حامل • قابلة للحمل الآن";
