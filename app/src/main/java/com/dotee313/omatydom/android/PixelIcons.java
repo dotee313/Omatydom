@@ -15,7 +15,10 @@ import com.dotee313.omatydom.core.model.Job;
 /** Code-only pixel art: top controls, tabs, overlays and small system badges. */
 final class PixelIcons {
 
-    enum Control { PAUSE, SPEED, CONTROL, ASSASSINATE, NEXT }
+    enum Control {
+        PAUSE, SPEED, CONTROL, ASSASSINATE, NEXT,
+        ZOOM_IN, ZOOM_OUT, CENTER, GRID
+    }
 
     private static final String[] PAUSE = {
             ".........",
@@ -116,6 +119,51 @@ final class PixelIcons {
             "..BBBB...",
             "..BBB....",
             "........."
+    };
+
+    private static final String[] ZOOM_IN = {
+            ".........",
+            "..WWW....",
+            ".W...W...",
+            "W..B..W..",
+            "W.BBB.W..",
+            "W..B..W..",
+            ".W...W...",
+            "..WWK....",
+            "....KK..."
+    };
+    private static final String[] ZOOM_OUT = {
+            ".........",
+            "..WWW....",
+            ".W...W...",
+            "W..R..W..",
+            "W.RRR.W..",
+            "W..R..W..",
+            ".W...W...",
+            "..WWK....",
+            "....KK..."
+    };
+    private static final String[] CENTER = {
+            ".........",
+            "...WWW...",
+            "..W...W..",
+            ".W..C..W.",
+            "W..CCC..W",
+            ".W..C..W.",
+            "..W...W..",
+            "...WWW...",
+            "........."
+    };
+    private static final String[] GRID = {
+            "NNNNNNNNN",
+            "NWNWNWNWN",
+            "NNNNNNNNN",
+            "NWNWNWNWN",
+            "NNNNNNNNN",
+            "NWNWNWNWN",
+            "NNNNNNNNN",
+            "NWNWNWNWN",
+            "NNNNNNNNN"
     };
 
     // Seven distinct bottom-tab badges.
@@ -232,6 +280,14 @@ final class PixelIcons {
                 return pattern(context, DAGGER);
             case NEXT:
                 return pattern(context, NEXT);
+            case ZOOM_IN:
+                return pattern(context, ZOOM_IN);
+            case ZOOM_OUT:
+                return pattern(context, ZOOM_OUT);
+            case CENTER:
+                return pattern(context, CENTER);
+            case GRID:
+                return pattern(context, GRID);
             case PAUSE:
             default:
                 return pattern(context, PAUSE);
@@ -289,6 +345,204 @@ final class PixelIcons {
         rect(pixels, 9, 2, 6, 6, 7, dark);
         rect(pixels, 9, 3, 8, 5, 8, dark);
         return fromPixels(context, 9, 9, pixels);
+    }
+
+    /**
+     * A code-drawn 12x12 badge for every sandbox brush. Each tool has its own
+     * silhouette, palette and a couple of highlight pixels, so the bar reads
+     * like a small pixel-art toolbar without any external assets.
+     */
+    static Drawable brushIcon(Context context, IslandView.Brush brush) {
+        int size = 12;
+        int[] px = new int[size * size];
+        fill(px, Color.TRANSPARENT);
+        if (brush == null) {
+            brush = IslandView.Brush.INSPECT;
+        }
+        int ink = 0xFF202124;
+        int light = 0xFFECEFF1;
+        int water = 0xFF42A5F5;
+        int waterLight = 0xFFB3E5FC;
+        int green = 0xFF66BB6A;
+        int darkGreen = 0xFF2E7D32;
+        int wood = 0xFF8D6E63;
+        int rock = 0xFF90A4AE;
+        int fire = 0xFFFF7043;
+        int gold = 0xFFFFD54F;
+        int red = 0xFFEF5350;
+
+        switch (brush) {
+            case INSPECT:
+                // Magnifier lens with a short wooden handle.
+                rect(px, size, 2, 1, 6, 1, light);
+                rect(px, size, 2, 7, 6, 7, light);
+                rect(px, size, 1, 2, 1, 6, light);
+                rect(px, size, 7, 2, 7, 6, light);
+                rect(px, size, 3, 2, 5, 6, 0xFF26C6DA);
+                rect(px, size, 3, 3, 4, 4, 0xFFFFFFFF);
+                rect(px, size, 7, 7, 10, 10, wood);
+                rect(px, size, 8, 8, 9, 9, ink);
+                break;
+            case WATER:
+                // Droplet above a moving wave.
+                rect(px, size, 4, 1, 7, 2, water);
+                rect(px, size, 3, 2, 8, 4, water);
+                rect(px, size, 2, 4, 9, 6, water);
+                rect(px, size, 3, 7, 8, 7, water);
+                rect(px, size, 5, 3, 6, 5, waterLight);
+                rect(px, size, 1, 9, 4, 9, waterLight);
+                rect(px, size, 5, 10, 8, 10, water);
+                rect(px, size, 9, 9, 11, 9, waterLight);
+                break;
+            case SAND:
+                // Two dunes under a small sun.
+                rect(px, size, 8, 1, 10, 3, gold);
+                rect(px, size, 0, 8, 11, 10, 0xFFD7A86E);
+                rect(px, size, 1, 6, 5, 7, mix(0xFFD7A86E, 0xFFFFFFFF, 0.35f));
+                rect(px, size, 6, 5, 11, 8, 0xFFD7A86E);
+                rect(px, size, 2, 9, 9, 9, shade(0xFFD7A86E, 0.7f));
+                break;
+            case GRASS:
+                // Uneven blades rooted in a strip of soil.
+                rect(px, size, 2, 5, 2, 10, darkGreen);
+                rect(px, size, 4, 3, 4, 10, green);
+                rect(px, size, 6, 1, 6, 10, darkGreen);
+                rect(px, size, 8, 4, 8, 10, green);
+                rect(px, size, 10, 6, 10, 10, darkGreen);
+                rect(px, size, 1, 10, 11, 11, shade(green, 0.55f));
+                rect(px, size, 5, 2, 5, 3, mix(green, 0xFFFFFFFF, 0.4f));
+                break;
+            case FOREST:
+                // Broad evergreen canopy and a straight trunk.
+                rect(px, size, 5, 7, 6, 10, wood);
+                rect(px, size, 2, 5, 9, 8, darkGreen);
+                rect(px, size, 3, 2, 8, 5, green);
+                rect(px, size, 4, 1, 7, 2, mix(green, 0xFFFFFFFF, 0.3f));
+                rect(px, size, 3, 9, 8, 10, shade(wood, 0.7f));
+                break;
+            case ORCHARD:
+                // Same orchard shape with bright fruit dots.
+                rect(px, size, 5, 7, 6, 10, wood);
+                rect(px, size, 2, 5, 9, 8, 0xFF388E3C);
+                rect(px, size, 3, 2, 8, 5, green);
+                rect(px, size, 4, 1, 7, 2, mix(green, 0xFFFFFFFF, 0.35f));
+                set(px, size, 3, 5, red);
+                set(px, size, 8, 4, red);
+                set(px, size, 6, 7, gold);
+                set(px, size, 9, 7, red);
+                break;
+            case MOUNTAIN:
+                // Snow-capped peak in front of a low ridge.
+                rect(px, size, 0, 9, 11, 11, shade(rock, 0.6f));
+                rect(px, size, 1, 7, 10, 9, rock);
+                rect(px, size, 3, 4, 8, 7, rock);
+                rect(px, size, 5, 1, 6, 3, rock);
+                rect(px, size, 4, 3, 7, 4, light);
+                rect(px, size, 5, 2, 6, 3, 0xFFFFFFFF);
+                break;
+            case CAVE:
+                // Rock arch around a very dark opening.
+                rect(px, size, 1, 9, 10, 11, shade(wood, 0.8f));
+                rect(px, size, 2, 3, 9, 9, wood);
+                rect(px, size, 3, 4, 8, 8, ink);
+                rect(px, size, 4, 5, 7, 8, 0xFF10171D);
+                rect(px, size, 2, 2, 9, 2, shade(wood, 1.2f));
+                set(px, size, 5, 7, gold);
+                set(px, size, 6, 6, waterLight);
+                break;
+            case HOUSE:
+                // Simple hut with pitched roof and lit window.
+                rect(px, size, 2, 5, 9, 10, 0xFFB26A3B);
+                rect(px, size, 2, 3, 9, 3, 0xFFD15B4A);
+                rect(px, size, 4, 2, 7, 2, 0xFFD15B4A);
+                rect(px, size, 1, 4, 10, 4, 0xFF8D3B2E);
+                rect(px, size, 5, 7, 6, 10, wood);
+                rect(px, size, 3, 6, 4, 7, waterLight);
+                break;
+            case FARM:
+                // Three planted rows on tilled soil.
+                rect(px, size, 0, 10, 11, 11, shade(wood, 0.7f));
+                for (int x = 1; x <= 9; x += 4) {
+                    rect(px, size, x, 3, x, 9, green);
+                    rect(px, size, x + 1, 5, x + 1, 9, 0xFF9CCC65);
+                    rect(px, size, x, 2, x + 1, 2, gold);
+                }
+                break;
+            case ROAD:
+                // Irregular pale stepping stones on a dark track.
+                rect(px, size, 0, 4, 11, 7, shade(rock, 0.5f));
+                rect(px, size, 1, 5, 3, 6, rock);
+                rect(px, size, 5, 5, 7, 6, rock);
+                rect(px, size, 9, 5, 11, 6, rock);
+                rect(px, size, 2, 5, 2, 5, mix(rock, 0xFFFFFFFF, 0.4f));
+                rect(px, size, 6, 5, 6, 5, mix(rock, 0xFFFFFFFF, 0.4f));
+                break;
+            case HUMAN:
+                // Front-facing settler bust.
+                rect(px, size, 3, 2, 8, 8, 0xFFD8A47C);
+                rect(px, size, 2, 1, 9, 2, 0xFF3E2723);
+                rect(px, size, 2, 3, 2, 5, 0xFF3E2723);
+                set(px, size, 4, 5, ink);
+                set(px, size, 7, 5, ink);
+                rect(px, size, 5, 7, 6, 7, 0xFF8D5524);
+                rect(px, size, 3, 9, 8, 11, 0xFF42A5F5);
+                break;
+            case WOLF:
+                // Pointed ears, grey head and a pale muzzle.
+                rect(px, size, 2, 1, 4, 3, 0xFF78909C);
+                rect(px, size, 7, 1, 9, 3, 0xFF78909C);
+                rect(px, size, 3, 3, 8, 9, 0xFF9E9E9E);
+                rect(px, size, 5, 6, 6, 10, light);
+                set(px, size, 4, 5, red);
+                set(px, size, 7, 5, red);
+                set(px, size, 5, 9, ink);
+                break;
+            case FIRE:
+                // Tall flame with a bright core.
+                rect(px, size, 5, 1, 6, 3, gold);
+                rect(px, size, 4, 3, 7, 7, fire);
+                rect(px, size, 3, 5, 8, 10, fire);
+                rect(px, size, 2, 8, 9, 11, 0xFFE53935);
+                rect(px, size, 5, 6, 6, 9, gold);
+                break;
+            case RAIN:
+                // Heavy cloud with three falling streaks.
+                rect(px, size, 3, 1, 7, 1, 0xFFCFD8DC);
+                rect(px, size, 2, 2, 9, 5, 0xFF90A4AE);
+                rect(px, size, 1, 4, 10, 6, 0xFFB0BEC5);
+                rect(px, size, 2, 8, 3, 10, water);
+                rect(px, size, 5, 8, 6, 10, water);
+                rect(px, size, 8, 8, 9, 10, water);
+                break;
+            case METEOR:
+                // Comet tail trailing into a burning head.
+                rect(px, size, 0, 0, 4, 1, gold);
+                rect(px, size, 1, 2, 5, 3, 0xFFFFA726);
+                rect(px, size, 3, 4, 7, 5, fire);
+                rect(px, size, 6, 6, 10, 10, 0xFFE53935);
+                rect(px, size, 7, 7, 9, 9, gold);
+                break;
+            default:
+                break;
+        }
+        return fromPixels(context, size, size, px);
+    }
+
+    /** Small pixel frame used behind the numbers in the resource strip. */
+    static Drawable smallBadge(Context context, int color) {
+        int size = 9;
+        int[] px = new int[size * size];
+        fill(px, Color.TRANSPARENT);
+        int light = mix(color, 0xFFFFFFFF, 0.45f);
+        int dark = shade(color, 0.5f);
+        rect(px, size, 1, 1, 7, 7, dark);
+        rect(px, size, 2, 2, 6, 6, 0xFF121D27);
+        rect(px, size, 1, 1, 7, 1, light);
+        rect(px, size, 1, 1, 1, 7, light);
+        rect(px, size, 1, 7, 7, 7, dark);
+        rect(px, size, 7, 2, 7, 7, dark);
+        set(px, size, 2, 2, color);
+        return fromPixels(context, size, size, px);
     }
 
     static Drawable disasterIcon(Context context, int color) {

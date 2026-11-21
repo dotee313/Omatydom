@@ -78,6 +78,46 @@ public class MainActivity extends Activity {
             "world", "people", "nature", "creatures", "kingdoms", "powers", "events"
     };
 
+    /** One short Arabic explanation per brush, index matches IslandView.Brush. */
+    private static final String[] BRUSH_HINTS = {
+            "فحص: اضغط شخصًا أو قطعة أرض لتقرأ شرحها وتختار هدف القدرات.",
+            "ماء: تموجات زرقاء تحوّل المقطع إلى ماء عميق للصيادين.",
+            "رمال: يصنع شاطئًا رمليًا يفصل البر عن البحر.",
+            "عشب: يهيئ أرضًا مفتوحة للمشي والبناء.",
+            "غابة: تنبت أشجارًا يقطع منها الحطّابون الخشب.",
+            "بستان: تنبت فواكه يجمعها السكان طعامًا.",
+            "جبل: يرفع صخرة يستخرج منها الحجر والخام.",
+            "كهف: يفتح تجويفًا فيه معادن نادرة وجذور قديمة.",
+            "كوخ: يبني بيتًا للسكان مقابل خشب وحجر.",
+            "مزرعة: تنتج محاصيل يخزنها العمال مقابل خشب وحجر.",
+            "طريق: يرصّ أحجارًا تسهّل تنقل السكان والتجار.",
+            "إنسان: يضيف مستوطنًا جديدًا على أرض قابلة للمشي.",
+            "ذئب: يطلق كائنًا مفترسًا يطوف حول المقطع.",
+            "نار: رمح العاصفة يضرب الهدف ويترك أثر لهب.",
+            "مطر: يعيد ملء الغابات والبساتين قرب الهدف.",
+            "نيزك: حجر محرق يدمر الهدف ويترك معادن."
+    };
+
+    /** Short notes shown on the first tile painted with a brush. */
+    private static final String[] BRUSH_PAINT_HINTS = {
+            "تم الفحص — اضغط أيقونة أخرى لتغيير الأداة.",
+            "تلوين الماء جارٍ — اسحب لرسم الشاطئ.",
+            "الرمال تنتشر — اسحب لتوسيع الشاطئ.",
+            "العشب ينتشر — اسحب لتهيئة الأرض.",
+            "الأشجار تنبت — اسحب لتكثيف الغابة.",
+            "البساتين تنبت — اسحب لتوسيع مصدر الطعام.",
+            "الجبال ترتفع — اسحب لتشكيل السلسلة.",
+            "الكهوف تتفتح — اسحب لإضافة مغارات.",
+            "يُبنى كوخ جديد حيث تلمس الفرشاة.",
+            "تُبنى مزرعة جديدة حيث تلمس الفرشاة.",
+            "يمتد الطريق حجرًا بعد حجر.",
+            "ظهر مستوطن جديد في المقطع.",
+            "ظهر ذئب يترصد المكان.",
+            "ضربة لهب نزلت على الهدف.",
+            "مطر الحياة يهطل على الهدف.",
+            "نيزك سقط على الهدف."
+    };
+
     private OmatydomGame game;
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private final Map<String, String> signatures = new HashMap<>();
@@ -95,6 +135,22 @@ public class MainActivity extends Activity {
     private ListView eventsView;
     private IslandView islandView;
     private EventAdapter eventAdapter;
+    private TextView brushHintView;
+
+    private final ImageButton[] brushButtons = new ImageButton[IslandView.Brush.values().length];
+    private final TextView[] resourceStripCounts = new TextView[6];
+    private IslandView.Brush currentBrush = IslandView.Brush.INSPECT;
+    private IslandView.Brush lastPaintHintBrush = IslandView.Brush.INSPECT;
+    private long lastPaintHintAt;
+    private boolean gridVisible;
+
+    private static final ResourceType[] STRIP_RESOURCES = {
+            ResourceType.GOLD, ResourceType.BREAD, ResourceType.WOOD,
+            ResourceType.STONE, ResourceType.ORE, ResourceType.CRYSTAL
+    };
+    private static final String[] STRIP_LABELS = {
+            "ذهب", "طعام", "خشب", "حجر", "خام", "بلور"
+    };
 
     private LinearLayout peopleList;
     private LinearLayout natureList;
@@ -148,6 +204,7 @@ public class MainActivity extends Activity {
         rulerView = findViewById(R.id.rulerText);
         seasonView = findViewById(R.id.seasonText);
         hintView = findViewById(R.id.hintText);
+        brushHintView = findViewById(R.id.brushHintText);
         statText = findViewById(R.id.statText);
         dayProgress = findViewById(R.id.dayProgress);
         eventsView = findViewById(R.id.eventsList);
@@ -182,10 +239,22 @@ public class MainActivity extends Activity {
                 selectedTileY = y;
                 showHint(tileExplanation(x, y) + " — صار هذا هدف القدرات.");
             }
+
+            @Override
+            public void onTilePainted(int x, int y, IslandView.Brush brush) {
+                boolean hintShown = paintAt(x, y, brush);
+                if (!hintShown) {
+                    showPaintHintOnce(brush);
+                }
+                islandView.invalidate();
+            }
         });
 
         setupTopControls();
+        setupResourceStrip();
         setupOverlayBar();
+        setupBrushBar();
+        setupMapControls();
         setupBottomNav();
         setupDecreeGrid();
         setupPowersGrid();
@@ -221,6 +290,11 @@ public class MainActivity extends Activity {
         ImageButton speed = findViewById(R.id.speedButton);
         ImageButton control = findViewById(R.id.controlButton);
         ImageButton assassinate = findViewById(R.id.assassinateButton);
+
+        pause.setContentDescription("إيقاف الزمن أو متابعته");
+        speed.setContentDescription("تغيير سرعة الزمن");
+        control.setContentDescription("تولي قرارات الحاكم أو تركها له");
+        assassinate.setContentDescription("إزالة الحاكم الحالي");
 
         pause.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.PAUSE));
         pause.setOnClickListener(v -> {
@@ -259,6 +333,228 @@ public class MainActivity extends Activity {
         });
     }
 
+    // ------------------------------------------------------------------
+    // Map toolbar: resources, brushes, camera and sandbox painting
+    // ------------------------------------------------------------------
+
+    private void setupResourceStrip() {
+        LinearLayout strip = findViewById(R.id.resourceStrip);
+        for (int i = 0; i < STRIP_RESOURCES.length; i++) {
+            final int index = i;
+            ResourceType type = STRIP_RESOURCES[i];
+            LinearLayout badge = new LinearLayout(this);
+            badge.setOrientation(LinearLayout.HORIZONTAL);
+            badge.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            badge.setBackgroundResource(R.drawable.bg_button);
+            badge.setPadding(2, 1, 2, 1);
+            badge.setLayoutParams(new LinearLayout.LayoutParams(
+                    0, LinearLayout.LayoutParams.MATCH_PARENT, 1f));
+
+            ImageView icon = new ImageView(this);
+            icon.setImageDrawable(PixelIcons.resourceSwatch(this, type.getColor()));
+            icon.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            icon.setContentDescription(STRIP_LABELS[i]);
+            badge.addView(icon, new LinearLayout.LayoutParams(dp(14), dp(14)));
+
+            TextView count = new TextView(this);
+            count.setTextSize(9f);
+            count.setTextColor(0xFFFFFFFF);
+            count.setGravity(android.view.Gravity.CENTER);
+            count.setBackground(PixelIcons.smallBadge(this, type.getColor()));
+            badge.addView(count, new LinearLayout.LayoutParams(0, dp(18), 1f));
+            resourceStripCounts[i] = count;
+
+            badge.setOnClickListener(v -> showHint(STRIP_LABELS[index] + " — المخزون "
+                    + (int) world().getResource(STRIP_RESOURCES[index]) + "."));
+            strip.addView(badge);
+        }
+    }
+
+    private void setupBrushBar() {
+        int[] ids = {
+                R.id.brushInspectButton, R.id.brushWaterButton,
+                R.id.brushSandButton, R.id.brushGrassButton,
+                R.id.brushForestButton, R.id.brushOrchardButton,
+                R.id.brushMountainButton, R.id.brushCaveButton,
+                R.id.brushHouseButton, R.id.brushFarmButton,
+                R.id.brushRoadButton, R.id.brushHumanButton,
+                R.id.brushWolfButton, R.id.brushFireButton,
+                R.id.brushRainButton, R.id.brushMeteorButton
+        };
+        IslandView.Brush[] brushes = IslandView.Brush.values();
+        for (int i = 0; i < ids.length && i < brushes.length; i++) {
+            final IslandView.Brush brush = brushes[i];
+            ImageButton button = findViewById(ids[i]);
+            brushButtons[i] = button;
+            button.setImageDrawable(PixelIcons.brushIcon(this, brush));
+            button.setContentDescription(BRUSH_HINTS[i]);
+            button.setBackgroundResource(R.drawable.bg_button);
+            button.setOnClickListener(v -> selectBrush(brush, true));
+        }
+        selectBrush(IslandView.Brush.INSPECT, false);
+    }
+
+    private void selectBrush(IslandView.Brush brush, boolean announce) {
+        if (brush == null) {
+            return;
+        }
+        currentBrush = brush;
+        islandView.setBrush(brush);
+        applyBrushSelection(brush, announce);
+    }
+
+    private void applyBrushSelection(IslandView.Brush brush, boolean announce) {
+        IslandView.Brush[] brushes = IslandView.Brush.values();
+        for (int i = 0; i < brushButtons.length; i++) {
+            boolean active = i < brushes.length && brushes[i] == brush;
+            brushButtons[i].setBackgroundResource(
+                    active ? R.drawable.brush_selected : R.drawable.bg_button);
+            brushButtons[i].setAlpha(active ? 1f : 0.68f);
+        }
+        int index = brush.ordinal();
+        if (index >= 0 && index < BRUSH_HINTS.length) {
+            brushHintView.setText(BRUSH_HINTS[index]);
+            if (announce) {
+                showHint(BRUSH_HINTS[index]);
+            }
+        }
+        lastPaintHintBrush = brush;
+        lastPaintHintAt = System.currentTimeMillis();
+    }
+
+    private void setupMapControls() {
+        ImageButton zoomIn = findViewById(R.id.zoomInButton);
+        ImageButton zoomOut = findViewById(R.id.zoomOutButton);
+        ImageButton center = findViewById(R.id.centerButton);
+        ImageButton grid = findViewById(R.id.gridButton);
+
+        zoomIn.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.ZOOM_IN));
+        zoomIn.setContentDescription("تكبير الخريطة");
+        zoomIn.setOnClickListener(v -> {
+            islandView.zoomIn();
+            showHint("تكبير الخريطة — المربعات أكبر ويمكن رسم التفاصيل بدقة.");
+        });
+
+        zoomOut.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.ZOOM_OUT));
+        zoomOut.setContentDescription("تصغير الخريطة");
+        zoomOut.setOnClickListener(v -> {
+            islandView.zoomOut();
+            showHint("تصغير الخريطة — ترى جزيرة أوسع دفعة واحدة.");
+        });
+
+        center.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.CENTER));
+        center.setContentDescription("توسيط الخريطة");
+        center.setOnClickListener(v -> {
+            islandView.centerOnMap();
+            showHint("عادت الخريطة إلى مركز الجزيرة.");
+        });
+
+        grid.setImageDrawable(PixelIcons.control(this, PixelIcons.Control.GRID));
+        grid.setContentDescription("إظهار أو إخفاء شبكة المربعات");
+        grid.setOnClickListener(v -> {
+            gridVisible = !gridVisible;
+            islandView.setGrid(gridVisible);
+            grid.setBackgroundResource(
+                    gridVisible ? R.drawable.brush_selected : R.drawable.bg_button);
+            showHint(gridVisible
+                    ? "شبكة المربعات ظاهرة — كل مربع قطعة أرض يمكن رسمها."
+                    : "أُخفيت الشبكة — الخريطة الآن بدون خطوط.");
+        });
+    }
+
+    /** Applies the selected brush at one tile. Returns true when a hint was shown. */
+    private boolean paintAt(int x, int y, IslandView.Brush brush) {
+        if (brush == null || x < 0 || y < 0) {
+            return false;
+        }
+        switch (brush) {
+            case WATER:
+                game.paintTile(x, y, TileType.WATER);
+                break;
+            case SAND:
+                game.paintTile(x, y, TileType.SAND);
+                break;
+            case GRASS:
+                game.paintTile(x, y, TileType.GRASS);
+                break;
+            case FOREST:
+                game.paintTile(x, y, TileType.FOREST);
+                break;
+            case ORCHARD:
+                game.paintTile(x, y, TileType.ORCHARD);
+                break;
+            case MOUNTAIN:
+                game.paintTile(x, y, TileType.MOUNTAIN);
+                break;
+            case CAVE:
+                game.paintTile(x, y, TileType.CAVE);
+                break;
+            case HOUSE:
+                if (!game.build(x, y, Structure.HUT)) {
+                    showHint("لا يُبنى كوخ هنا — تحتاج أرضًا فارغة و10 خشب و4 حجر.");
+                    return true;
+                }
+                break;
+            case FARM:
+                if (!game.build(x, y, Structure.FARM)) {
+                    showHint("لا تُبنى مزرعة هنا — تحتاج أرضًا فارغة و12 خشب و3 حجر.");
+                    return true;
+                }
+                break;
+            case ROAD:
+                if (!game.build(x, y, Structure.ROAD)) {
+                    showHint("لا يُرصّ طريق هنا — تحتاج أرضًا فارغة وخشبًا وحجرًا.");
+                    return true;
+                }
+                break;
+            case HUMAN:
+                if (!game.spawnSettlerAt(x, y)) {
+                    showHint("لا يستقر مستوطن هنا — اختر أرضًا قابلة للمشي.");
+                    return true;
+                }
+                break;
+            case WOLF:
+                if (!game.spawnCreatureAt(AnimalType.WOLF, x, y)) {
+                    showHint("خارج الخريطة — لا يمكن إطلاق ذئب هنا.");
+                    return true;
+                }
+                break;
+            case FIRE:
+                game.usePower(Power.LIGHTNING, x, y);
+                islandView.playEffect(IslandView.Effect.FIRE, x, y);
+                break;
+            case RAIN:
+                game.usePower(Power.RAIN, x, y);
+                islandView.playEffect(IslandView.Effect.RAIN, x, y);
+                break;
+            case METEOR:
+                game.usePower(Power.METEOR, x, y);
+                islandView.playEffect(IslandView.Effect.METEOR, x, y);
+                break;
+            case INSPECT:
+            default:
+                break;
+        }
+        return false;
+    }
+
+    /** One hint per stroke, not one per dragged tile. */
+    private void showPaintHintOnce(IslandView.Brush brush) {
+        if (brush == null) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (brush == lastPaintHintBrush && now - lastPaintHintAt < HINT_MILLIS) {
+            return;
+        }
+        lastPaintHintBrush = brush;
+        lastPaintHintAt = now;
+        int index = brush.ordinal();
+        if (index >= 0 && index < BRUSH_PAINT_HINTS.length) {
+            showHint(BRUSH_PAINT_HINTS[index]);
+        }
+    }
+
     private void setupOverlayBar() {
         int[] ids = {
                 R.id.overlayTerrainButton, R.id.overlayBiomeButton,
@@ -271,17 +567,25 @@ public class MainActivity extends Activity {
             overlayButtons[i] = button;
             button.setImageDrawable(PixelIcons.overlay(this, i));
             button.setContentDescription(OVERLAY_HINTS[i]);
-            button.setOnClickListener(v -> {
-                islandView.setOverlay(IslandView.Overlay.values()[index]);
-                for (int j = 0; j < overlayButtons.length; j++) {
-                    overlayButtons[j].setAlpha(j == index ? 1f : 0.42f);
-                }
-                showHint(OVERLAY_HINTS[index]);
-            });
+            button.setBackgroundResource(R.drawable.bg_button);
+            button.setOnClickListener(v -> selectOverlay(index, true));
         }
-        overlayButtons[0].setAlpha(1f);
-        for (int i = 1; i < overlayButtons.length; i++) {
-            overlayButtons[i].setAlpha(0.42f);
+        selectOverlay(0, false);
+    }
+
+    private void selectOverlay(int index, boolean announce) {
+        if (index < 0 || index >= overlayButtons.length) {
+            return;
+        }
+        islandView.setOverlay(IslandView.Overlay.values()[index]);
+        for (int j = 0; j < overlayButtons.length; j++) {
+            boolean active = j == index;
+            overlayButtons[j].setBackgroundResource(
+                    active ? R.drawable.brush_selected : R.drawable.bg_button);
+            overlayButtons[j].setAlpha(active ? 1f : 0.6f);
+        }
+        if (announce) {
+            showHint(OVERLAY_HINTS[index]);
         }
     }
 
@@ -316,8 +620,11 @@ public class MainActivity extends Activity {
     private void selectTab(int index) {
         currentTab = index;
         for (int i = 0; i < pages.length; i++) {
-            pages[i].setVisibility(i == index ? View.VISIBLE : View.GONE);
-            navButtons[i].setAlpha(i == index ? 1f : 0.45f);
+            boolean active = i == index;
+            pages[i].setVisibility(active ? View.VISIBLE : View.GONE);
+            navButtons[i].setBackgroundResource(
+                    active ? R.drawable.nav_selected : R.drawable.bg_button);
+            navButtons[i].setAlpha(active ? 1f : 0.62f);
         }
         // Force a rebuild on tab open; later refreshes go through signature checks.
         signatures.remove(TAB_KEYS[index]);
@@ -333,7 +640,7 @@ public class MainActivity extends Activity {
             final Decree decree = decrees[i];
             ImageButton button = new ImageButton(this);
             button.setLayoutParams(gridCellParams(i, 4, dp(46), dp(46)));
-            button.setBackground(null);
+            button.setBackgroundResource(R.drawable.bg_button);
             button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
             button.setPadding(3, 3, 3, 3);
             button.setContentDescription(decree.getDisplayName() + " — " + decreeExplanation(decree));
@@ -353,7 +660,7 @@ public class MainActivity extends Activity {
             final Power power = powers[i];
             ImageButton button = new ImageButton(this);
             button.setLayoutParams(gridCellParams(i, 5, dp(42), dp(42)));
-            button.setBackground(null);
+            button.setBackgroundResource(R.drawable.bg_button);
             button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
             button.setPadding(2, 2, 2, 2);
             button.setContentDescription(arabicPower(power));
@@ -369,15 +676,19 @@ public class MainActivity extends Activity {
             final DisasterType type = disasters[i];
             ImageButton button = new ImageButton(this);
             button.setLayoutParams(gridCellParams(i, 6, dp(36), dp(36)));
-            button.setBackground(null);
+            button.setBackgroundResource(R.drawable.bg_button);
             button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
             button.setPadding(2, 2, 2, 2);
             button.setContentDescription(type.getArabicName());
             button.setImageDrawable(PixelIcons.disasterIcon(this, type.getColor()));
             button.setOnClickListener(v -> {
+                int tx = selectedTileX >= 0 ? selectedTileX : game.getMap().getWidth() / 2;
+                int ty = selectedTileY >= 0 ? selectedTileY : game.getMap().getHeight() / 2;
+                IslandView.Effect effect = effectForDisaster(type);
                 game.castDisaster(type);
-                showHint("كارثة «" + type.getArabicName() + "» تضرب الجزيرة — "
-                        + type.getDisplayName() + "، راقب الأحداث.");
+                islandView.playEffect(effect, tx, ty);
+                showHint("كارثة «" + type.getArabicName() + "» تضرب الجزيرة عند ("
+                        + tx + "," + ty + ")، راقب الأحداث.");
                 refreshUi();
             });
             disasterGrid.addView(button);
@@ -391,17 +702,69 @@ public class MainActivity extends Activity {
             showHint("هذه القدرة تحتاج " + cooldown + " يومًا قبل أن تعود.");
             return;
         }
+        int tx = targeted ? selectedTileX : game.getMap().getWidth() / 2;
+        int ty = targeted ? selectedTileY : game.getMap().getHeight() / 2;
         boolean done = targeted
-                ? game.usePower(power, selectedTileX, selectedTileY)
+                ? game.usePower(power, tx, ty)
                 : game.usePower(power);
         if (!done) {
             showHint("تحتاج " + power.getGoldCost() + " ذهبًا لتفعيل «"
                     + arabicPower(power) + "».");
             return;
         }
+        islandView.playEffect(effectForPower(power), tx, ty);
         showHint(arabicPower(power) + " — " + arabicPowerDescription(power)
                 + "\nالتبريد: " + power.getCooldownDays() + " يومًا.");
         refreshUi();
+    }
+
+    /** Visual effect paired with each power; global powers still get a centre flash. */
+    private static IslandView.Effect effectForPower(Power power) {
+        if (power == null) {
+            return IslandView.Effect.FIRE;
+        }
+        switch (power) {
+            case RAIN:
+                return IslandView.Effect.RAIN;
+            case BLOOM:
+                return IslandView.Effect.BLOOM;
+            case HEAL:
+                return IslandView.Effect.HEAL;
+            case BLESS:
+            case PROSPERITY:
+                return IslandView.Effect.BLESS;
+            case PEACE:
+                return IslandView.Effect.PEACE;
+            case METEOR:
+                return IslandView.Effect.METEOR;
+            case LIGHTNING:
+            case PLAGUE:
+            case EARTHQUAKE:
+            default:
+                return IslandView.Effect.FIRE;
+        }
+    }
+
+    /** Disasters have no coordinates in core, so the visual lands on the chosen tile. */
+    private static IslandView.Effect effectForDisaster(DisasterType type) {
+        if (type == null) {
+            return IslandView.Effect.FIRE;
+        }
+        switch (type.name()) {
+            case "METEORITE":
+            case "ALIEN_VESSLE":
+            case "LAVA_FLOW":
+                return IslandView.Effect.METEOR;
+            case "ACID_RAIN":
+                return IslandView.Effect.RAIN;
+            case "BANDIT_RAID":
+            case "HELLSPAWN":
+            case "NECROMANCER_RISE":
+            case "WILD_STAMPEDE":
+                return IslandView.Effect.WAR;
+            default:
+                return IslandView.Effect.FIRE;
+        }
     }
 
     // ------------------------------------------------------------------
@@ -913,6 +1276,13 @@ public class MainActivity extends Activity {
         return game.getWorld();
     }
 
+    /** Six badges are created once; only their numbers change on each tick. */
+    private void updateResourceStrip(World world) {
+        for (int i = 0; i < STRIP_RESOURCES.length && i < resourceStripCounts.length; i++) {
+            resourceStripCounts[i].setText("×" + (int) world.getResource(STRIP_RESOURCES[i]));
+        }
+    }
+
     private void refreshUi() {
         World world = world();
         int day = world.getDay();
@@ -921,11 +1291,9 @@ public class MainActivity extends Activity {
         String season = SEASONS[OmatydomGame.seasonOf(day)];
 
         statusView.setText(String.format(Locale.getDefault(),
-                "اليوم %d • السنة %d • الشهر %d • %s%nالسكان %d • الاستقرار %.0f/100%n"
-                        + "ذهب %.0f • طعام %.0f • خشب %.0f • حجر %.0f • خام %.0f • بلور %.0f",
-                day, year, month, season, world.getPopulation(), world.getStability(),
-                world.getGold(), world.getFood(), world.getWood(), world.getStone(),
-                world.getOre(), world.getCrystal()));
+                "اليوم %d • السنة %d • الشهر %d • %s%nالسكان %d • الاستقرار %.0f/100",
+                day, year, month, season, world.getPopulation(), world.getStability()));
+        updateResourceStrip(world);
 
         int expecting = 0;
         for (Citizen citizen : world.getLivingCitizens()) {
@@ -975,7 +1343,7 @@ public class MainActivity extends Activity {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
             row.setPadding(5, 5, 5, 5);
-            row.setBackgroundResource(android.R.drawable.list_selector_background);
+            row.setBackgroundResource(R.drawable.bg_panel);
 
             ImageView portrait = new ImageView(this);
             portrait.setLayoutParams(new LinearLayout.LayoutParams(portraitSize, portraitSize));
@@ -1076,7 +1444,7 @@ public class MainActivity extends Activity {
     private ImageButton smallButton(Drawable icon, String description,
                                     View.OnClickListener listener) {
         ImageButton button = new ImageButton(this);
-        button.setBackground(null);
+        button.setBackgroundResource(R.drawable.bg_button);
         button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
         button.setPadding(2, 2, 2, 2);
         button.setImageDrawable(icon);
@@ -1111,6 +1479,7 @@ public class MainActivity extends Activity {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(4, 4, 4, 4);
+        row.setBackgroundResource(R.drawable.bg_panel);
         row.setAlpha(alpha);
         ImageView image = new ImageView(this);
         image.setImageDrawable(icon);

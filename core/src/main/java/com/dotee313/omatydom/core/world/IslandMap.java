@@ -272,6 +272,24 @@ public final class IslandMap {
         return tile != null && tile.getType().isWalkable();
     }
 
+    /**
+     * Player brush support: replace one tile's terrain with matching biome and
+     * resource. Water also clears any building so nothing floats in the sea.
+     */
+    public boolean setTerrain(int x, int y, TileType type) {
+        Tile tile = get(x, y);
+        if (tile == null || type == null) {
+            return false;
+        }
+        tile.setType(type);
+        tile.setBiome(Biome.of(type));
+        tile.setResource(startingResource(type));
+        if (!type.isWalkable()) {
+            tile.setStructure(Structure.NONE);
+        }
+        return true;
+    }
+
     public int count(TileType type) {
         int total = 0;
         for (Tile[] row : tiles) {

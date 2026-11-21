@@ -13,15 +13,28 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 ## Download & play right now / التنزيل والتجربة
 
 **رابط التحميل المباشر للتطبيق (APK):**  
-https://github.com/dotee313/Omatydom/releases/download/v0.6.0/omatydom-0.6.0-debug.apk
+https://github.com/dotee313/Omatydom/releases/download/v0.7.0/omatydom-0.7.0-debug.apk
 
 افتح الرابط من جوالك،حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. التصميم الآن أنظف: سبع صفحات (الجزيرة، السكان، الطبيعة، المخلوقات، الممالك، القدرات، الأحداث) تتنقل بينها بقائمة سفلية من الأيقونات، وكل ضغطة على أيقونة أو شخص أو أرض تعرض شرحًا بسيطًا لمدة ٣ ثوانٍ. اختر أرضًا بالضغط ثم افتح «القدرات» لتوجيه تأثيرك إلى المكان المختار. السنة الكاملة في اللعبة تساوي ساعة واحدة من الوقت الحقيقي عند السرعة x1. يعمل على Android 5.0 أو أحدث.
 
-صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.6.0
+صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.7.0
 
 > The APK is debug-signed and intended for play-testing. Your phone may ask you to allow installation from unknown sources.
 
 ---
+
+## What's new in v0.7.0 — "Sandbox World"
+
+A large visual and interaction overhaul. The simulation is unchanged, but the game now looks and plays much more like a compact pixel sandbox while keeping every sprite original and generated in code.
+
+- **Zoomable, pannable world** — pinch to zoom, drag to move the camera, double-tap to zoom in, and centre/zoom buttons on the map toolbar. Tiles stay readable instead of squeezing the whole island into the screen.
+- **Sandbox paint brushes** — water, sand, grass, forest, orchard, mountain, cave, hut, farm, road, settler, wolf, fire, rain and meteor. Drag a brush over the island to reshape it instantly; inspect mode keeps the old tap-to-explain behaviour.
+- **Animated living map** — moving water glints and shoreline foam, drifting clouds, weather particles, day/night tint and seasonal colour shifts.
+- **Detailed original sprites** — layered trees by biome, shaded mountains and caves, distinct buildings for all 20 structure types, readable citizens with job tools and animals drawn individually for all eight species.
+- **Impact effects** — rain ripples, fire sparks, lightning flashes, meteor streaks and rings, war marks and gentle healing/blessing motes when powers or disasters are used.
+- **Cleaner icon-first interface** — a compact resource strip, rounded dark panels, highlighted active tool tabs, 16 brush badges and the same seven bottom pages with 3-second Arabic explanations.
+
+All simulation rules from v0.6.0 remain: 16 templates, 19 biomes, four peoples, kingdoms/clans/cultures/wars, 70 technologies, 23 laws, 17 disasters, 33 resources, 134 buildings, one child at a time, 270-day pregnancy, a full-year rest and one game year per real hour at x1.
 
 ## What's new in v0.6.0 — "Living Civilizations"
 

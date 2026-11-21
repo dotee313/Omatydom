@@ -59,7 +59,7 @@ public final class DesktopLauncher {
         }
 
         createGame(seed, template, modPack);
-        System.out.println("=== Omatydom v0.6.0 — Living Civilizations | seed " + seed + " ===");
+        System.out.println("=== Omatydom v0.7.0 — Sandbox World | seed " + seed + " ===");
         printHelp();
         printStatus();
 

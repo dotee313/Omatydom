@@ -4,21 +4,27 @@ import com.dotee313.omatydom.core.civ.Clan;
 import com.dotee313.omatydom.core.civ.Culture;
 import com.dotee313.omatydom.core.civ.DiplomacyRelation;
 import com.dotee313.omatydom.core.civ.Kingdom;
+import com.dotee313.omatydom.core.civ.Species;
 import com.dotee313.omatydom.core.civ.War;
 import com.dotee313.omatydom.core.civ.WarType;
 import com.dotee313.omatydom.core.model.Citizen;
-import com.dotee313.omatydom.core.world.AnimalType;
+import com.dotee313.omatydom.core.model.Gender;
+import com.dotee313.omatydom.core.model.Ideology;
 import com.dotee313.omatydom.core.model.Job;
+import com.dotee313.omatydom.core.model.Race;
 import com.dotee313.omatydom.core.model.Religion;
 import com.dotee313.omatydom.core.model.Ruler;
 import com.dotee313.omatydom.core.model.SocialClass;
+import com.dotee313.omatydom.core.world.Biome;
 import com.dotee313.omatydom.core.world.Agent;
 import com.dotee313.omatydom.core.world.Animal;
+import com.dotee313.omatydom.core.world.AnimalType;
 import com.dotee313.omatydom.core.world.IslandMap;
 import com.dotee313.omatydom.core.world.MapTemplate;
 import com.dotee313.omatydom.core.world.Structure;
-import com.dotee313.omatydom.core.world.WorldLaw;
 import com.dotee313.omatydom.core.world.Tile;
+import com.dotee313.omatydom.core.world.TileType;
+import com.dotee313.omatydom.core.world.WorldLaw;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -474,6 +480,48 @@ public final class OmatydomGame {
 
     public void spawnCreature(AnimalType type) {
         engine.spawnCreature(type);
+    }
+
+    /** Place a specific creature exactly where the player's brush touched. */
+    public boolean spawnCreatureAt(AnimalType type, int x, int y) {
+        if (type == null || !world.getMap().inBounds(x, y)) {
+            return false;
+        }
+        world.addAnimal(new Animal(type, x, y));
+        return true;
+    }
+
+    /** Create one new settler on a chosen walkable tile. */
+    public boolean spawnSettlerAt(int x, int y) {
+        Tile tile = world.getMap().get(x, y);
+        if (tile == null || !tile.getType().isWalkable()) {
+            return false;
+        }
+        Species species = Species.values()[random.nextInt(Species.values().length)];
+        Race race = Race.values()[random.nextInt(Race.values().length)];
+        Religion religion = Religion.values()[random.nextInt(Religion.values().length)];
+        Ideology ideology = Ideology.values()[random.nextInt(Ideology.values().length)];
+        Gender gender = random.nextBoolean() ? Gender.MALE : Gender.FEMALE;
+        Job job = random.nextDouble() < 0.6 ? Job.SETTLER : Job.LABORER;
+        Citizen citizen = new Citizen(world.nextId(),
+                NameGenerator.personName(random, species.getNamePoolKey()),
+                gender, race, religion, ideology, 20 * GameConfig.DAYS_PER_YEAR);
+        citizen.setSpecies(species);
+        citizen.setJob(job);
+        citizen.setOccupation(job.getDisplayName());
+        citizen.setHealth(70);
+        citizen.setHappiness(60);
+        world.addCitizen(citizen);
+        world.addAgent(new Agent(citizen, x, y, job));
+        return true;
+    }
+
+    /** Paint terrain directly, like a sandbox brush. */
+    public boolean paintTile(int x, int y, TileType type) {
+        if (type == null || !world.getMap().inBounds(x, y)) {
+            return false;
+        }
+        return world.getMap().setTerrain(x, y, type);
     }
 
     public void setRelation(int a, int b, DiplomacyRelation relation) {

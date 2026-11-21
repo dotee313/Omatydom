@@ -4,47 +4,65 @@
     android:layout_height="match_parent"
     android:background="#FF0E1720"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="6dp">
 
     <TextView
         android:id="@+id/titleText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_panel"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingBottom="3dp"
+        android:paddingLeft="7dp"
+        android:paddingRight="7dp"
+        android:paddingTop="3dp"
         android:text="@string/title"
         android:textColor="#FFFFFFFF"
-        android:textSize="16sp"
+        android:textSize="15sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/statusText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:maxLines="3"
+        android:layout_marginTop="3dp"
+        android:background="@drawable/bg_panel"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:paddingBottom="3dp"
+        android:paddingLeft="6dp"
+        android:paddingRight="6dp"
+        android:paddingTop="3dp"
         android:textColor="#FFCFD8DC"
-        android:textSize="11sp" />
+        android:textSize="10sp" />
 
     <TextView
         android:id="@+id/rulerText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:maxLines="2"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
         android:textColor="#FFFFD54F"
-        android:textSize="11sp" />
+        android:textSize="10sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_height="34dp"
+        android:layout_marginTop="3dp"
+        android:background="@drawable/bg_bar"
         android:orientation="horizontal">
 
         <ImageButton
             android:id="@+id/pauseButton"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="3dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
+            android:background="@drawable/bg_button"
             android:contentDescription="@string/pause"
             android:padding="2dp"
             android:scaleType="fitCenter" />
@@ -52,9 +70,10 @@
         <ImageButton
             android:id="@+id/speedButton"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="3dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
+            android:background="@drawable/bg_button"
             android:contentDescription="@string/speed"
             android:padding="2dp"
             android:scaleType="fitCenter" />
@@ -62,9 +81,10 @@
         <ImageButton
             android:id="@+id/controlButton"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="3dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
+            android:background="@drawable/bg_button"
             android:contentDescription="@string/control"
             android:padding="2dp"
             android:scaleType="fitCenter" />
@@ -72,37 +92,50 @@
         <ImageButton
             android:id="@+id/assassinateButton"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
+            android:background="@drawable/bg_button"
             android:contentDescription="@string/assassinate"
             android:padding="2dp"
             android:scaleType="fitCenter" />
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/resourceStrip"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginTop="3dp"
+        android:background="@drawable/bg_bar"
+        android:orientation="horizontal"
+        android:weightSum="6" />
 
     <TextView
         android:id="@+id/seasonText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
+        android:ellipsize="end"
         android:maxLines="2"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
         android:textColor="#FF90CAF9"
-        android:textSize="10sp" />
+        android:textSize="9sp" />
 
     <ProgressBar
         android:id="@+id/dayProgress"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="4dp"
-        android:layout_marginTop="2dp"
+        android:layout_height="3dp"
+        android:layout_marginTop="1dp"
         android:max="100"
-        android:progress="0" />
+        android:progress="0"
+        android:progressTint="#FF81C784" />
 
     <FrameLayout
         android:id="@+id/pageContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="3dp"
         android:layout_weight="1">
 
         <!-- 0: world -->
@@ -115,44 +148,52 @@
             <LinearLayout
                 android:id="@+id/overlayBar"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:background="#FF1B2833"
+                android:layout_height="34dp"
+                android:background="@drawable/bg_bar"
                 android:orientation="horizontal">
 
                 <ImageButton
                     android:id="@+id/overlayTerrainButton"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_marginRight="3dp"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent"
-                    android:padding="3dp"
+                    android:background="@drawable/bg_button"
+                    android:contentDescription="طبقة التضاريس"
+                    android:padding="2dp"
                     android:scaleType="fitCenter" />
 
                 <ImageButton
                     android:id="@+id/overlayBiomeButton"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_marginRight="3dp"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent"
-                    android:padding="3dp"
+                    android:background="@drawable/bg_button"
+                    android:contentDescription="طبقة الأحياء الحيوية"
+                    android:padding="2dp"
                     android:scaleType="fitCenter" />
 
                 <ImageButton
                     android:id="@+id/overlayKingdomButton"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_marginRight="3dp"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent"
-                    android:padding="3dp"
+                    android:background="@drawable/bg_button"
+                    android:contentDescription="طبقة الممالك"
+                    android:padding="2dp"
                     android:scaleType="fitCenter" />
 
                 <ImageButton
                     android:id="@+id/overlayReligionButton"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_marginRight="3dp"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent"
-                    android:padding="3dp"
+                    android:background="@drawable/bg_button"
+                    android:contentDescription="طبقة المعتقدات"
+                    android:padding="2dp"
                     android:scaleType="fitCenter" />
 
                 <ImageButton
@@ -160,17 +201,255 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent"
-                    android:padding="3dp"
+                    android:background="@drawable/bg_button"
+                    android:contentDescription="طبقة المهن"
+                    android:padding="2dp"
                     android:scaleType="fitCenter" />
             </LinearLayout>
+
+            <HorizontalScrollView
+                android:id="@+id/brushBar"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="3dp"
+                android:background="@drawable/bg_bar"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/brushInspectButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة الفحص"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushWaterButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة الماء"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushSandButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة الرمل"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushGrassButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة العشب"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushForestButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة الغابة"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushOrchardButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة البستان"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushMountainButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة الجبل"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushCaveButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة الكهف"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushHouseButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة الكوخ"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushFarmButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة المزرعة"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushRoadButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة الطريق"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushHumanButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة الإنسان"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushWolfButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة الذئب"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushFireButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة النار"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushRainButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة المطر"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/brushMeteorButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="فرشاة النيزك"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="2dp"
+                        android:layout_marginRight="4dp"
+                        android:background="#FF4A5F6E" />
+
+                    <ImageButton
+                        android:id="@+id/zoomInButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="تكبير الخريطة"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/zoomOutButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="تصغير الخريطة"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/centerButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginRight="2dp"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="توسيط الخريطة"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+
+                    <ImageButton
+                        android:id="@+id/gridButton"
+                        android:layout_width="44dp"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_button"
+                        android:contentDescription="إظهار أو إخفاء شبكة المربعات"
+                        android:padding="2dp"
+                        android:scaleType="fitCenter" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <TextView
+                android:id="@+id/brushHintText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:background="@drawable/bg_panel"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingBottom="2dp"
+                android:paddingLeft="6dp"
+                android:paddingRight="6dp"
+                android:paddingTop="2dp"
+                android:text="الفرشاة: فحص — اضغط أي شيء لتقرأ شرحه."
+                android:textColor="#FFB0BEC5"
+                android:textSize="9sp" />
 
             <com.dotee313.omatydom.android.IslandView
                 android:id="@+id/islandView"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:minHeight="120dp" />
+                android:minHeight="96dp" />
         </LinearLayout>
 
         <!-- 1: people -->
@@ -282,15 +561,18 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
+                android:layout_height="38dp"
+                android:background="@drawable/bg_bar"
                 android:orientation="horizontal">
 
                 <ImageButton
                     android:id="@+id/foundClanButton"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_marginRight="3dp"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent"
+                    android:background="@drawable/bg_button"
+                    android:contentDescription="تأسيس عشيرة"
                     android:padding="2dp"
                     android:scaleType="fitCenter" />
 
@@ -298,8 +580,10 @@
                     android:id="@+id/foundKingdomButton"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_marginRight="3dp"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent"
+                    android:background="@drawable/bg_button"
+                    android:contentDescription="تأسيس مملكة"
                     android:padding="2dp"
                     android:scaleType="fitCenter" />
 
@@ -307,8 +591,10 @@
                     android:id="@+id/researchButton"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_marginRight="3dp"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent"
+                    android:background="@drawable/bg_button"
+                    android:contentDescription="بحث تقني"
                     android:padding="2dp"
                     android:scaleType="fitCenter" />
 
@@ -317,7 +603,8 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:background="@android:color/transparent"
+                    android:background="@drawable/bg_button"
+                    android:contentDescription="إعلان حرب غزو"
                     android:padding="2dp"
                     android:scaleType="fitCenter" />
             </LinearLayout>
@@ -325,7 +612,9 @@
             <LinearLayout
                 android:id="@+id/warTypeRow"
                 android:layout_width="match_parent"
-                android:layout_height="34dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="2dp"
+                android:background="@drawable/bg_bar"
                 android:orientation="horizontal" />
 
             <ScrollView
@@ -459,8 +748,8 @@
 
             <HorizontalScrollView
                 android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:background="#FF1B2833"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_bar"
                 android:scrollbars="none">
 
                 <LinearLayout
@@ -485,10 +774,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:background="#DD263238"
+        android:background="@drawable/bg_panel"
         android:ellipsize="end"
         android:maxLines="2"
-        android:minHeight="34dp"
+        android:minHeight="30dp"
         android:padding="7dp"
         android:textColor="#FFFFFFFF"
         android:textSize="11sp" />
@@ -496,63 +785,76 @@
     <LinearLayout
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginTop="4dp"
-        android:background="#FF1B2833"
-        android:orientation="horizontal">
+        android:layout_height="54dp"
+        android:layout_marginTop="3dp"
+        android:background="@drawable/bg_bar"
+        android:orientation="horizontal"
+        android:weightSum="7">
 
         <ImageButton
             android:id="@+id/navWorldButton"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_marginRight="2dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:padding="5dp"
+            android:background="@drawable/bg_button"
+            android:contentDescription="الجزيرة"
+            android:padding="4dp"
             android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/navPeopleButton"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_marginRight="2dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:padding="5dp"
+            android:background="@drawable/bg_button"
+            android:contentDescription="السكان"
+            android:padding="4dp"
             android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/navNatureButton"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_marginRight="2dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:padding="5dp"
+            android:background="@drawable/bg_button"
+            android:contentDescription="الطبيعة"
+            android:padding="4dp"
             android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/navCreaturesButton"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_marginRight="2dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:padding="5dp"
+            android:background="@drawable/bg_button"
+            android:contentDescription="المخلوقات"
+            android:padding="4dp"
             android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/navKingdomsButton"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_marginRight="2dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:padding="5dp"
+            android:background="@drawable/bg_button"
+            android:contentDescription="الممالك"
+            android:padding="4dp"
             android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/navPowersButton"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_marginRight="2dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:padding="5dp"
+            android:background="@drawable/bg_button"
+            android:contentDescription="القدرات"
+            android:padding="4dp"
             android:scaleType="fitCenter" />
 
         <ImageButton
@@ -560,8 +862,9 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:padding="5dp"
+            android:background="@drawable/bg_button"
+            android:contentDescription="الأحداث"
+            android:padding="4dp"
             android:scaleType="fitCenter" />
     </LinearLayout>
 
