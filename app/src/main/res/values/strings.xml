@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Omatydom</string>
+    <string name="title">Omatydom — the living island</string>
+    <string name="pause">Pause</string>
+    <string name="speed">Speed</string>
+    <string name="control">Take control</string>
+    <string name="assassinate">Assassinate</string>
+    <string name="decree">Decree</string>
+    <string name="choose">Appoint</string>
+    <string name="events_header">Chronicle (newest first)</string>
+</resources>
