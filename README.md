@@ -10,6 +10,19 @@ In Omatydom, you are not forced to micro-manage every detail. You can guide, man
 
 ---
 
+## Download & play right now / التنزيل والتجربة
+
+**رابط التحميل المباشر للتطبيق (APK):**  
+https://github.com/dotee313/Omatydom/releases/download/v0.2.0/omatydom-0.2.0-debug.apk
+
+افتح الرابط من جوالك، حمّل الملف، ثم اضغط عليه واسمح بالتثبيت من «مصادر غير معروفة». بعد التثبيت افتح التطبيق — الجزيرة وسكانها يعملون تلقائيًا. يمكنك الإيقاف وتغيير السرعة واختيار الحاكم من أعلى الشاشة، ومتابعة الأحداث أسفلها. يعمل على Android 5.0 أو أحدث.
+
+صفحة الإصدار الكاملة: https://github.com/dotee313/Omatydom/releases/tag/v0.2.0
+
+> The APK is debug-signed and intended for play-testing. Your phone may ask you to allow installation from unknown sources.
+
+---
+
 ## What's new in v0.2.0 — "The Living Island"
 
 This update turns the abstract population into an actual **place**:
