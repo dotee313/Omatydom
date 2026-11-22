@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/user_dark"
-    android:orientation="vertical"
     android:layoutDirection="rtl"
     android:padding="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layoutDirection="rtl"
+        android:paddingBottom="@dimen/dock_space">
 
     <FrameLayout
         android:id="@+id/pageContainer"
@@ -47,7 +53,7 @@
         <!-- 1: people -->
         <LinearLayout
             android:id="@+id/peoplePage"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/panel_card_width"
             android:layout_height="@dimen/panel_height_seed"
             android:layout_gravity="top|start"
             android:layout_marginStart="8dp"
@@ -86,7 +92,7 @@
         <!-- 2: nature -->
         <LinearLayout
             android:id="@+id/naturePage"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/panel_card_width"
             android:layout_height="@dimen/panel_height_seed"
             android:layout_gravity="top|start"
             android:layout_marginStart="8dp"
@@ -125,7 +131,7 @@
         <!-- 3: creatures -->
         <LinearLayout
             android:id="@+id/creaturesPage"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/panel_card_width"
             android:layout_height="@dimen/panel_height_seed"
             android:layout_gravity="top|start"
             android:layout_marginStart="8dp"
@@ -164,7 +170,7 @@
         <!-- 4: kingdoms -->
         <LinearLayout
             android:id="@+id/kingdomsPage"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/panel_card_width"
             android:layout_height="@dimen/panel_height_seed"
             android:layout_gravity="top|start"
             android:layout_marginStart="8dp"
@@ -324,7 +330,7 @@
         <!-- 5: powers -->
         <LinearLayout
             android:id="@+id/powersPage"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/panel_card_width"
             android:layout_height="@dimen/panel_height_seed"
             android:layout_gravity="top|start"
             android:layout_marginStart="8dp"
@@ -388,7 +394,7 @@
         <!-- 6: events -->
         <LinearLayout
             android:id="@+id/eventsPage"
-            android:layout_width="match_parent"
+            android:layout_width="@dimen/panel_card_width"
             android:layout_height="@dimen/panel_height_seed"
             android:layout_gravity="top|start"
             android:layout_marginStart="8dp"
@@ -1148,234 +1154,186 @@
         </LinearLayout>
     </LinearLayout>
 
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/bottomDock"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dock_height"
-        android:background="@color/user_dark"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@null"
         android:orientation="vertical"
         android:layoutDirection="rtl">
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:background="@color/user_brown" />
 
         <LinearLayout
             android:id="@+id/dockNavRow"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_bar"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_dock_pill"
+            android:padding="4dp"
             android:orientation="horizontal"
             android:weightSum="7"
             android:layoutDirection="rtl">
 
             <LinearLayout
                 android:id="@+id/bottomNav"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
                 android:orientation="horizontal"
+                android:weightSum="7"
                 android:layoutDirection="rtl">
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:minWidth="44dp"
+                    android:minWidth="0dp"
                     android:minHeight="48dp"
                     android:gravity="center"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
+                    android:background="@null"
+                    android:foreground="?android:attr/selectableItemBackground"
                     android:layoutDirection="rtl">
 
                     <ImageButton
                         android:id="@+id/navWorldButton"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:background="@null"
                         android:contentDescription="الجزيرة"
                         android:scaleType="fitCenter" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="جزيرة"
-                        android:textColor="@color/user_text_body"
-                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:minWidth="44dp"
+                    android:minWidth="0dp"
                     android:minHeight="48dp"
                     android:gravity="center"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
+                    android:background="@null"
+                    android:foreground="?android:attr/selectableItemBackground"
                     android:layoutDirection="rtl">
 
                     <ImageButton
                         android:id="@+id/navPeopleButton"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:background="@null"
                         android:contentDescription="السكان"
                         android:scaleType="fitCenter" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="سكان"
-                        android:textColor="@color/user_text_body"
-                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:minWidth="44dp"
+                    android:minWidth="0dp"
                     android:minHeight="48dp"
                     android:gravity="center"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
+                    android:background="@null"
+                    android:foreground="?android:attr/selectableItemBackground"
                     android:layoutDirection="rtl">
 
                     <ImageButton
                         android:id="@+id/navNatureButton"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:background="@null"
                         android:contentDescription="الطبيعة"
                         android:scaleType="fitCenter" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="طبيعة"
-                        android:textColor="@color/user_text_body"
-                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:minWidth="44dp"
+                    android:minWidth="0dp"
                     android:minHeight="48dp"
                     android:gravity="center"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
+                    android:background="@null"
+                    android:foreground="?android:attr/selectableItemBackground"
                     android:layoutDirection="rtl">
 
                     <ImageButton
                         android:id="@+id/navCreaturesButton"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:background="@null"
                         android:contentDescription="المخلوقات"
                         android:scaleType="fitCenter" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="كائنات"
-                        android:textColor="@color/user_text_body"
-                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:minWidth="44dp"
+                    android:minWidth="0dp"
                     android:minHeight="48dp"
                     android:gravity="center"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
+                    android:background="@null"
+                    android:foreground="?android:attr/selectableItemBackground"
                     android:layoutDirection="rtl">
 
                     <ImageButton
                         android:id="@+id/navKingdomsButton"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:background="@null"
                         android:contentDescription="الممالك"
                         android:scaleType="fitCenter" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="ممالك"
-                        android:textColor="@color/user_text_body"
-                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:minWidth="44dp"
+                    android:minWidth="0dp"
                     android:minHeight="48dp"
                     android:gravity="center"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
+                    android:background="@null"
+                    android:foreground="?android:attr/selectableItemBackground"
                     android:layoutDirection="rtl">
 
                     <ImageButton
                         android:id="@+id/navPowersButton"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:background="@null"
                         android:contentDescription="القدرات"
                         android:scaleType="fitCenter" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="قدرات"
-                        android:textColor="@color/user_text_body"
-                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:minWidth="44dp"
+                    android:minWidth="0dp"
                     android:minHeight="48dp"
                     android:gravity="center"
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
+                    android:background="@null"
+                    android:foreground="?android:attr/selectableItemBackground"
                     android:layoutDirection="rtl">
 
                     <ImageButton
                         android:id="@+id/navEventsButton"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:background="@null"
                         android:contentDescription="الأحداث"
                         android:scaleType="fitCenter" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:text="أحداث"
-                        android:textColor="@color/user_text_body"
-                        android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
-</LinearLayout>
+</FrameLayout>

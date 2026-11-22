@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Tablets: the original, roomier dock. -->
-    <dimen name="dock_height">72dp</dimen>
+    <dimen name="dock_height">64dp</dimen>
+    <dimen name="dock_space">80dp</dimen>
     <dimen name="panel_height_seed">420dp</dimen>
     <dimen name="panel_top_offset">104dp</dimen>
+    <dimen name="panel_card_width">420dp</dimen>
 </resources>

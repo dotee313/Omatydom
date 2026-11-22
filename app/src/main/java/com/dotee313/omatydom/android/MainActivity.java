@@ -384,6 +384,8 @@ public class MainActivity extends Activity {
         setupCreaturesStatic();
         setupKingdomActions();
         setupAchievements();
+        // Wire the dock after all panels exist so generated titles get their descriptions.
+        groupDockWire();
 
         selectTab(0);
         refreshUi();
@@ -1278,6 +1280,7 @@ public class MainActivity extends Activity {
         if (container == null) {
             return;
         }
+        int cardW = (int) getResources().getDimension(R.dimen.panel_card_width);
         container.post(() -> {
             int h = container.getHeight();
             if (h <= 0) {
@@ -1285,6 +1288,7 @@ public class MainActivity extends Activity {
             }
             int top = (int) getResources().getDimension(R.dimen.panel_top_offset);
             int maxH = Math.max(dp(160), Math.min((int) (h * 0.58f), h - top - dp(8)));
+            int w = Math.min(cardW, Math.max(dp(160), container.getWidth() - dp(16)));
             for (int i = 1; i < pages.length; i++) {
                 View page = pages[i];
                 if (page == null) {
@@ -1292,7 +1296,7 @@ public class MainActivity extends Activity {
                 }
                 android.widget.FrameLayout.LayoutParams params =
                         new android.widget.FrameLayout.LayoutParams(
-                                android.widget.FrameLayout.LayoutParams.MATCH_PARENT, maxH,
+                                w, maxH,
                                 android.view.Gravity.TOP | android.view.Gravity.START);
                 params.setMargins(dp(8), top, dp(8), dp(8));
                 page.setLayoutParams(params);
@@ -1341,7 +1345,6 @@ public class MainActivity extends Activity {
                 ((View) parent).setOnClickListener(listener);
             }
         }
-        groupDockWire();
     }
 
     private void selectTab(int index) {
@@ -1354,14 +1357,16 @@ public class MainActivity extends Activity {
             boolean active = i == index;
             View navSurface = button.getParent() instanceof View
                     ? (View) button.getParent() : button;
-            navSurface.setBackgroundResource(
-                    active ? R.drawable.nav_selected : R.drawable.bg_button);
-            navSurface.setAlpha(active ? 1f : 0.62f);
             // The active pill is burgundy, so whiten its silhouette for contrast.
             if (active) {
+                navSurface.setBackgroundResource(R.drawable.nav_selected);
+                navSurface.setAlpha(1f);
                 button.setColorFilter(0xFFFFFFFF,
                         android.graphics.PorterDuff.Mode.SRC_IN);
             } else {
+                // Inactive items float on the pill without their own button background.
+                navSurface.setBackgroundColor(Color.TRANSPARENT);
+                navSurface.setAlpha(0.62f);
                 button.clearColorFilter();
             }
         }
@@ -2149,12 +2154,19 @@ public class MainActivity extends Activity {
         }
         peopleList.removeAllViews();
 
-        int portraitSize = dp(42);
+        int portraitSize = dp(36);
         for (final Citizen citizen : candidates) {
             LinearLayout row = new LinearLayout(this);
+            LinearLayout.LayoutParams rowParams =
+                    new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT, dp(48));
+            rowParams.setMargins(0, 0, 0, dp(6));
+            row.setLayoutParams(rowParams);
             row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setPadding(5, 5, 5, 5);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setPadding(dp(8), dp(8), dp(8), dp(8));
             row.setBackgroundResource(R.drawable.bg_panel);
+            setSelectableForeground(row);
 
             ImageView portrait = new ImageView(this);
             portrait.setLayoutParams(new LinearLayout.LayoutParams(portraitSize, portraitSize));
@@ -2167,8 +2179,8 @@ public class MainActivity extends Activity {
             TextView info = new TextView(this);
             info.setLayoutParams(new LinearLayout.LayoutParams(0,
                     LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-            info.setTextColor(0xFFFFFFFF);
-            info.setTextSize(11f);
+            info.setTextColor(getResources().getColor(R.color.user_text_body));
+            info.setTextSize(12f);
             String status = citizen.isPregnant()
                     ? "حامل • يوم " + citizen.getGestationDay(world().getDay())
                             + "/" + GameConfig.GESTATION_DAYS
@@ -2229,8 +2241,10 @@ public class MainActivity extends Activity {
     }
 
     private void addSection(LinearLayout parent, String text) {
-        TextView view = addLabel(parent, text, 12f, 0xFFFCA311);
-        view.setPadding(0, dp(6), 0, dp(2));
+        TextView view = addLabel(parent, text, 13f,
+                getResources().getColor(R.color.user_orange));
+        view.setTypeface(null, android.graphics.Typeface.BOLD);
+        view.setPadding(0, dp(8), 0, dp(4));
     }
 
     private GridLayout grid(LinearLayout parent, int columns) {
@@ -2258,12 +2272,28 @@ public class MainActivity extends Activity {
         return params;
     }
 
+    /** Resolves ?android:attr/selectableItemBackground as a row foreground (API 23+). */
+    private void setSelectableForeground(View view) {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M) {
+            return;
+        }
+        android.content.res.TypedArray ta = obtainStyledAttributes(
+                new int[]{android.R.attr.selectableItemBackground});
+        try {
+            view.setForeground(ta.getDrawable(0));
+        } finally {
+            ta.recycle();
+        }
+    }
+
     private ImageButton smallButton(Drawable icon, String description,
                                     View.OnClickListener listener) {
         ImageButton button = new ImageButton(this);
         button.setBackgroundResource(R.drawable.bg_button);
         button.setScaleType(ImageButton.ScaleType.FIT_CENTER);
-        button.setPadding(2, 2, 2, 2);
+        button.setMinimumWidth(dp(48));
+        button.setMinimumHeight(dp(48));
+        button.setPadding(dp(6), dp(6), dp(6), dp(6));
         button.setImageDrawable(icon);
         button.setContentDescription(description);
         button.setOnClickListener(listener);
@@ -2274,16 +2304,17 @@ public class MainActivity extends Activity {
         LinearLayout cell = new LinearLayout(this);
         cell.setOrientation(LinearLayout.VERTICAL);
         cell.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
-        cell.setPadding(2, 3, 2, 3);
+        cell.setPadding(dp(4), dp(4), dp(4), dp(4));
+        cell.setMinimumHeight(dp(48));
         ImageView image = new ImageView(this);
         image.setImageDrawable(icon);
         image.setScaleType(ImageView.ScaleType.FIT_CENTER);
         image.setContentDescription(label + " — اضغط للشرح");
-        cell.addView(image, new LinearLayout.LayoutParams(dp(22), dp(22)));
+        cell.addView(image, new LinearLayout.LayoutParams(dp(24), dp(24)));
         TextView text = new TextView(this);
         text.setText(label);
         text.setTextColor(0xFFFFFFFF);
-        text.setTextSize(9f);
+        text.setTextSize(11f);
         cell.addView(text);
         if (amount != null) {
             cell.addView(amount);
@@ -2294,21 +2325,30 @@ public class MainActivity extends Activity {
     private void addTextRow(LinearLayout parent, Drawable icon, String text,
                             String hint, float alpha) {
         LinearLayout row = new LinearLayout(this);
+        LinearLayout.LayoutParams rowParams =
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, dp(48));
+        rowParams.setMargins(0, 0, 0, dp(6));
+        row.setLayoutParams(rowParams);
         row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setPadding(4, 4, 4, 4);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(8), dp(8), dp(8), dp(8));
         row.setBackgroundResource(R.drawable.bg_panel);
+        setSelectableForeground(row);
         row.setAlpha(alpha);
         ImageView image = new ImageView(this);
         image.setImageDrawable(icon);
         image.setScaleType(ImageView.ScaleType.FIT_CENTER);
         image.setContentDescription("أيقونة " + text);
-        row.addView(image, new LinearLayout.LayoutParams(dp(26), dp(26)));
+        row.addView(image, new LinearLayout.LayoutParams(dp(36), dp(36)));
         TextView label = new TextView(this);
         label.setLayoutParams(new LinearLayout.LayoutParams(0,
                 LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         label.setText(text);
-        label.setTextColor(0xFFFFFFFF);
-        label.setTextSize(10f);
+        label.setTextColor(getResources().getColor(R.color.user_text_body));
+        label.setTextSize(12f);
+        label.setMaxLines(2);
+        label.setEllipsize(android.text.TextUtils.TruncateAt.END);
         row.addView(label);
         row.setOnClickListener(v -> showHint(hint));
         parent.addView(row);

@@ -913,23 +913,47 @@ final class PixelIcons {
                 set(px, size, 9, 7, red);
                 break;
             case MOUNTAIN:
-                // Snow-capped peak in front of a low ridge.
-                rect(px, size, 0, 9, 11, 11, shade(rock, 0.6f));
-                rect(px, size, 1, 7, 10, 9, rock);
-                rect(px, size, 3, 4, 8, 7, rock);
-                rect(px, size, 5, 1, 6, 3, rock);
-                rect(px, size, 4, 3, 7, 4, light);
-                rect(px, size, 5, 2, 6, 3, 0xFFFFFFFF);
+                // Three original peaks: bright snow, lit left faces, shaded right faces.
+                rect(px, size, 0, 10, 11, 11, shade(rock, 0.55f));
+                rect(px, size, 0, 7, 3, 10, shade(rock, 0.7f));
+                rect(px, size, 1, 5, 2, 7, shade(rock, 0.7f));
+                rect(px, size, 1, 5, 2, 5, light);
+                rect(px, size, 8, 7, 11, 10, shade(rock, 0.66f));
+                rect(px, size, 9, 5, 10, 7, shade(rock, 0.66f));
+                rect(px, size, 9, 5, 10, 5, light);
+                rect(px, size, 3, 6, 8, 10, rock);
+                rect(px, size, 4, 3, 7, 7, rock);
+                rect(px, size, 5, 1, 6, 4, rock);
+                rect(px, size, 3, 6, 5, 9, mix(rock, 0xFFFFFFFF, 0.18f));
+                rect(px, size, 4, 3, 5, 6, mix(rock, 0xFFFFFFFF, 0.18f));
+                rect(px, size, 6, 3, 7, 9, shade(rock, 0.72f));
+                rect(px, size, 7, 6, 8, 10, shade(rock, 0.72f));
+                rect(px, size, 5, 1, 6, 2, 0xFFFFFFFF);
+                rect(px, size, 4, 3, 6, 3, light);
+                rect(px, size, 5, 3, 5, 4, 0xFFFFFFFF);
+                rect(px, size, 3, 6, 4, 6, light);
+                rect(px, size, 8, 6, 9, 6, light);
+                rect(px, size, 4, 7, 6, 7, shade(rock, 0.8f));
+                rect(px, size, 5, 9, 7, 9, shade(rock, 0.8f));
                 break;
             case CAVE:
-                // Rock arch around a very dark opening.
-                rect(px, size, 1, 9, 10, 11, shade(wood, 0.8f));
-                rect(px, size, 2, 3, 9, 9, wood);
-                rect(px, size, 3, 4, 8, 8, ink);
-                rect(px, size, 4, 5, 7, 8, 0xFF10171D);
-                rect(px, size, 2, 2, 9, 2, shade(wood, 1.2f));
-                set(px, size, 5, 7, gold);
-                set(px, size, 6, 6, waterLight);
+                // Original arch, deep mouth and two glowing crystals.
+                rect(px, size, 0, 10, 11, 11, shade(wood, 0.8f));
+                rect(px, size, 1, 4, 10, 10, wood);
+                rect(px, size, 2, 2, 9, 6, wood);
+                rect(px, size, 3, 1, 8, 2, shade(wood, 1.2f));
+                rect(px, size, 3, 4, 8, 9, ink);
+                rect(px, size, 4, 5, 7, 9, 0xFF10171D);
+                rect(px, size, 2, 3, 9, 3, shade(wood, 1.2f));
+                rect(px, size, 3, 4, 8, 4, mix(wood, 0xFFFFFFFF, 0.18f));
+                rect(px, size, 1, 7, 2, 9, shade(wood, 0.7f));
+                rect(px, size, 9, 7, 10, 9, shade(wood, 0.7f));
+                set(px, size, 4, 7, waterLight);
+                set(px, size, 4, 8, waterLight);
+                set(px, size, 5, 7, 0xFFFFFFFF);
+                set(px, size, 8, 6, gold);
+                set(px, size, 8, 7, gold);
+                set(px, size, 9, 7, light);
                 break;
             case HOUSE:
                 // Simple hut with pitched roof and lit window.

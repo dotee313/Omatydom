@@ -69,7 +69,7 @@ public final class DesktopLauncher {
         }
 
         createGame(seed, template, modPack);
-        System.out.println("=== Omatydom v0.9.5 — World-Sized Map, Tool Categories & Brush Sizes | seed " + seed + " ===");
+        System.out.println("=== Omatydom v0.9.6 — Clean Bottom Bar, Card Menus & Living Motion | seed " + seed + " ===");
         printHelp();
         printStatus();
 

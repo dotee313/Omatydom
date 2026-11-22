@@ -97,6 +97,11 @@ public final class IslandView extends View {
     private static final float WALK_TELEPORT_CELLS = 3f;
     private static final long WALK_CLEANUP_MILLIS = 1000L;
 
+    // Visual-only cadence: gait bob, alternating dust puffs and water ripples.
+    private static final long GAIT_MS = 360L;
+    private static final long STEP_MS = 180L;
+    private static final long RIPPLE_MS = 480L;
+
     // User palette, used sparingly as accents so the world keeps its own palette.
     private static final int ACCENT_BURGUNDY = 0xFF5B0A19;
     private static final int ACCENT_ORANGE = 0xFFFCA311;
@@ -954,9 +959,17 @@ public final class IslandView extends View {
             float[] pos = animalWalk.get(animal);
             float ax = pos == null ? animal.getX() : pos[WALK_X];
             float ay = pos == null ? animal.getY() : pos[WALK_Y];
+            float progress = (float) game.getDayProgress();
+            boolean moving = pos != null && progress > 0.02f && progress < 0.98f
+                    && (Math.abs(pos[WALK_X] - pos[WALK_FROM_X]) > 0.02f
+                    || Math.abs(pos[WALK_Y] - pos[WALK_FROM_Y]) > 0.02f);
+            int tx = (int) Math.floor(ax + 0.5f);
+            int ty = (int) Math.floor(ay + 0.5f);
+            boolean inWater = map.inBounds(tx, ty) && map.typeAt(tx, ty) == TileType.WATER;
             if (isOnScreen(ax, ay, 2)) {
                 int facing = pos == null ? 0 : (int) pos[WALK_FACING];
-                drawAnimal(canvas, animal, tileScreenX(ax), tileScreenY(ay), u, now, facing);
+                drawAnimal(canvas, animal, tileScreenX(ax), tileScreenY(ay), u, now, facing,
+                        moving, inWater);
             }
         }
         for (Agent agent : game.getAgents()) {
@@ -1520,24 +1533,33 @@ public final class IslandView extends View {
                               Biome biome, int resource, Weather weather, int season) {
         drawContactShadow(c, left, top, u, 0.6f, 7.1f, 7.7f, 7.85f);
         paint.setColor(ACCENT_DARK_GRAY);
-        rect(c, left, top, u, 0.4f, 6.2f, 7.6f, 8);
-        paint.setColor(0xFF6B6B6B);
-        rect(c, left, top, u, 1.2f, 3.6f, 6.8f, 7);
-        paint.setColor(0xFF858585);
-        rect(c, left, top, u, 2.2f, 1.6f, 5.8f, 5.4f);
-        paint.setColor(0xFFA8A8A8);
-        rect(c, left, top, u, 2.6f, 1.6f, 4.1f, 4.4f);
-        paint.setColor(0xFFC9CCCC);
-        rect(c, left, top, u, 2.9f, 1.5f, 3.7f, 2.9f);
+        rect(c, left, top, u, 0.2f, 7.0f, 7.8f, 8);
 
-        // Short rock striations and a shaded right slope give the peak volume.
-        paint.setColor(withAlpha(ACCENT_MID_GRAY, 0x77));
-        rect(c, left, top, u, 4.5f, 4.2f, 6.5f, 4.55f);
-        rect(c, left, top, u, 4.1f, 5.15f, 6.2f, 5.5f);
-        rect(c, left, top, u, 4.7f, 6.05f, 6.5f, 6.4f);
+        // Three peaks: lit left faces, shaded right faces, bright snow caps.
+        paint.setColor(0xFF6B6B6B);
+        rect(c, left, top, u, 0.3f, 5.2f, 2.8f, 7.4f);
+        rect(c, left, top, u, 5.2f, 5.0f, 7.7f, 7.4f);
+        rect(c, left, top, u, 2.4f, 5.8f, 5.8f, 8);
+        paint.setColor(0xFF858585);
+        rect(c, left, top, u, 0.9f, 3.8f, 2.2f, 5.4f);
+        rect(c, left, top, u, 5.8f, 3.6f, 7.0f, 5.2f);
+        rect(c, left, top, u, 3.0f, 3.0f, 5.2f, 6.6f);
+        rect(c, left, top, u, 3.5f, 1.2f, 4.7f, 4.2f);
+
+        paint.setColor(0xFFA8A8A8);
+        rect(c, left, top, u, 2.6f, 5.8f, 4.0f, 7.8f);
+        rect(c, left, top, u, 3.0f, 3.0f, 4.0f, 5.4f);
         paint.setColor(withAlpha(ACCENT_DARK_GRAY, 0x55));
-        rect(c, left, top, u, 6.0f, 3.9f, 6.8f, 6.9f);
-        rect(c, left, top, u, 5.4f, 2.1f, 5.8f, 5.2f);
+        rect(c, left, top, u, 4.6f, 3.0f, 5.4f, 7.6f);
+
+        paint.setColor(0xFFFFFFFF);
+        rect(c, left, top, u, 1.0f, 3.8f, 1.7f, 4.4f);
+        rect(c, left, top, u, 6.0f, 3.6f, 6.7f, 4.2f);
+        rect(c, left, top, u, 3.5f, 1.2f, 4.7f, 2.2f);
+        rect(c, left, top, u, 2.4f, 5.8f, 3.0f, 6.2f);
+        rect(c, left, top, u, 5.2f, 5.8f, 5.8f, 6.2f);
+        paint.setColor(0xFFC9CCCC);
+        rect(c, left, top, u, 3.0f, 3.0f, 4.0f, 3.6f);
 
         paint.setColor(withAlpha(0xFFFFFFFF, weather == Weather.SNOW ? 0xEE : 0xBB));
         rect(c, left, top, u, 2.9f, 1.2f, 3.9f, 2.2f);
@@ -1567,28 +1589,30 @@ public final class IslandView extends View {
         paint.setColor(ACCENT_BROWN);
         rect(c, left, top, u, 0.5f, 4.6f, 7.5f, 8);
         paint.setColor(0xFF6E5B49);
-        rect(c, left, top, u, 1f, 2.6f, 7f, 5.2f);
+        rect(c, left, top, u, 1f, 2.4f, 7f, 5.2f);
         paint.setColor(0xFF8B735D);
-        rect(c, left, top, u, 2f, 1.8f, 6f, 3.4f);
+        rect(c, left, top, u, 2f, 1.6f, 6f, 2.4f);
         paint.setColor(0xFF140F0B);
-        rect(c, left, top, u, 2.1f, 4.4f, 5.9f, 8);
-        rect(c, left, top, u, 3f, 3.4f, 5f, 5f);
-        // Mouth depth: darkens toward the floor, warm lip catches the light.
-        paint.setColor(withAlpha(ACCENT_DARK_GRAY, 0x66));
-        rect(c, left, top, u, 2.1f, 6.8f, 5.9f, 8);
-        paint.setColor(withAlpha(ACCENT_BROWN, 0x77));
-        rect(c, left, top, u, 2.3f, 4.5f, 5.7f, 4.9f);
+        rect(c, left, top, u, 2.1f, 4.2f, 5.9f, 8);
+        // Mouth depth: a darker inner chamber and a warm lip catching the light.
+        paint.setColor(0xFF10171D);
+        rect(c, left, top, u, 2.8f, 4.8f, 5.2f, 7.6f);
         paint.setColor(withAlpha(0xFFFFD9A0, 0x33));
-        rect(c, left, top, u, 3.1f, 3.5f, 4.9f, 3.8f);
+        rect(c, left, top, u, 2.3f, 4.2f, 5.7f, 4.6f);
         paint.setColor(0xFF3B2E23);
         rect(c, left, top, u, 1.2f, 6.6f, 2.2f, 7.5f);
         rect(c, left, top, u, 5.8f, 6.2f, 6.9f, 7.2f);
         if (resource > 8) {
             paint.setColor(withAlpha(ACCENT_ORANGE, 0x55));
             rect(c, left, top, u, 2.9f, 5.6f, 5.1f, 6.2f);
-            paint.setColor(weather == Weather.ASH ? 0xFFFF8A50 : 0xFFB3E5FC);
-            rect(c, left, top, u, 4.6f, 5.4f, 5f, 5.9f);
-            rect(c, left, top, u, 3.2f, 6.4f, 3.5f, 6.8f);
+            paint.setColor(0xFFB3E5FC);
+            rect(c, left, top, u, 3f, 6.1f, 3.35f, 6.6f);
+            paint.setColor(0xFFFFFFFF);
+            rect(c, left, top, u, 3.4f, 5.8f, 3.7f, 6.1f);
+            paint.setColor(0xFFFFD54F);
+            rect(c, left, top, u, 5.1f, 5.7f, 5.45f, 6.2f);
+            paint.setColor(0xFFFFFFFF);
+            rect(c, left, top, u, 5.5f, 6.2f, 5.8f, 6.5f);
         }
     }
 
@@ -2566,7 +2590,8 @@ public final class IslandView extends View {
     // ------------------------------------------------------------------
 
     private void drawAnimal(Canvas c, Animal animal, float cx, float cy,
-                            float u, long now, int facing) {
+                            float u, long now, int facing,
+                            boolean moving, boolean inWater) {
         // Sprites are drawn facing right; mirror the canvas for a leftward step.
         boolean flipped = facing < 0;
         if (flipped) {
@@ -2578,10 +2603,12 @@ public final class IslandView extends View {
         AnimalType type = animal.getType();
         float ox = cx - 5f * au;
         float groundY = cy - 5f * au;
-        // Land animals breathe/bob in place; fish keep a steady waterline.
-        float bob = type == AnimalType.FISH ? 0f
-                : (float) Math.sin(now / 175.0 + animal.getX() * 2.7f
-                + animal.getY() * 1.3f) * 0.14f * au;
+        // The breathing phase follows the interpolated screen position, so a
+        // step never snaps the sprite when the logical cell changes.
+        float phase = (float) (now / 220.0) + cx * 0.012f + cy * 0.008f;
+        float gait = (float)(Math.sin((now % GAIT_MS) / (double) GAIT_MS * Math.PI * 2.0) * 0.45) * au;
+        float idle = (float) Math.sin(phase) * 0.10f * au;
+        float bob = inWater ? idle : (moving ? gait : (float) Math.sin(phase) * 0.14f * au);
         float oy = groundY + bob;
         int base = opaque(type.getColor());
 
@@ -2591,6 +2618,26 @@ public final class IslandView extends View {
         paint.setColor(withAlpha(ACCENT_DARK_GRAY, 0x33));
         c.drawRect(ox + 1.8f * au, groundY + 8.5f * au,
                 ox + 7.8f * au, groundY + 9f * au, paint);
+
+        // Purely cosmetic footsteps and ripples; no simulation state is touched.
+        if (moving && !inWater) {
+            int parity = (int) ((now / STEP_MS) & 1L);
+            float dx = parity == 0 ? 0.2f : 0.7f;
+            paint.setColor(withAlpha(ACCENT_BROWN, 0x66));
+            rect(c, ox, groundY, au, dx, 8.2f, dx + 0.45f, 8.7f);
+            rect(c, ox, groundY, au, dx + 0.6f, 8.7f, dx + 0.9f, 9.2f);
+            paint.setColor(withAlpha(0xFFD7A86E, 0x55));
+            rect(c, ox, groundY, au, dx + 0.1f, 8.4f, dx + 0.35f, 8.55f);
+            rect(c, ox, groundY, au, dx + 0.7f, 8.9f, dx + 0.85f, 9.05f);
+        } else if (inWater) {
+            float t = (now % RIPPLE_MS) / (float) RIPPLE_MS;
+            paint.setColor(withAlpha(0xFFB3E5FC, (int) (0x99 * (1f - t))));
+            rect(c, ox, groundY, au, 0.6f - t * 0.4f, 7.6f + t * 0.8f,
+                    3.4f + t * 0.4f, 7.9f + t * 0.8f);
+            paint.setColor(withAlpha(0xFFD9F2FF, (int) (0xBB * (1f - t))));
+            rect(c, ox, groundY, au, 5.2f - t * 0.4f, 8.0f + t * 0.4f,
+                    8.6f + t * 0.4f, 8.3f + t * 0.4f);
+        }
 
         switch (type) {
             case DEER: {
